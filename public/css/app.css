@@ -1,0 +1,36 @@
+/* CSS framework removed. Add your styles below. */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Theme Variables (shared across pages) */
+:root {
+  --primary-color: #4caf50;
+  --primary-dark: #388e3c;
+  --primary-light: #81c784;
+  --secondary-color: #66bb6a;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --info-color: #17a2b8;
+  --pink-color: #e91e63;
+  --light-color: #f8f9fa;
+  --dark-color: #2e2e2e;
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 70px;
+  --navbar-height: 70px;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  --transition: all 0.3s ease;
+}
+
+/* Base Typography */
+body {
+  font-family: 'Poppins', sans-serif;
+}
