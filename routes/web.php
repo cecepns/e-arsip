@@ -2,15 +2,19 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Http\Controllers\AuthController;
 
-Route::get('/', function () {
-    return view('pages.dasbor.dasbor');
+// Protected routes - require authentication
+Route::middleware(['auth'])->group(function () {
+    Route::get('/', function () {
+        return view('pages.dasbor.dasbor');
+    });
+    
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-Route::get('/login', function () {
-    return view('pages.autentikasi.login');
+// Guest routes - only accessible when not authenticated
+Route::middleware(['guest'])->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login.form');
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
 });
-
-Route::post('/login', function (Request $request) {
-    return back()->with('error', 'Login belum diimplementasi.');
-})->name('login');
