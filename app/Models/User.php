@@ -18,9 +18,14 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nama_lengkap',
+        'username',
         'email',
         'password',
+        'nomor_telepon',
+        'foto',
+        'role',
+        'bagian_id',
     ];
 
     /**
@@ -44,5 +49,37 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the bagian that owns the user.
+     */
+    public function bagian()
+    {
+        return $this->belongsTo(Bagian::class);
+    }
+
+    /**
+     * Get the surat masuk created by the user.
+     */
+    public function suratMasuk()
+    {
+        return $this->hasMany(SuratMasuk::class);
+    }
+
+    /**
+     * Get the surat keluar created by the user.
+     */
+    public function suratKeluar()
+    {
+        return $this->hasMany(SuratKeluar::class);
+    }
+
+    /**
+     * Get the disposisi created by the user.
+     */
+    public function disposisi()
+    {
+        return $this->hasMany(Disposisi::class);
     }
 }
