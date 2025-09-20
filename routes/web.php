@@ -13,6 +13,11 @@ Route::middleware(['auth'])->group(function () {
     
     // ANCHOR: Logout [POST]
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // ANCHOR: Manajemen Bagian (Divisi)
+    Route::get('/bagian', function () {
+        return view('pages.bagian.index');
+    })->name('bagian.index');
 });
 // !SECTION Protected routes - require authentication
 

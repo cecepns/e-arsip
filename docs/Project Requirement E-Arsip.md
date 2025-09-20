@@ -93,20 +93,21 @@ Fitur data master untuk mengelola unit kerja di dalam instansi.
 
 #### **Halaman Utama (Tampilan Kelola)**
 
-* **Tampilan Tabel:** Daftar bagian dengan kolom Nama Bagian dan Keterangan.  
+* **Tampilan Tabel**:  
+  **Kolom:** No, Nama Bagian, Kepala Bagian, Jumlah Staff, Surat (counter surat masuk dan keluar), Status  
 * **Aksi:** Tambah Data, Lihat Detail, Edit, Hapus.
 
-#### **Halaman Detail Bagian (Khusus Admin)**
+#### **Halaman Detail Bagian (Khusus Admin) (Popup)**
 
-Halaman ini diakses melalui tombol Lihat Detail dan menampilkan:
+Popup ini diakses melalui tombol Lihat Detail dan menampilkan:
 
-* **Informasi Bagian:** Detail nama dan keterangan bagian.  
+* **Informasi Bagian:** No, Nama Bagian, Kepala Bagian, Jumlah Staff, Surat (counter surat masuk dan keluar), Status  
 * **Tabel Surat Masuk:** Daftar semua surat yang ditujukan ke bagian tersebut.  
 * **Tabel Surat Keluar:** Daftar semua surat yang dikirim dari bagian tersebut.
 
-#### **Formulir Tambah/Edit Data**
+#### **Formulir Tambah/Edit Data (Popup)**
 
-* **Input Data:** Nama Bagian, Keterangan.
+* **Input Data:** No, Nama Bagian, Kepala Bagian, Jumlah Staff, Surat (counter surat masuk dan keluar), Status
 
 #### **Hak Akses**
 
