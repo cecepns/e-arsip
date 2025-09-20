@@ -161,25 +161,6 @@
 
     <!-- Content -->
     <div class="content-wrapper">
-        <div class="page-header">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Home</a></li>
-                    <li class="breadcrumb-item active">Dashboard</li>
-                </ol>
-            </nav>
-            <div class="page-title">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h2>Dashboard</h2>
-                    </div>
-                    <div>
-                        <p class="page-subtitle mb-0">Kelola surat masuk dan surat keluar dengan mudah.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         @yield('admin-content')
     </div>
 </div>

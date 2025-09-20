@@ -5,8 +5,27 @@
 @endpush
 
 @section('admin-content')
-<!-- Statistics Cards -->
+{{-- SECTION: Page Header --}}
+<div class="page-header">
+    {{-- ANCHOR: Breadcrumb --}}
+    @include('partials.breadcrumb', [
+        'items' => [
+            ['label' => 'Home', 'url' => '#'],
+            ['label' => 'Dashboard']
+        ]
+    ])
+
+    {{-- ANCHOR: Page Title & Subtitle --}}
+    @include('partials.page-title', [
+        'title' => 'Dashboard',
+        'subtitle' => 'Kelola surat masuk dan surat keluar dengan mudah.'
+    ])
+</div>
+{{-- !SECTION: Page Header --}}
+
+{{-- SECTION: Statistics Cards Counter --}}
 <div class="row g-3 mb-4">
+    {{-- ANCHOR: Statistics "Surat Masuk" --}}
     <div class="col-lg-3 col-md-6">
         <div class="stat-card">
             <div class="card-icon-wrapper bg-success">
@@ -20,6 +39,8 @@
             </div>
         </div>
     </div>
+
+    {{-- ANCHOR: Statistics "Surat Keluar" --}}
     <div class="col-lg-3 col-md-6">
         <div class="stat-card">
             <div class="card-icon-wrapper bg-info">
@@ -33,6 +54,8 @@
             </div>
         </div>
     </div>
+
+    {{-- ANCHOR: Statistics "Disposisi" --}}
     <div class="col-lg-3 col-md-6">
         <div class="stat-card">
             <div class="card-icon-wrapper bg-warning">
@@ -46,6 +69,8 @@
             </div>
         </div>
     </div>
+
+    {{-- ANCHOR: Statistics "Total User" --}}
     <div class="col-lg-3 col-md-6">
         <div class="stat-card">
             <div class="card-icon-wrapper bg-pink">
@@ -60,9 +85,11 @@
         </div>
     </div>
 </div>
+{{-- !SECTION: Statistics Cards Counter --}}
 
-<!-- Statistics Section -->
+{{-- SECTION: Distribution Statistics Chart --}}
 <div class="chart-section">
+    {{-- ANCHOR: Statistics Chart Header --}}
     <div class="chart-header">
         <div>
             <h3 class="chart-title">Statistik Distribusi Surat</h3>
@@ -85,7 +112,9 @@
             </div>
         </div>
     </div>
+
     <div class="row">
+        {{-- ANCHOR: Statistics Chart Content "Surat per Bagian" --}}
         <div class="col-lg-6">
             <div class="chart-left">
                 <h4 class="section-title">Statistik Surat per Bagian</h4>
@@ -153,6 +182,7 @@
                 </div>
             </div>
         </div>
+        {{-- ANCHOR: Statistics Chart Content "Distribusi Jenis Surat" --}}
         <div class="col-lg-6">
             <div class="chart-right">
                 <h4 class="section-title">Distribusi Jenis Surat</h4>
@@ -177,9 +207,11 @@
         </div>
     </div>
 </div>
+{{-- !SECTION: Distribution Statistics Chart --}}
 
-<!-- Recent Activity Section -->
+{{-- SECTION: Recent Activity Table --}}
 <div class="activity-section">
+    {{-- ANCHOR: Recent Activity Table Header Section --}}
     <div class="activity-header-section">
         <div class="activity-title-wrapper">
             <h3 class="activity-title">
@@ -207,134 +239,24 @@
             </button>
         </div>
     </div>
-    <div class="table-responsive">
-        <table class="activity-table">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>No. Surat</th>
-                    <th>Tanggal Surat</th>
-                    <th>Perihal</th>
-                    <th>Jenis Surat</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody id="activityTableBody">
-                <tr class="activity-row">
-                    <td>1</td>
-                    <td><strong>001/SM/XII/2024</strong></td>
-                    <td>15 Desember 2024</td>
-                    <td>Undangan Rapat Koordinasi Bulanan</td>
-                    <td><span class="badge-incoming">Surat Masuk</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(1)">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn delete-btn" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr class="activity-row">
-                    <td>2</td>
-                    <td><strong>002/SK/XII/2024</strong></td>
-                    <td>14 Desember 2024</td>
-                    <td>Surat Penawaran Kerjasama Teknologi</td>
-                    <td><span class="badge-outgoing">Surat Keluar</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(2)">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn delete-btn" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr class="activity-row">
-                    <td>3</td>
-                    <td><strong>003/SM/XII/2024</strong></td>
-                    <td>13 Desember 2024</td>
-                    <td>Laporan Kinerja Bulanan Divisi HRD</td>
-                    <td><span class="badge-incoming">Surat Masuk</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(3)">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn delete-btn" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr class="activity-row">
-                    <td>4</td>
-                    <td><strong>004/SM/XII/2024</strong></td>
-                    <td>12 Desember 2024</td>
-                    <td>Pengajuan Kenaikan Jabatan</td>
-                    <td><span class="badge-incoming">Surat Masuk</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(4)">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn delete-btn" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr class="activity-row">
-                    <td>5</td>
-                    <td><strong>005/SM/XII/2024</strong></td>
-                    <td>11 Desember 2024</td>
-                    <td>Delivery Order Pengadaan Barang</td>
-                    <td><span class="badge-incoming">Surat Masuk</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(5)">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn delete-btn" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="table-footer">
-        <div class="showing-info">
-            <span>Menampilkan 1-5 dari 100 entries</span>
-        </div>
-        <div class="pagination-wrapper">
-            <nav>
-                <ul class="pagination">
-                    <li class="page-item disabled">
-                        <span class="page-link">Previous</span>
-                    </li>
-                    <li class="page-item active">
-                        <span class="page-link">1</span>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">2</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">3</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Next</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </div>
+
+    {{-- ANCHOR: Recent Activity Table Content --}}
+    @include('partials.table', [
+        'tableId' => 'activityTable',
+        'tableClass' => 'activity-table',
+        'thead' => view()->make('pages.dasbor._activity_table_head')->render(),
+        'tbody' => view()->make('pages.dasbor._activity_table_body')->render(),
+    ])
+
+    {{-- ANCHOR: Recent Activity Table Footer --}}
+    @include('partials.pagination', [
+        'currentPage' => 1,
+        'totalPages' => 3,
+        'baseUrl' => '#',
+        'showInfo' => 'Menampilkan 1-5 dari 100 entries'
+    ])
 </div>
+{{-- !SECTION: Recent Activity Table --}}
 @endsection
 
 @push('scripts')
