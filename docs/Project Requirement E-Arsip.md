@@ -7,6 +7,11 @@ Website E-Arsip adalah sistem digital terintegrasi yang dirancang untuk mengelol
 Fungsi Utama:  
 Menjadi alat bantu digital untuk pengelolaan surat secara menyeluruh, mulai dari pencatatan, distribusi, disposisi, hingga pengarsipan dan kemudahan akses kembali oleh unit kerja terkait.
 
+### **1.1. Fitur Antarmuka Umum**
+
+* **Mode Tampilan (Tema):** Seluruh antarmuka aplikasi, kecuali halaman login, mendukung dua mode tampilan: mode terang (light mode) dan mode gelap (dark mode). Pengguna dapat mengganti tema sesuai preferensi untuk kenyamanan visual.  
+* **Notifikasi:** Peringatan untuk aktivitas terbaru (contoh: "Surat masuk baru diterima", "2 disposisi menunggu persetujuan").
+
 ## **2\. Fitur Utama**
 
 Fitur utama adalah komponen sistem yang secara langsung mendukung alur kerja pengelolaan surat.
@@ -17,7 +22,6 @@ Halaman utama yang menyajikan ringkasan visual dan informasi penting secara *rea
 
 * **Kartu Statistik:** Menampilkan jumlah total surat masuk, surat keluar, dan disposisi.  
 * **Grafik (Chart):** Visualisasi data surat dengan filter berdasarkan rentang waktu (misal: 30, 60, 90 hari) dan tahun.  
-* **Notifikasi:** Peringatan untuk aktivitas terbaru (contoh: "Surat masuk baru diterima", "2 disposisi menunggu persetujuan").  
 * **Tabel Aktivitas Terbaru:** Daftar 5-10 surat masuk atau keluar yang baru saja ditambahkan.  
 * **Hak Akses:**  
   * **Admin:** Dapat melihat semua statistik dan aktivitas dari seluruh bagian.  
@@ -90,7 +94,15 @@ Fitur data master untuk mengelola unit kerja di dalam instansi.
 #### **Halaman Utama (Tampilan Kelola)**
 
 * **Tampilan Tabel:** Daftar bagian dengan kolom Nama Bagian dan Keterangan.  
-* **Aksi:** Tambah Data, Edit, Hapus.
+* **Aksi:** Tambah Data, Lihat Detail, Edit, Hapus.
+
+#### **Halaman Detail Bagian (Khusus Admin)**
+
+Halaman ini diakses melalui tombol Lihat Detail dan menampilkan:
+
+* **Informasi Bagian:** Detail nama dan keterangan bagian.  
+* **Tabel Surat Masuk:** Daftar semua surat yang ditujukan ke bagian tersebut.  
+* **Tabel Surat Keluar:** Daftar semua surat yang dikirim dari bagian tersebut.
 
 #### **Formulir Tambah/Edit Data**
 
@@ -98,7 +110,7 @@ Fitur data master untuk mengelola unit kerja di dalam instansi.
 
 #### **Hak Akses**
 
-* **Admin:** Memiliki akses penuh (Tambah, Edit, Hapus, Lihat).  
+* **Admin:** Memiliki akses penuh (Tambah, Lihat Detail, Edit, Hapus).  
 * **Staf:** Tidak memiliki akses ke menu ini.
 
 ### **2.5. Manajemen Pengguna (User)**
@@ -128,9 +140,11 @@ Fitur untuk memberikan instruksi atau tindak lanjut terhadap surat masuk.
 #### **Halaman Utama (Tampilan Kelola)**
 
 * **Tampilan Tabel:** Daftar disposisi dengan kolom Nomor Surat, Tujuan Disposisi, Isi Instruksi, dan Status Tindak Lanjut.  
-* **Fitur Tambahan:** Filter berdasarkan status atau bagian.
+* **Fitur Tambahan:** Filter berdasarkan status atau bagian.  
+* **Aksi per Baris:** Lihat Detail, Edit, Hapus, dan Update Status (khusus Staf).  
+* **Catatan:** Pembuatan disposisi baru dilakukan terintegrasi melalui formulir pada menu **Manajemen Surat Masuk**. Tidak ada tombol Tambah Data di halaman ini.
 
-#### **Formulir Buat/Edit Disposisi**
+#### **Formulir Edit Disposisi**
 
 * **Input Data:** Tujuan (Bagian), Isi Instruksi, Sifat (Segera, Penting), Catatan.
 
@@ -140,8 +154,8 @@ Fitur untuk memberikan instruksi atau tindak lanjut terhadap surat masuk.
 
 #### **Hak Akses**
 
-* **Admin:** Dapat **Membuat, Melihat, Mengedit, dan Menghapus** disposisi (tidak dapat memperbarui status).  
-* **Staf:** Dapat **Membuat, Melihat, Mengedit, Menghapus,** dan **Memperbarui Status** tindak lanjut.
+* **Admin:** Dapat **Melihat, Mengedit, dan Menghapus** disposisi. Admin tidak dapat memperbarui status tindak lanjut.  
+* **Staf:** Dapat **Melihat, Mengedit, Menghapus,** dan **Memperbarui Status** tindak lanjut.
 
 ### **3.2. Laporan**
 
@@ -176,8 +190,8 @@ Halaman personal untuk setiap pengguna.
 ### **4.1. Admin**
 
 * **Kewenangan Penuh:** Mengelola seluruh data surat (masuk dan keluar) dari semua bagian.  
-* **Manajemen Data Master:** Mengelola data pengguna dan bagian.  
-* **Manajemen Disposisi:** Membuat, melihat, mengedit, dan menghapus disposisi untuk semua surat.  
+* **Manajemen Data Master:** Mengelola data pengguna dan bagian, termasuk melihat riwayat surat per bagian.  
+* **Manajemen Disposisi:** Membuat disposisi (via surat masuk), melihat, mengedit, dan menghapus disposisi untuk semua surat.  
 * **Akses Laporan:** Mengakses dan menghasilkan laporan dari seluruh bagian.  
 * **Konfigurasi Sistem:** Mengakses halaman pengaturan.  
 * **Profil:** Mengelola profil pribadi.
@@ -185,6 +199,7 @@ Halaman personal untuk setiap pengguna.
 ### **4.2. Staf**
 
 * **Manajemen Surat Terbatas:** Mengelola penuh (tambah, lihat, edit, hapus) data surat masuk dan keluar yang terkait **hanya dengan bagiannya**.  
-* **Manajemen Disposisi & Aksi:** Mengelola penuh (tambah, lihat, edit, hapus) data disposisi dan **memperbarui status tindak lanjutnya**.  
+* **Manajemen Disposisi & Aksi:** Membuat disposisi (via surat masuk), melihat, mengedit, menghapus, dan **memperbarui status tindak lanjutnya**.  
 * **Akses Laporan Terbatas:** Mengakses dan menghasilkan laporan yang relevan dengan bagiannya.  
 * **Profil:** Mengelola profil pribadi.
+
