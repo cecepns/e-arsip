@@ -1,9 +1,5 @@
 @extends('layouts.admin')
 
-@push('head')
-<link href="{{ asset('css/dashboard.css') }}" rel="stylesheet">
-@endpush
-
 @section('admin-content')
 <div class="page-header">
     @include('partials.breadcrumb', [
