@@ -14,9 +14,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // ANCHOR: Manajemen Bagian (Divisi)
-    Route::get('/bagian', function () {
-        return view('pages.bagian.index');
-    })->name('bagian.index');
+    Route::get('/bagian', [\App\Http\Controllers\BagianController::class, 'index'])->name('bagian.index');
+    Route::post('/bagian', [\App\Http\Controllers\BagianController::class, 'store'])->name('bagian.store');
 });
 // !SECTION Protected routes - require authentication
 
