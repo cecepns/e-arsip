@@ -32,13 +32,15 @@ Menyimpan data semua pengguna yang dapat mengakses sistem.
 
 Menyimpan data master untuk unit kerja atau divisi dalam instansi.
 
-| Nama Kolom | Tipe Data | Keterangan |
-| :---- | :---- | :---- |
-| id | INT, PK, AI | ID unik untuk setiap bagian. |
-| nama\_bagian | VARCHAR(100) | Nama unit kerja/divisi. |
-| keterangan | TEXT | Deskripsi singkat mengenai bagian. |
-| created\_at | TIMESTAMP | Waktu data dibuat. |
-| updated\_at | TIMESTAMP | Waktu data terakhir diubah. |
+| Nama Kolom     | Tipe Data                | Keterangan                        |
+| :----          | :----                    | :----                             |
+| id             | INT, PK, AI              | ID unik untuk setiap bagian.      |
+| nama_bagian    | VARCHAR(100)             | Nama unit kerja/divisi.           |
+| kepala_bagian  | VARCHAR(100)             | Nama kepala bagian/divisi.        |
+| keterangan     | TEXT                     | Deskripsi singkat mengenai bagian.|
+| status         | ENUM('Aktif','Nonaktif') | Status bagian (aktif/nonaktif).   |
+| created_at     | TIMESTAMP                | Waktu data dibuat.                |
+| updated_at     | TIMESTAMP                | Waktu data terakhir diubah.       |
 
 ### **Tabel: surat\_masuk**
 

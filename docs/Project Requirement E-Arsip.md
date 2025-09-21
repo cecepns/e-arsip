@@ -94,7 +94,7 @@ Fitur data master untuk mengelola unit kerja di dalam instansi.
 #### **Halaman Utama (Tampilan Kelola)**
 
 * **Tampilan Tabel**:  
-  **Kolom:** No, Nama Bagian, Kepala Bagian, Jumlah Staff, Surat (counter surat masuk dan keluar), Status  
+  **Kolom:** No, Nama Bagian, Kepala Bagian,  Surat (counter surat masuk dan keluar), Jumlah Staff, Status  
 * **Aksi:** Tambah Data, Lihat Detail, Edit, Hapus.
 
 #### **Halaman Detail Bagian (Khusus Admin) (Popup)**
@@ -107,7 +107,8 @@ Popup ini diakses melalui tombol Lihat Detail dan menampilkan:
 
 #### **Formulir Tambah/Edit Data (Popup)**
 
-* **Input Data:** No, Nama Bagian, Kepala Bagian, Jumlah Staff, Surat (counter surat masuk dan keluar), Status
+* **Input Data:** Nama Bagian(text), Kepala Bagian(text), Deskripsi(textarea) , Status(select)  
+* **Action Buttons:** Batal, Simpan 
 
 #### **Hak Akses**
 
