@@ -18,7 +18,7 @@
                 <button class="action-btn edit-btn" title="Edit" data-bs-toggle="modal" data-bs-target="#modalBagianForm">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="action-btn delete-btn" title="Hapus">
+                <button class="action-btn delete-btn" title="Hapus" data-bs-toggle="modal" data-bs-target="#modalDeleteBagian">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -43,7 +43,7 @@
                 <button class="action-btn edit-btn" title="Edit" data-bs-toggle="modal" data-bs-target="#modalBagianForm">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="action-btn delete-btn" title="Hapus">
+                <button class="action-btn delete-btn" title="Hapus" data-bs-toggle="modal" data-bs-target="#modalDeleteBagian">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -68,7 +68,7 @@
                 <button class="action-btn edit-btn" title="Edit" data-bs-toggle="modal" data-bs-target="#modalBagianForm">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="action-btn delete-btn" title="Hapus">
+                <button class="action-btn delete-btn" title="Hapus" data-bs-toggle="modal" data-bs-target="#modalDeleteBagian">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>

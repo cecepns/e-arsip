@@ -45,13 +45,21 @@
 @include('partials.modal', [
     'id' => 'modalBagianForm',
     'title' => 'Tambah Bagian',
-    'body' => view()->make('pages.bagian._form')->render(),
+    'body' => view()->make('pages.bagian._form_modal')->render(),
 ])
 
 @include('partials.modal', [
     'id' => 'modalBagianDetail',
     'title' => 'Detail Bagian',
     'size' => 'modal-xl',
-    'body' => view()->make('pages.bagian._detail')->render(),
+    'body' => view()->make('pages.bagian._detail_modal')->render(),
+])
+@include('partials.modal', [
+    'type' => 'danger',
+    'id' => 'modalDeleteBagian',
+    'title' => 'Detail Bagian',
+    'size' => 'modal-xl',
+    'body' => 'Apakah Anda yakin ingin menghapus bagian ini?',
+    'footer' => '<button class="btn btn-danger">Ya</button><button class="btn btn-secondary">Tidak</button>',
 ])
 @endsection

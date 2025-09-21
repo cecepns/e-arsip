@@ -1,6 +1,7 @@
 {{--
     Reusable Modal Component
     Params:
+    - type: string (primary, danger. default primary)
     - id: string (modal id)
     - title: string (judul modal)
     - body: string (isi modal, HTML)
@@ -9,6 +10,7 @@
     - centered: bool (opsional, default true)
     Usage:
     @include('partials.modal', [
+        'type' => 'primary',
         'id' => 'detailModal',
         'title' => 'Detail Surat',
         'body' => '<p>Isi detail di sini</p>',
@@ -17,7 +19,7 @@
         'centered' => true
     ])
 --}}
-<div class="modal fade" id="{{ $id }}" aria-hidden="true" aria-labelledby="{{ $id }}Label" tabindex="-1">
+<div class="modal {{ $type ?? 'primary'}} fade" id="{{ $id }}" aria-hidden="true" aria-labelledby="{{ $id }}Label" tabindex="-1">
     <div class="modal-dialog {{ $size ?? 'modal-lg' }}{{ (isset($centered) && $centered !== false) ? ' modal-dialog-centered' : '' }}">
         <div class="modal-content">
             <div class="modal-header">

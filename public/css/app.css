@@ -18,6 +18,7 @@
   --success-color: #28a745;
   --warning-color: #ffc107;
   --danger-color: #dc3545;
+  --danger-dark: #c82333;
   --info-color: #17a2b8;
   --pink-color: #e91e63;
   --light-color: #f8f9fa;
@@ -46,6 +47,22 @@
 }
 .btn-primary:focus {
   background: var(--primary-dark);
+  color: white;
+}
+
+.btn-danger {
+  background: var(--danger-color);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+.btn-danger:hover {
+  background: var(--danger-dark);
+  color: white;
+}
+.btn-danger:focus {
+  background: var(--danger-dark);
   color: white;
 }
 /* =========================================== */

@@ -213,7 +213,7 @@ body.dark-mode {
 }
 
 /* ==========================================================================
-   SECTION TITLES
+  TITLES
    ========================================================================== */
 .section-title {
   color: var(--primary-color);
@@ -351,7 +351,7 @@ body.dark-mode {
 }
 
 /* ==========================================================================
-   ACTIVITY SECTION
+   ACTIVITY
    ========================================================================== */
 .activity-section {
   background: white;
@@ -915,4 +915,8 @@ body.dark-mode {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.modal.danger .modal-header {
+  background: var(--danger-color);
 }
