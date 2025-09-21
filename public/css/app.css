@@ -30,12 +30,61 @@
   --transition: all 0.3s ease;
 }
 
-/* Base Typography */
+/* =========================================== */
+/* SECTION: Rewritten Bootstrap 5              */
+/* =========================================== */
+.btn-primary {
+  background: var(--primary-color);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+.btn-primary:hover {
+  background: var(--primary-dark);
+  color: white;
+}
+.btn-primary:focus {
+  background: var(--primary-dark);
+  color: white;
+}
+/* =========================================== */
+/* !SECTION: Rewritten Bootstrap 5             */
+/* =========================================== */
+
+
+
+/* =========================================== */
+/* SECTION: Custom Ultilities                  */
+/* =========================================== */
+.fw-semibold {
+  font-weight: 600;
+}
+
+/* =========================================== */
+/* !SECTION: Custom Ultilities                  */
+/* =========================================== */
+
+
+
+
+/* =========================================== */
+/* SECTION: Base Typography                   */
+/* =========================================== */
 body {
   font-family: 'Poppins', sans-serif;
   background: #f4f6f9;
   min-height: 100vh;
   color: var(--dark-color);
+}
+
+h1, 
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: bold;
 }
 
 /* Shared Layout: Sidebar */

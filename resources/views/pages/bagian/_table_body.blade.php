@@ -12,10 +12,10 @@
         <td class="text-center"><span class="badge-active">Aktif</span></td>
         <td>
             <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(2)">
+                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#modalBagianDetail">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="action-btn edit-btn" title="Edit" onclick="editDetail(2)">
+                <button class="action-btn edit-btn" title="Edit" data-bs-toggle="modal" data-bs-target="#modalBagianForm">
                     <i class="fas fa-edit"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus">
@@ -37,10 +37,10 @@
         <td class="text-center"><span class="badge-active">Aktif</span></td>
         <td>
             <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(2)">
+                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#modalBagianDetail">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="action-btn edit-btn" title="Edit" onclick="editDetail(2)">
+                <button class="action-btn edit-btn" title="Edit" data-bs-toggle="modal" data-bs-target="#modalBagianForm">
                     <i class="fas fa-edit"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus">
@@ -62,10 +62,10 @@
         <td class="text-center"><span class="badge-inactive">Tidak Aktif</span></td>
         <td>
             <div class="action-buttons m-auto">
-                <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(2)">
+                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#modalBagianDetail">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="action-btn edit-btn" title="Edit" onclick="editDetail(2)">
+                <button class="action-btn edit-btn" title="Edit" data-bs-toggle="modal" data-bs-target="#modalBagianForm">
                     <i class="fas fa-edit"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus">

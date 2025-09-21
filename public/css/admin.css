@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-/* Admin-specific overrides and additions only. Shared styles moved to app.css */
 
 /* Admin Name highlight */
 .admin-name {
@@ -89,8 +88,6 @@ body.dark-mode {
       font-size: 1rem;
   }
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 /* Dashboard-specific styles only. Shared styles moved to app.css */
 
