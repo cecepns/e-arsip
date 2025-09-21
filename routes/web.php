@@ -3,13 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DasborController;
 
 // SECTIONProtected routes - require authentication
 Route::middleware(['auth'])->group(function () {
     // ANCHOR: Dashboard (Page)
-    Route::get('/', function () {
-        return view('pages.dasbor.dasbor');
-    });
+    Route::get('/', [DasborController::class, 'index'])->name('dasbor.index');
     
     // ANCHOR: Logout [POST]
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

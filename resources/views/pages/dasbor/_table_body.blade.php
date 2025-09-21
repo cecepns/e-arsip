@@ -7,7 +7,7 @@
         <td><span class="badge-incoming">Surat Masuk</span></td>
         <td>
             <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(1)">
+                <button class="action-btn view-btn" title="Lihat"  data-bs-toggle="modal" data-bs-target="#detailModal">
                     <i class="fas fa-eye"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus">
@@ -24,7 +24,7 @@
         <td><span class="badge-outgoing">Surat Keluar</span></td>
         <td>
             <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(2)">
+                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
                     <i class="fas fa-eye"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus">
@@ -41,7 +41,7 @@
         <td><span class="badge-incoming">Surat Masuk</span></td>
         <td>
             <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(3)">
+                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
                     <i class="fas fa-eye"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus">
@@ -58,7 +58,7 @@
         <td><span class="badge-incoming">Surat Masuk</span></td>
         <td>
             <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(4)">
+                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
                     <i class="fas fa-eye"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus">
@@ -75,7 +75,7 @@
         <td><span class="badge-incoming">Surat Masuk</span></td>
         <td>
             <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" onclick="viewDetail(5)">
+                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
                     <i class="fas fa-eye"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus">
