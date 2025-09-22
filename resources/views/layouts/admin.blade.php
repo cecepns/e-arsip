@@ -27,7 +27,7 @@
     
     <div class="sidebar-nav">
         <div class="nav-item">
-            <a href="#" class="nav-link active">
+            <a href="{{ route('dasbor.index') }}" class="nav-link{{ request()->routeIs('dasbor.index') ? ' active' : '' }}">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
@@ -45,7 +45,7 @@
             </a>
         </div>
         <div class="nav-item">
-            <a href="#" class="nav-link">
+            <a href="{{ route('bagian.index') }}" class="nav-link{{ request()->routeIs('bagian.index') ? ' active' : '' }}">
                 <i class="fas fa-building"></i>
                 <span>Data Bagian</span>
             </a>

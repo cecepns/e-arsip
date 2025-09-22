@@ -26,9 +26,8 @@
 
 @include('partials.table', [
     'tableId' => 'bagianTable',
-    'tableClass' => 'table table-striped table-hover',
     'thead' => view()->make('pages.bagian._table_head')->render(),
-    'tbody' => view()->make('pages.bagian._table_body')->render(),
+    'tbody' => view()->make('pages.bagian._table_body', compact('bagian'))->render(),
 ])
 
 @include('partials.pagination', [
@@ -40,6 +39,7 @@
 
 @include('partials.modal', [
     'id' => 'modalBagianForm',
+    'size' => 'modal-md',
     'title' => 'Tambah Bagian',
     'body' => view()->make('pages.bagian._form_modal')->render(),
 ])

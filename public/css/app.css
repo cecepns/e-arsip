@@ -65,6 +65,10 @@
   background: var(--danger-dark);
   color: white;
 }
+
+.text-primary {
+  color: var(--primary-color) !important;
+}
 /* =========================================== */
 /* !SECTION: Rewritten Bootstrap 5             */
 /* =========================================== */

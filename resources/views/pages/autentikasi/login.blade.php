@@ -78,7 +78,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-submit mt-2">
+            <button type="submit" class="btn btn-primary p-2 w-100 mt-2">
                 <i class="bi bi-box-arrow-in-right me-2"></i>Masuk
             </button>
         </form>

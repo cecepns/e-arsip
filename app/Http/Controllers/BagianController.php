@@ -10,8 +10,8 @@ class BagianController extends Controller
     // Tampilkan halaman manajemen bagian
     public function index()
     {
-        $bagians = Bagian::all();
-        return view('pages.bagian.index', compact('bagians'));
+        $bagian = Bagian::all();
+        return view('pages.bagian.index', compact('bagian'));
     }
 
     // Simpan data bagian baru

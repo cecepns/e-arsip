@@ -449,11 +449,13 @@ body.dark-mode {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* ==========================================================================
-  TABLE
-  ========================================================================== */
+
+/* =============================================== */
+/* SECTION: Table Styles                           */
+/* =============================================== */
 .table-responsive {
   padding: 0;
+  background-color: white;
 }
 
 .table-responsive table {
@@ -463,7 +465,6 @@ body.dark-mode {
 }
 
 .table-responsive table th {
-  background: #f8f9fa;
   color: var(--dark-color);
   font-weight: 600;
   padding: 18px 15px;
@@ -480,17 +481,12 @@ body.dark-mode {
   vertical-align: middle;
 }
 
-.table-responsive table tr:hover {
-  background: #f8f9fa;
+.table-responsive table tr {
+  background-color: white;
 }
 
-.table-responsive table td:first-child {
-  font-weight: 600;
-  color: var(--dark-color);
-}
-.table-responsive table td:nth-child(2) {
-  font-weight: 600;
-  color: var(--primary-color);
+.table-responsive table tr:hover {
+  background: #f8f9fa;
 }
 
 /* Badges */
@@ -615,6 +611,10 @@ body.dark-mode {
   border-color: var(--primary-color);
 }
 
+/* =============================================== */
+/* !SECTION: Table Styles                           */
+/* =============================================== */
+
 /* ==========================================================================
    ANIMATIONS
    ========================================================================== */
@@ -660,7 +660,7 @@ body.dark-mode {
     opacity: 1;
   }
 }
-.activity-row {
+.tr {
   animation: slideIn 0.3s ease-out;
 }
 
