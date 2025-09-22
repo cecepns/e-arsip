@@ -40,7 +40,7 @@
 @include('partials.modal', [
     'id' => 'modalBagianForm',
     'size' => 'modal-md',
-    'title' => 'Tambah Bagian',
+    'title' => '<span id="modalTitle">Tambah Bagian</span>',
     'body' => view()->make('pages.bagian._form_modal')->render(),
 ])
 
@@ -59,3 +59,70 @@
     'footer' => '<button class="btn btn-danger">Ya</button><button class="btn btn-secondary">Tidak</button>',
 ])
 @endsection
+
+@push('scripts')
+<script>
+function editBagian(button) {
+    // Ambil data dari atribut data
+    const id = button.getAttribute('data-id');
+    const nama = button.getAttribute('data-nama');
+    const kepala = button.getAttribute('data-kepala');
+    const status = button.getAttribute('data-status');
+    const keterangan = button.getAttribute('data-keterangan');
+
+    // Update modal title
+    console.log(document.getElementById('modalTitle'));
+    document.getElementById('modalTitle').textContent = 'Edit Bagian';
+    
+    // Update form action dan method
+    const form = document.getElementById('bagianForm');
+    form.action = `/bagian/${id}`;
+    document.getElementById('formMethod').value = 'PUT';
+    
+    // Update tombol submit
+    document.getElementById('submitBtn').textContent = 'Update';
+    
+    // Populate form dengan data yang ada
+    document.getElementById('bagian_id').value = id;
+    document.getElementById('nama_bagian').value = nama;
+    document.getElementById('kepala_bagian').value = kepala || '';
+    document.getElementById('status').value = status;
+    document.getElementById('keterangan').value = keterangan || '';
+}
+
+// Reset form ketika modal ditutup atau dibuka untuk tambah
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('modalBagianForm');
+    
+    // Reset form ketika modal ditutup
+    modal.addEventListener('hidden.bs.modal', function() {
+        resetForm();
+    });
+    
+    // Reset form ketika tombol tambah diklik
+    document.querySelector('[data-bs-target="#modalBagianForm"]').addEventListener('click', function() {
+        resetForm();
+    });
+});
+
+function resetForm() {
+    // Reset modal title
+    document.getElementById('modalTitle').textContent = 'Tambah Bagian';
+    
+    // Reset form action dan method
+    const form = document.getElementById('bagianForm');
+    form.action = '{{ route("bagian.store") }}';
+    document.getElementById('formMethod').value = 'POST';
+    
+    // Reset tombol submit
+    document.getElementById('submitBtn').textContent = 'Simpan';
+    
+    // Clear form fields
+    document.getElementById('bagian_id').value = '';
+    document.getElementById('nama_bagian').value = '';
+    document.getElementById('kepala_bagian').value = '';
+    document.getElementById('status').value = 'Aktif';
+    document.getElementById('keterangan').value = '';
+}
+</script>
+@endpush

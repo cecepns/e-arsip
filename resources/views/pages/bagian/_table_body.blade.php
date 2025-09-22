@@ -22,7 +22,15 @@
                 <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#modalBagianDetail">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="action-btn edit-btn" title="Edit" data-bs-toggle="modal" data-bs-target="#modalBagianForm">
+                <button class="action-btn edit-btn" title="Edit" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#modalBagianForm"
+                        data-id="{{ $item->id }}"
+                        data-nama="{{ $item->nama_bagian }}"
+                        data-kepala="{{ $item->kepala_bagian }}"
+                        data-status="{{ $item->status }}"
+                        data-keterangan="{{ $item->keterangan }}"
+                        onclick="editBagian(this)">
                     <i class="fas fa-edit"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus" data-bs-toggle="modal" data-bs-target="#modalDeleteBagian">
