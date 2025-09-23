@@ -27,12 +27,13 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $credentials = [
-            'username' => $validated['username'],
-            'password' => $validated['password'],
-        ];
+        // Find user by username
+        $user = User::where('username', $validated['username'])->first();
 
-        if (Auth::attempt($credentials)) {
+        // Check if user exists and password matches (plain text comparison - no hashing)
+        if ($user && $user->password === $validated['password']) {
+            // Manually log in the user
+            Auth::login($user);
             $request->session()->regenerate();
             return redirect()->intended('/');
         }

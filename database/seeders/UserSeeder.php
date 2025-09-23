@@ -18,11 +18,8 @@ class UserSeeder extends Seeder
                 'email' => 'admin@e-arsip.local',
             ],
             [
-                'nama_lengkap' => 'Administrator',
                 'username' => 'admin',
-                'password' => 'admin12345',
-                'nomor_telepon' => null,
-                'foto' => null,
+                'password' => 'admin12345', // Plain text password
                 'role' => 'Admin',
                 'bagian_id' => null,
             ]

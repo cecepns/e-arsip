@@ -18,12 +18,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'nama_lengkap',
         'username',
         'email',
         'password',
-        'nomor_telepon',
-        'foto',
         'role',
         'bagian_id',
     ];
@@ -35,7 +32,6 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'remember_token',
     ];
 
     /**
@@ -46,8 +42,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            // Password tidak di-hash sesuai keinginan klien
         ];
     }
 

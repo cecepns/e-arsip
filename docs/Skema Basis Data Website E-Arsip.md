@@ -19,7 +19,7 @@ Menyimpan data semua pengguna yang dapat mengakses sistem.
 | id | INT, PK, AI | ID unik untuk setiap pengguna. |
 | username | VARCHAR(50), UNIQUE | Username untuk login. |
 | email | VARCHAR(100), UNIQUE | Alamat email pengguna. |
-| password | VARCHAR(255) | Kata sandi yang sudah di-hash. |
+| password | VARCHAR(50) | Kata sandi dalam bentuk plain text. |
 | role | ENUM('Admin', 'Staf') | Peran pengguna dalam sistem. |
 | bagian\_id | INT, FK | Merujuk ke id di tabel bagian. |
 | created\_at | TIMESTAMP | Waktu data dibuat. |
