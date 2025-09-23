@@ -18,11 +18,24 @@
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalBagianForm">
         <i class="fas fa-plus"></i> Tambah Bagian
     </button>
-    <form class="d-flex" style="max-width:300px;">
-        <input type="text" class="form-control me-2" placeholder="Cari nama bagian...">
+    <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('bagian.index') }}">
+        <input type="text" name="search" class="form-control me-2" placeholder="Cari nama bagian..." value="{{ $query ?? '' }}">
         <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+        @if(isset($query) && $query)
+            <a href="{{ route('bagian.index') }}" class="btn btn-outline-danger ms-1" title="Clear search">
+                <i class="fas fa-times"></i>
+            </a>
+        @endif
     </form>
 </div>
+
+@if(isset($query) && $query)
+<div class="alert alert-info mb-3">
+    <i class="fas fa-search me-2"></i> 
+    Hasil pencarian untuk: <strong>"{{ $query }}"</strong> 
+    - Ditemukan {{ $bagian->count() }} bagian
+</div>
+@endif
 
 @include('partials.table', [
     'tableId' => 'bagianTable',
@@ -137,5 +150,35 @@ function deleteBagian(button) {
     const form = document.getElementById('deleteBagianForm');
     form.action = `/bagian/${id}`;
 }
+
+// // Search functionality enhancements
+// document.addEventListener('DOMContentLoaded', function() {
+//     const searchInput = document.querySelector('input[name="search"]');
+//     const searchForm = document.querySelector('form[method="GET"]');
+    
+//     // Auto-submit form when user stops typing (debounced)
+//     let searchTimeout;
+//     if (searchInput) {
+//         searchInput.addEventListener('input', function() {
+//             clearTimeout(searchTimeout);
+//             searchTimeout = setTimeout(function() {
+//                 if (searchInput.value.length >= 2 || searchInput.value.length === 0) {
+//                     searchForm.submit();
+//                 }
+//             }, 500); // Wait 500ms after user stops typing
+//         });
+//     }
+    
+//     // Focus search input when pressing Ctrl+K
+//     document.addEventListener('keydown', function(e) {
+//         if (e.ctrlKey && e.key === 'k') {
+//             e.preventDefault();
+//             if (searchInput) {
+//                 searchInput.focus();
+//                 searchInput.select();
+//             }
+//         }
+//     });
+// });
 </script>
 @endpush

@@ -8,10 +8,11 @@ use Illuminate\Http\Request;
 class BagianController extends Controller
 {
     // Tampilkan halaman manajemen bagian
-    public function index()
+    public function index(Request $request)
     {
-        $bagian = Bagian::all();
-        return view('pages.bagian.index', compact('bagian'));
+        $query = $request->get('search');
+        $bagian = Bagian::where('nama_bagian', 'like', '%' . $query . '%')->get();
+        return view('pages.bagian.index', compact('bagian', 'query'));
     }
 
     // Simpan data bagian baru
