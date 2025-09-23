@@ -121,12 +121,12 @@ Fitur data master untuk mengelola akun dan hak akses pengguna sistem.
 
 #### **Halaman Utama (Tampilan Kelola)**
 
-* **Tampilan Tabel:** Daftar pengguna dengan kolom Username, Nama Lengkap, Email, Bagian, dan Role.  
+* **Tampilan Tabel:** Daftar pengguna dengan kolom No, Username, Email, Bagian, Password  dan Role.  
 * **Aksi:** Tambah Data, Edit, Hapus.
 
 #### **Formulir Tambah/Edit Data**
 
-* **Input Data:** Username, Nama Lengkap, Email, Nomor Telepon, Bagian, Role/Jabatan (Admin/Staf), Password.
+* **Input Data:** Username(text), Email(email), Bagian(select), Password(password)  dan Role(select).
 
 #### **Hak Akses**
 

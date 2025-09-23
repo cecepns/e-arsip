@@ -17,12 +17,9 @@ Menyimpan data semua pengguna yang dapat mengakses sistem.
 | Nama Kolom | Tipe Data | Keterangan |
 | :---- | :---- | :---- |
 | id | INT, PK, AI | ID unik untuk setiap pengguna. |
-| nama\_lengkap | VARCHAR(100) | Nama lengkap pengguna. |
 | username | VARCHAR(50), UNIQUE | Username untuk login. |
 | email | VARCHAR(100), UNIQUE | Alamat email pengguna. |
 | password | VARCHAR(255) | Kata sandi yang sudah di-hash. |
-| nomor\_telepon | VARCHAR(20) | Nomor telepon pengguna. |
-| foto | VARCHAR(255) | Path atau nama file foto profil. |
 | role | ENUM('Admin', 'Staf') | Peran pengguna dalam sistem. |
 | bagian\_id | INT, FK | Merujuk ke id di tabel bagian. |
 | created\_at | TIMESTAMP | Waktu data dibuat. |
