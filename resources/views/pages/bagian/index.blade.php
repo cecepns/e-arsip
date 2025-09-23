@@ -53,10 +53,10 @@
 @include('partials.modal', [
     'type' => 'danger',
     'id' => 'modalDeleteBagian',
-    'title' => 'Detail Bagian',
-    'size' => 'modal-xl',
-    'body' => 'Apakah Anda yakin ingin menghapus bagian ini?',
-    'footer' => '<button class="btn btn-danger">Ya</button><button class="btn btn-secondary">Tidak</button>',
+    'title' => 'Hapus Bagian',
+    'size' => 'modal-md',
+    'body' => '<p>Apakah Anda yakin ingin menghapus bagian <strong id="deleteBagianName"></strong>?</p><p class="text-muted">Tindakan ini tidak dapat dibatalkan.</p>',
+    'footer' => '<form id="deleteBagianForm" method="POST" style="display: inline;"><input type="hidden" name="_method" value="DELETE"><input type="hidden" name="_token" value="' . csrf_token() . '"><button type="submit" class="btn btn-danger">Ya, Hapus</button></form><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>',
 ])
 @endsection
 
@@ -123,6 +123,19 @@ function resetForm() {
     document.getElementById('kepala_bagian').value = '';
     document.getElementById('status').value = 'Aktif';
     document.getElementById('keterangan').value = '';
+}
+
+function deleteBagian(button) {
+    // Ambil data dari atribut data
+    const id = button.getAttribute('data-id');
+    const nama = button.getAttribute('data-nama');
+    
+    // Update nama bagian di modal
+    document.getElementById('deleteBagianName').textContent = nama;
+    
+    // Update form action
+    const form = document.getElementById('deleteBagianForm');
+    form.action = `/bagian/${id}`;
 }
 </script>
 @endpush

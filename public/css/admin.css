@@ -900,7 +900,7 @@ body.dark-mode {
 }
 
 /* ================================================= */
-/* ANCHOR Modal */
+/* SECTION: Modal Styles */
 /* ================================================= */
 .modal-content {
   border-radius: 15px;
@@ -920,3 +920,10 @@ body.dark-mode {
 .modal.danger .modal-header {
   background: var(--danger-color);
 }
+
+.modal-header .btn-close {
+  display: none;
+}
+/* ================================================= */
+/* !SECTION: Modal Styles */
+/* ================================================= */

@@ -33,7 +33,12 @@
                         onclick="editBagian(this)">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="action-btn delete-btn" title="Hapus" data-bs-toggle="modal" data-bs-target="#modalDeleteBagian">
+                <button class="action-btn delete-btn" title="Hapus" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#modalDeleteBagian"
+                        data-id="{{ $item->id }}"
+                        data-nama="{{ $item->nama_bagian }}"
+                        onclick="deleteBagian(this)">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
