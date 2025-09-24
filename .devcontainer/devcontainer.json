@@ -1,0 +1,22 @@
+{
+  "name": "Laravel E-Arsip Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/php:8.2",
+  "features": {
+    "ghcr.io/devcontainers/features/composer:2": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "lts" }
+  },
+  "postCreateCommand": "composer install && cp .env.example .env || true && php artisan key:generate",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "onecentlin.laravel-blade",
+        "onecentlin.laravel5-snippets",
+        "xdebug.php-debug",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "forwardPorts": [8000],
+  "remoteUser": "vscode"
+}
