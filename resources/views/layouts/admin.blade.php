@@ -51,7 +51,7 @@
             </a>
         </div>
         <div class="nav-item">
-            <a href="#" class="nav-link">
+            <a href="{{ route('user.index') }}" class="nav-link{{ request()->routeIs('user.index') ? ' active' : '' }}">
                 <i class="fas fa-users"></i>
                 <span>Data User</span>
             </a>
