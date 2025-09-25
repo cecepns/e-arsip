@@ -64,9 +64,10 @@
 @include('partials.modal', [
     'type' => 'danger',
     'id' => 'modalDeleteUser',
-    'title' => 'Hapus User',
+    'title' => 'Konfirmasi Hapus User',
     'size' => 'modal-md',
     'body' => view()->make('pages.user._delete_modal')->render(),
+    'footer' => view()->make('pages.user._delete_modal_footer')->render(),
 ])
 @endsection
 

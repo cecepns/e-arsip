@@ -10,7 +10,7 @@
                     ••••••••
                 </span>
                 <button type="button" class="btn btn-sm btn-outline-secondary ms-2 password-toggle" 
-                        onclick="togglePassword({{ $user->id }})" 
+                        onclick="togglePassword('{{ $user->id }}')" 
                         title="Toggle password visibility">
                     <i class="fas fa-eye" id="toggle-icon-{{ $user->id }}"></i>
                 </button>
