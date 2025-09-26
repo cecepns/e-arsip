@@ -47,9 +47,7 @@
                 <button class="action-btn delete-btn" title="Hapus" 
                         data-bs-toggle="modal" 
                         data-bs-target="#modalDeleteUser"
-                        data-id="{{ $user->id }}"
-                        data-username="{{ $user->username }}"
-                        onclick="deleteUser(this)">
+                        onclick="showDeleteUserModal({{ $user->id }})">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
