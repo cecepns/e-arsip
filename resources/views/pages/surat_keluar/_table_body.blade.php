@@ -9,9 +9,24 @@
         <td>{{ $surat->perihal }}</td>
         <td>{{ $surat->pengirimBagian->nama_bagian ?? '-' }}</td>
         <td>
-            <a href="{{ route('surat_keluar.show', $surat->id) }}" class="btn btn-info btn-sm">Detail</a>
-            <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#formSuratKeluarModal" data-id="{{ $surat->id }}">Edit</button>
-            <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteSuratKeluarModal" data-id="{{ $surat->id }}">Hapus</button>
+            <div class="action-buttons">
+                <button class="action-btn view-btn" title="Lihat" 
+                        onclick="window.location.href='{{ route('surat_keluar.show', $surat->id) }}'">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn edit-btn" title="Edit" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#formSuratKeluarModal"
+                        data-id="{{ $surat->id }}">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-btn" title="Hapus" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#deleteSuratKeluarModal"
+                        data-id="{{ $surat->id }}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
         </td>
     </tr>
     @empty

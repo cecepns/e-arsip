@@ -9,6 +9,8 @@ class Lampiran extends Model
 {
     use HasFactory;
 
+    protected $table = 'lampiran';
+
     protected $fillable = [
         'surat_id',
         'tipe_surat',

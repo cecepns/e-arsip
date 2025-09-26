@@ -14,14 +14,15 @@ class SuratKeluarController extends Controller
     public function index(Request $request)
     {
         // Nanti: filter, hak akses, pencarian
+        $bagian = Bagian::where('status', 'Aktif')->get();
         $suratKeluar = SuratKeluar::with('pengirimBagian', 'user')->get();
-        return view('pages.surat_keluar.index', compact('suratKeluar'));
+        return view('pages.surat_keluar.index', compact('suratKeluar', 'bagian'));
     }
 
     // Tampilkan form tambah surat keluar
     public function create()
     {
-        $bagian = Bagian::all();
+        $bagian = Bagian::where('status', 'Aktif')->get();
         return view('pages.surat_keluar.create', compact('bagian'));
     }
 

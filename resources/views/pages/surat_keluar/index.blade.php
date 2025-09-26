@@ -54,15 +54,8 @@
     'id' => 'formSuratKeluarModal',
     'size' => 'modal-xl',
     'title' => '<span id="modalTitle">Tambah Surat Keluar</span>',
-    'body' => view('pages.surat_keluar._form_modal', ['bagian' => $bagian ?? []]),
+    'body' => view('pages.surat_keluar._form_modal', compact('bagian'))->render(),
 ])
-
-{{-- @include('partials.modal', [
-    'id' => 'modalSuratKeluarDetail',
-    'title' => 'Detail Surat Keluar',
-    'size' => 'modal-xl',
-    'body' => view('pages.surat_keluar.show', compact('suratKeluar'))->render(),
-]) --}}
 
 @include('partials.modal', [
     'type' => 'danger',

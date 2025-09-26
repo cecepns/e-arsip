@@ -21,10 +21,6 @@
                 <input type="text" name="perihal" id="perihal" class="form-control" required>
             </div>
             <div class="form-group mb-3">
-                <label class="form-label">Ringkasan Isi</label>
-                <textarea name="ringkasan_isi" id="ringkasan_isi" class="form-control" required></textarea>
-            </div>
-            <div class="form-group mb-3">
                 <label class="form-label">Penerima</label>
                 <input type="text" name="tujuan" id="tujuan" class="form-control" required>
             </div>
@@ -40,10 +36,6 @@
         </div>
         <div class="col-md-6">
             <div class="form-group mb-3">
-                <label class="form-label">Keterangan</label>
-                <textarea name="keterangan" id="keterangan" class="form-control"></textarea>
-            </div>
-            <div class="form-group mb-3">
                 <label class="form-label">Lampiran Surat Utama (PDF)</label>
                 <input type="file" name="lampiran_pdf" id="lampiran_pdf" class="form-control" accept="application/pdf" required>
             </div>
@@ -51,9 +43,18 @@
                 <label class="form-label">Dokumen Pendukung (ZIP, RAR, DOCX, XLSX)</label>
                 <input type="file" name="lampiran_pendukung[]" id="lampiran_pendukung" class="form-control" multiple accept=".zip,.rar,.docx,.xlsx">
             </div>
-            <div class="form-group mb-3 text-end">
-                <button type="submit" id="submitBtn" class="btn btn-primary">Simpan</button>
+            <div class="form-group mb-3">
+                <label class="form-label">Ringkasan Isi</label>
+                <textarea name="ringkasan_isi" rows="5" id="ringkasan_isi" class="form-control" required></textarea>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label">Keterangan</label>
+                <textarea name="keterangan" rows="5" id="keterangan" class="form-control"></textarea>
             </div>
         </div>
+    </div>
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" aria-label="Close">Batal</button>
+        <button type="submit" id="submitBtn" class="btn btn-primary">Simpan</button>
     </div>
 </form>
