@@ -42,6 +42,21 @@ class UserController extends Controller
                 'password' => 'required|string|max:50',
                 'role' => 'required|in:Admin,Staf',
                 'bagian_id' => 'nullable|exists:bagian,id',
+            ], [
+                'username.required' => 'Username wajib diisi.',
+                'username.string' => 'Username harus berupa teks.',
+                'username.max' => 'Username maksimal 50 karakter.',
+                'username.unique' => 'Username sudah digunakan.',
+                'email.required' => 'Email wajib diisi.',
+                'email.email' => 'Format email tidak valid.',
+                'email.max' => 'Email maksimal 100 karakter.',
+                'email.unique' => 'Email sudah digunakan.',
+                'password.required' => 'Password wajib diisi.',
+                'password.string' => 'Password harus berupa teks.',
+                'password.max' => 'Password maksimal 50 karakter.',
+                'role.required' => 'Role wajib dipilih.',
+                'role.in' => 'Role harus Admin atau Staf.',
+                'bagian_id.exists' => 'Bagian yang dipilih tidak valid.',
             ]);
 
             $user = User::create($validated);
@@ -119,6 +134,20 @@ class UserController extends Controller
             'password' => 'nullable|string|max:50',
             'role' => 'required|in:Admin,Staf',
             'bagian_id' => 'nullable|exists:bagian,id',
+        ], [
+            'username.required' => 'Username wajib diisi.',
+            'username.string' => 'Username harus berupa teks.',
+            'username.max' => 'Username maksimal 50 karakter.',
+            'username.unique' => 'Username sudah digunakan.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.max' => 'Email maksimal 100 karakter.',
+            'email.unique' => 'Email sudah digunakan.',
+            'password.string' => 'Password harus berupa teks.',
+            'password.max' => 'Password maksimal 50 karakter.',
+            'role.required' => 'Role wajib dipilih.',
+            'role.in' => 'Role harus Admin atau Staf.',
+            'bagian_id.exists' => 'Bagian yang dipilih tidak valid.',
         ]);
 
         // Jika password kosong atau null, hapus dari array validated untuk mempertahankan password lama
@@ -140,14 +169,67 @@ class UserController extends Controller
     /**
      * Remove the specified user from storage.
      */
-    public function destroy(string $id): RedirectResponse
+    public function destroy(Request $request, string $id)
     {
-        $user = User::findOrFail($id);
-        $username = $user->username;
-        
-        $user->delete();
+        try {
+            $user = User::findOrFail($id);
+            $username = $user->username;
+            
+            $user->delete();
 
-        return redirect()->route('user.index')
-            ->with('success', "User '{$username}' berhasil dihapus.");
+            // ANCHOR: Handle AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "User '{$username}' berhasil dihapus.",
+                    'timestamp' => now()->format('Y-m-d H:i:s')
+                ], 200);
+            }
+
+            return redirect()->route('user.index')
+                ->with('success', "User '{$username}' berhasil dihapus.");
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // ANCHOR: Handle user not found
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak ditemukan.',
+                    'error_type' => 'not_found'
+                ], 404);
+            }
+            throw $e;
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // ANCHOR: Handle database errors
+            if ($request->ajax()) {
+                $errorMessage = 'Terjadi kesalahan database.';
+                
+                // Check for specific database errors
+                if (str_contains($e->getMessage(), 'foreign key constraint')) {
+                    $errorMessage = 'User tidak dapat dihapus karena memiliki data terkait.';
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'error_type' => 'database',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+
+        } catch (\Exception $e) {
+            // ANCHOR: Handle general errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                    'error_type' => 'general',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+        }
     }
 }

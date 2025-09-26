@@ -79,6 +79,7 @@
   </head>
   <body>
     @yield('content')
+    <script src="{{ asset('js/utils.js') }}"></script>
     @stack('scripts')
   </body>
 </html> 

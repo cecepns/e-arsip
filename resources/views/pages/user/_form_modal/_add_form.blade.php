@@ -46,8 +46,7 @@
     <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-secondary me-2" aria-label="close" data-bs-dismiss="modal" id="addUserCancelBtn">Batal</button>
         <button type="submit" class="btn btn-primary" id="addUserSubmitBtn">
-            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-            <span class="btn-text">Simpan</span>
+            Simpan
         </button>
     </div>
 </form>

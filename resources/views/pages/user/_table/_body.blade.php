@@ -41,7 +41,7 @@
                         data-password="{{ $user->password }}"
                         data-role="{{ $user->role }}"
                         data-bagian="{{ $user->bagian_id }}"
-                        onclick="editUser(this)">
+                        onclick="showEditUserModal({{ $user->bagian_id }})">
                     <i class="fas fa-edit"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus" 

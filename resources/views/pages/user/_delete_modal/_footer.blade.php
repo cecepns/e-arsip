@@ -1,10 +1,7 @@
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close" id="deleteUserCancelBtn">
     Batal
 </button>
-<form id="deleteUserForm" method="POST" style="display: inline;">
-    @csrf
-    @method('DELETE')
-    <button type="submit" class="btn btn-danger">
-        Ya, Hapus
-    </button>
-</form>
+<button type="submit" class="btn btn-danger" id="deleteUserSubmitBtn">
+    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+    <span class="btn-text">Ya, Hapus</span>
+</button>
