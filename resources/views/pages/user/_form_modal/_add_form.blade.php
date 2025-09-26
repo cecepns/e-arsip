@@ -1,20 +1,24 @@
 <form id="addUserForm" action="{{ route('user.store') }}" method="POST">
     @csrf
     
+    
     <div class="mb-3">
         <label for="add_username" class="form-label">Username</label>
-        <input type="text" name="username" class="form-control" id="add_username" placeholder="Username" value="{{ old('username') }}" required>
+        <input type="text" name="username" class="form-control" id="add_username" placeholder="Username" value="{{ old('username') }}">
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="mb-3">
         <label for="add_email" class="form-label">Email</label>
-        <input type="email" name="email" class="form-control" id="add_email" placeholder="email@example.com" value="{{ old('email') }}" required>
+        <input type="email" name="email" class="form-control" id="add_email" placeholder="email@example.com" value="{{ old('email') }}">
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="mb-3">
         <label for="add_password" class="form-label">Password</label>
-        <input type="text" name="password" class="form-control" id="add_password" placeholder="Password" value="{{ old('password') }}" required>
+        <input type="text" name="password" class="form-control" id="add_password" placeholder="Password" value="{{ old('password') }}">
         <div class="form-text">Password akan disimpan dalam bentuk plain text</div>
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="mb-3">
@@ -23,6 +27,7 @@
             <option value="Staf" {{ old('role') == 'Staf' ? 'selected' : '' }}>Staf</option>
             <option value="Admin" {{ old('role') == 'Admin' ? 'selected' : '' }}>Admin</option>
         </select>
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="mb-3">
@@ -35,10 +40,14 @@
                 </option>
             @endforeach
         </select>
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="d-flex justify-content-end">
-        <button type="button" class="btn btn-secondary me-2" aria-label="close" data-bs-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary">Simpan</button>
+        <button type="button" class="btn btn-secondary me-2" aria-label="close" data-bs-dismiss="modal" id="addUserCancelBtn">Batal</button>
+        <button type="submit" class="btn btn-primary" id="addUserSubmitBtn">
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            <span class="btn-text">Simpan</span>
+        </button>
     </div>
 </form>

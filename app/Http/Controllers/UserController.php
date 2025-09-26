@@ -33,20 +33,77 @@ class UserController extends Controller
     /**
      * Store a newly created user in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
-        $validated = $request->validate([
-            'username' => 'required|string|max:50|unique:users,username',
-            'email' => 'required|email|max:100|unique:users,email',
-            'password' => 'required|string|max:50',
-            'role' => 'required|in:Admin,Staf',
-            'bagian_id' => 'nullable|exists:bagian,id',
-        ]);
+        try {
+            $validated = $request->validate([
+                'username' => 'required|string|max:50|unique:users,username',
+                'email' => 'required|email|max:100|unique:users,email',
+                'password' => 'required|string|max:50',
+                'role' => 'required|in:Admin,Staf',
+                'bagian_id' => 'nullable|exists:bagian,id',
+            ]);
 
-        User::create($validated);
+            $user = User::create($validated);
 
-        return redirect()->route('user.index')
-            ->with('success', 'User berhasil ditambahkan.');
+            // ANCHOR: Handle AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'User berhasil ditambahkan.',
+                    'user' => $user->load('bagian'),
+                    'timestamp' => now()->format('Y-m-d H:i:s')
+                ], 201);
+            }
+
+            return redirect()->route('user.index')
+                ->with('success', 'User berhasil ditambahkan.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // ANCHOR: Handle validation errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal. Periksa data yang dimasukkan.',
+                    'errors' => $e->errors(),
+                    'error_type' => 'validation'
+                ], 422);
+            }
+            throw $e;
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // ANCHOR: Handle database errors
+            if ($request->ajax()) {
+                $errorMessage = 'Terjadi kesalahan database.';
+                
+                // Check for specific database errors
+                if (str_contains($e->getMessage(), 'Duplicate entry')) {
+                    $errorMessage = 'Data sudah ada dalam sistem.';
+                } elseif (str_contains($e->getMessage(), 'foreign key constraint')) {
+                    $errorMessage = 'Data bagian tidak valid.';
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'error_type' => 'database',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+
+        } catch (\Exception $e) {
+            // ANCHOR: Handle general errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                    'error_type' => 'general',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+        }
     }
 
     /**

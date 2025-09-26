@@ -45,8 +45,12 @@
   background: var(--primary-dark);
   color: white;
 }
-.btn-primary:focus {
-  background: var(--primary-dark);
+.btn-primary:focus, .btn-primary:focus-visible, .btn-primary:active {
+  background: var(--primary-dark) !important; 
+  color: white;
+}
+.btn-primary:disabled {
+  background: var(--primary-light);
   color: white;
 }
 
