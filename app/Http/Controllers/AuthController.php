@@ -27,10 +27,10 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        // Find user by username
+        // Find user by username (automatically excludes soft deleted users due to SoftDeletes trait)
         $user = User::where('username', $validated['username'])->first();
 
-        // Check if user exists and password matches (plain text comparison - no hashing)
+        // Check if user exists, is not soft deleted, and password matches (plain text comparison - no hashing)
         if ($user && $user->password === $validated['password']) {
             // Manually log in the user
             Auth::login($user);
