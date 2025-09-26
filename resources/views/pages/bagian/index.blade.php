@@ -68,7 +68,7 @@
     'id' => 'modalDeleteBagian',
     'title' => 'Hapus Bagian',
     'size' => 'modal-md',
-    'body' => '<p>Apakah Anda yakin ingin menghapus bagian <strong id="deleteBagianName"></strong>?</p><p class="text-muted">Tindakan ini tidak dapat dibatalkan.</p>',
+    'body' => '<p>Apakah Anda yakin ingin menghapus bagian <strong id="deleteBagianName"></strong>?</p><p class="text-muted">Data akan dihapus secara soft delete untuk menjaga integritas data relasi.</p>',
     'footer' => '<form id="deleteBagianForm" method="POST" style="display: inline;"><input type="hidden" name="_method" value="DELETE"><input type="hidden" name="_token" value="' . csrf_token() . '"><button type="submit" class="btn btn-danger">Ya, Hapus</button></form><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>',
 ])
 @endsection
@@ -150,6 +150,7 @@ function deleteBagian(button) {
     const form = document.getElementById('deleteBagianForm');
     form.action = `/bagian/${id}`;
 }
+
 
 // // Search functionality enhancements
 // document.addEventListener('DOMContentLoaded', function() {
