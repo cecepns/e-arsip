@@ -167,6 +167,7 @@ function setLoadingState(loading, btnElement) {
     let spinner = btnElement.querySelector('.spinner-border');
     if (!spinner) {
         spinner = document.createElement('span');
+        spinner.style.marginRight = '5px';
         spinner.className = 'spinner-border spinner-border-sm d-none';
         spinner.setAttribute('role', 'status');
         spinner.setAttribute('aria-hidden', 'true');

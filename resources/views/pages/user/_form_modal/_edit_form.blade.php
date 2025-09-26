@@ -6,17 +6,20 @@
     <div class="mb-3">
         <label for="edit_username" class="form-label">Username</label>
         <input type="text" name="username" class="form-control" id="edit_username" placeholder="Username" required>
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="mb-3">
         <label for="edit_email" class="form-label">Email</label>
         <input type="email" name="email" class="form-control" id="edit_email" placeholder="email@example.com" required>
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="mb-3">
         <label for="edit_password" class="form-label">Password</label>
         <input type="text" name="password" class="form-control" id="edit_password" placeholder="Kosongkan jika tidak ingin mengubah password">
         <div class="form-text">Kosongkan jika tidak ingin mengubah password (password lama akan dipertahankan)</div>
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="mb-3">
@@ -25,6 +28,7 @@
             <option value="Staf">Staf</option>
             <option value="Admin">Admin</option>
         </select>
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="mb-3">
@@ -37,10 +41,11 @@
                 </option>
             @endforeach
         </select>
+        <div class="invalid-feedback"></div>
     </div>
     
     <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-secondary me-2" aria-label="close" data-bs-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary">Update</button>
+        <button type="submit" class="btn btn-primary" id="editUserSubmitBtn">Update</button>
     </div>
 </form>

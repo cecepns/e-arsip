@@ -154,6 +154,62 @@
         }
     }
 
+
+    /**
+     * ANCHOR: Edit User Handlers
+     * Handle the edit user form submission
+     */
+    const editUserHandlers = () => {
+        const editUserForm = document.getElementById('editUserForm');
+        const editUserSubmitBtn = document.getElementById('editUserSubmitBtn');
+        const editUserCancelBtn = document.getElementById('editUserCancelBtn');
+        const csrfToken = (
+            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+            document.querySelector('input[name="_token"]')?.value
+        );
+        
+        editUserForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearErrors(editUserForm);
+            setLoadingState(true, editUserSubmitBtn);
+
+            try {
+                const formData = new FormData(editUserForm);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                const response = await fetchWithRetry(editUserForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                clearTimeout(timeoutId);
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    showToast(data.message, 'success', 5000);
+                    editUserForm.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditUser')).hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    handleErrorResponse(data, editUserForm);
+                }
+            } catch (error) {
+                handleErrorResponse(error, editUserForm);
+            } finally {
+                setLoadingState(false, editUserSubmitBtn);
+            }
+        });
+    }
+
     /**
      * ANCHOR: Delete User Handlers
      * Handle the delete user form submission
@@ -224,14 +280,15 @@
         const bagianInput = document.getElementById('edit_bagian_id');
 
         const user = usersDataCurrentPage.data.find(user => user.id === userId);
-        const { id, username, email, password, role, bagian } = user;
+        const { id, username, email, password, role, bagian_id } = user;
+        console.log('user', user);
 
         idInput.value = id;
-        usernameInput.value = username;
-        emailInput.value = email;
-        passwordInput.value = password;
-        roleInput.value = role;
-        bagianInput.value = bagian;
+        usernameInput.value = username || '';
+        emailInput.value = email || '';
+        passwordInput.value = '';
+        roleInput.value = role || '';
+        bagianInput.value = bagian_id || '';
 
         editUserForm.action = `/user/${id}`;
     }
@@ -284,6 +341,7 @@
 
     // ANCHOR: Run all handlers
     addUserHandlers();
+    editUserHandlers();
     deleteUserHandlers();
 </script>
 @endpush

@@ -34,14 +34,8 @@
             <div class="action-buttons">
                 <button class="action-btn edit-btn" title="Edit" 
                         data-bs-toggle="modal" 
-                        data-bs-target="#modalUserForm"
-                        data-id="{{ $user->id }}"
-                        data-username="{{ $user->username }}"
-                        data-email="{{ $user->email }}"
-                        data-password="{{ $user->password }}"
-                        data-role="{{ $user->role }}"
-                        data-bagian="{{ $user->bagian_id }}"
-                        onclick="showEditUserModal({{ $user->bagian_id }})">
+                        data-bs-target="#modalEditUser"
+                        onclick="showEditUserModal({{ $user->id }})">
                     <i class="fas fa-edit"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus" 
