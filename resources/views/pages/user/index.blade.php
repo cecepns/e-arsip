@@ -6,12 +6,6 @@
 
 @section('admin-content')
 <div class="page-header">
-    @include('partials.breadcrumb', [
-        'items' => [
-            ['label' => 'Home', 'url' => '#'],
-            ['label' => 'Data User']
-        ]
-    ])
     @include('partials.page-title', [
         'title' => 'Manajemen User',
         'subtitle' => 'Kelola akun dan hak akses pengguna sistem.'
