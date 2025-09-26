@@ -27,6 +27,15 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/user/{id}', [UserController::class, 'update'])->name('user.update');
     Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('user.destroy');
     Route::get('/user/{id}', [UserController::class, 'show'])->name('user.show');
+
+    // ANCHOR: Manajemen Surat Keluar
+    Route::get('/surat-keluar', [\App\Http\Controllers\SuratKeluarController::class, 'index'])->name('surat_keluar.index');
+    Route::get('/surat-keluar/create', [\App\Http\Controllers\SuratKeluarController::class, 'create'])->name('surat_keluar.create');
+    Route::post('/surat-keluar', [\App\Http\Controllers\SuratKeluarController::class, 'store'])->name('surat_keluar.store');
+    Route::get('/surat-keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'show'])->name('surat_keluar.show');
+    Route::get('/surat-keluar/{id}/edit', [\App\Http\Controllers\SuratKeluarController::class, 'edit'])->name('surat_keluar.edit');
+    Route::put('/surat-keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'update'])->name('surat_keluar.update');
+    Route::delete('/surat-keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'destroy'])->name('surat_keluar.destroy');
 });
 // !SECTION Protected routes - require authentication
 

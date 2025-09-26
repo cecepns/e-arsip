@@ -9,13 +9,15 @@ class SuratKeluar extends Model
 {
     use HasFactory;
 
+    protected $table = 'surat_keluar';
+
     protected $fillable = [
         'nomor_surat',
         'tanggal_surat',
+        'tanggal_keluar',
         'perihal',
         'ringkasan_isi',
         'tujuan',
-        'sifat_surat',
         'keterangan',
         'pengirim_bagian_id',
         'user_id',
@@ -25,6 +27,7 @@ class SuratKeluar extends Model
     {
         return [
             'tanggal_surat' => 'date',
+            'tanggal_keluar' => 'date',
         ];
     }
 

@@ -67,14 +67,13 @@ Fitur untuk mencatat dan mengarsipkan semua surat yang dikeluarkan instansi.
 Menampilkan daftar semua surat keluar dalam format tabel.
 
 * **Tampilan Tabel:**  
-  * **Kolom Data:** Nomor, Nomor Surat, Tanggal Surat, Perihal, Ringkasan Isi, Tujuan, dan Bagian Pengirim.  
-  * **Lampiran:** Ikon untuk melihat lampiran.  
+  * **Kolom Data:** Nomor, Nomor Surat, Tanggal Surat, Tanggal Keluar, Penerima, Perihal, Ringkasan Isi, dan Bagian Pengirim.  
 * **Fitur Tambahan:** Tombol Tambah Data, Filter, dan Refresh.  
 * **Aksi per Baris:** Opsi Lihat Detail, Edit, dan Hapus.
 
 #### **Formulir Tambah/Edit Data**
 
-* **Input Data Surat:** Nomor Surat, Tanggal Surat, Perihal, Ringkasan Isi, Tujuan Surat, Bagian Pengirim, Sifat Surat, Keterangan.  
+* **Input Data Surat:** Nomor Surat(text), Tanggal Surat(date), Tanggal Keluar(data), Perihal(textarea), Ringkasan Isi(textarea), Bagian Pengirim(select), Penerima(text), Keterangan(textarea).  
 * **Unggah Lampiran:**  
   * **File Surat Utama (Wajib):** Format **PDF**.  
   * **Dokumen Pendukung (Opsional):** Format **ZIP, RAR, DOCX, XLSX**.
