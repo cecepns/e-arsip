@@ -9,6 +9,8 @@ class SuratMasuk extends Model
 {
     use HasFactory;
 
+    protected $table = 'surat_masuk';
+
     protected $fillable = [
         'nomor_surat',
         'tanggal_surat',

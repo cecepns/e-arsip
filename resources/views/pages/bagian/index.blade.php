@@ -1,13 +1,11 @@
 @extends('layouts.admin')
 
+@push('head')
+<link href="{{ asset('css/admin.css') }}" rel="stylesheet">
+@endpush
+
 @section('admin-content')
 <div class="page-header">
-    @include('partials.breadcrumb', [
-        'items' => [
-            ['label' => 'Home', 'url' => '#'],
-            ['label' => 'Data Bagian']
-        ]
-    ])
     @include('partials.page-title', [
         'title' => 'Manajemen Bagian',
         'subtitle' => 'Kelola unit kerja/divisi di lingkungan instansi.'
@@ -15,7 +13,7 @@
 </div>
 
 <div class="mb-3 d-flex justify-content-between align-items-center">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalBagianForm">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddBagian">
         <i class="fas fa-plus"></i> Tambah Bagian
     </button>
     <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('bagian.index') }}">
@@ -33,28 +31,35 @@
 <div class="alert alert-info mb-3">
     <i class="fas fa-search me-2"></i> 
     Hasil pencarian untuk: <strong>"{{ $query }}"</strong> 
-    - Ditemukan {{ $bagian->count() }} bagian
+    - Ditemukan {{ $bagian->total() }} bagian
 </div>
 @endif
 
 @include('partials.table', [
     'tableId' => 'bagianTable',
-    'thead' => view()->make('pages.bagian._table_head')->render(),
-    'tbody' => view()->make('pages.bagian._table_body', compact('bagian'))->render(),
+    'thead' => view()->make('pages.bagian._table._head')->render(),
+    'tbody' => view()->make('pages.bagian._table._body', compact('bagian'))->render(),
 ])
 
 @include('partials.pagination', [
-    'currentPage' => 1,
-    'totalPages' => 2,
-    'baseUrl' => '#',
-    'showInfo' => 'Menampilkan 1-5 dari 8 bagian'
+    'currentPage' => $bagian->currentPage(),
+    'totalPages' => $bagian->lastPage(),
+    'baseUrl' => $bagian->url($bagian->currentPage()),
+    'showInfo' => "Menampilkan {$bagian->firstItem()}-{$bagian->lastItem()} dari {$bagian->total()} bagian"
 ])
 
 @include('partials.modal', [
-    'id' => 'modalBagianForm',
+    'id' => 'modalAddBagian',
     'size' => 'modal-md',
-    'title' => '<span id="modalTitle">Tambah Bagian</span>',
-    'body' => view()->make('pages.bagian._form_modal')->render(),
+    'title' => 'Tambah Bagian',
+    'body' => view('pages.bagian._form_modal._add_form')->render(),
+])
+
+@include('partials.modal', [
+    'id' => 'modalEditBagian',
+    'size' => 'modal-md',
+    'title' => 'Edit Bagian',
+    'body' => view('pages.bagian._form_modal._edit_form')->render(),
 ])
 
 @include('partials.modal', [
@@ -63,123 +68,254 @@
     'size' => 'modal-xl',
     'body' => view()->make('pages.bagian._detail_modal')->render(),
 ])
+
 @include('partials.modal', [
     'type' => 'danger',
     'id' => 'modalDeleteBagian',
-    'title' => 'Konfirmasi Hapus User',
+    'title' => 'Konfirmasi Hapus Bagian',
     'size' => 'modal-md',
-    'body' => '<p>Apakah Anda yakin ingin menghapus bagian <strong id="deleteBagianName"></strong>?</p><p class="text-muted">Data akan dihapus secara soft delete untuk menjaga integritas data relasi.</p>',
-    'footer' => '<form id="deleteBagianForm" method="POST" style="display: inline;"><input type="hidden" name="_method" value="DELETE"><input type="hidden" name="_token" value="' . csrf_token() . '"><button type="submit" class="btn btn-danger">Ya, Hapus</button></form><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>',
+    'body' => view()->make('pages.bagian._delete_modal._body')->render(),
+    'footer' => view()->make('pages.bagian._delete_modal._footer')->render(),
 ])
 @endsection
 
 @push('scripts')
 <script>
-function editBagian(button) {
-    // Ambil data dari atribut data
-    const id = button.getAttribute('data-id');
-    const nama = button.getAttribute('data-nama');
-    const kepala = button.getAttribute('data-kepala');
-    const status = button.getAttribute('data-status');
-    const keterangan = button.getAttribute('data-keterangan');
+    const bagianDataCurrentPage = {!! json_encode($bagian->items()) !!};
 
-    // Update modal title
-    console.log(document.getElementById('modalTitle'));
-    document.getElementById('modalTitle').textContent = 'Edit Bagian';
-    
-    // Update form action dan method
-    const form = document.getElementById('bagianForm');
-    form.action = `/bagian/${id}`;
-    document.getElementById('formMethod').value = 'PUT';
-    
-    // Update tombol submit
-    document.getElementById('submitBtn').textContent = 'Update';
-    
-    // Populate form dengan data yang ada
-    document.getElementById('bagian_id').value = id;
-    document.getElementById('nama_bagian').value = nama;
-    document.getElementById('kepala_bagian').value = kepala || '';
-    document.getElementById('status').value = status;
-    document.getElementById('keterangan').value = keterangan || '';
-}
+    /**
+     * ANCHOR: Clear Errors
+     * Clear the errors from the parent element
+     * @param {Element} parentElement - The parent element to clear the errors from
+     */
+    const clearErrors = (parentElement) => {
+        const invalidFields = parentElement.querySelectorAll('.is-invalid');
+        invalidFields.forEach(field => {
+            field.classList.remove('is-invalid');
+            const feedback = field.parentNode.querySelector('.invalid-feedback');
+            if (feedback) feedback.textContent = '';
+        });
+    }
 
-// Reset form ketika modal ditutup atau dibuka untuk tambah
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('modalBagianForm');
-    
-    // Reset form ketika modal ditutup
-    modal.addEventListener('hidden.bs.modal', function() {
-        resetForm();
-    });
-    
-    // Reset form ketika tombol tambah diklik
-    document.querySelector('[data-bs-target="#modalBagianForm"]').addEventListener('click', function() {
-        resetForm();
-    });
-});
+    /**
+     * ANCHOR: Add Bagian Handlers
+     * Handle the add bagian form submission
+     */
+    const addBagianHandlers = () => {
+        const addBagianForm = document.getElementById('addBagianForm');
+        const addBagianSubmitBtn = document.getElementById('addBagianSubmitBtn');
+        const addBagianCancelBtn = document.getElementById('addBagianCancelBtn');
+        const csrfToken = (
+            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+            document.querySelector('input[name="_token"]')?.value
+        );
+        addBagianForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearErrors(addBagianForm);
+            setLoadingState(true, addBagianSubmitBtn);
 
-function resetForm() {
-    // Reset modal title
-    document.getElementById('modalTitle').textContent = 'Tambah Bagian';
+            try {
+                const formData = new FormData(addBagianForm);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                const response = await fetchWithRetry(addBagianForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                clearTimeout(timeoutId);
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    showToast(data.message, 'success', 5000);
+                    addBagianForm.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('modalAddBagian')).hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    handleErrorResponse(data, addBagianForm);
+                }
+            } catch (error) {
+                handleErrorResponse(error, addBagianForm);
+            } finally {
+                setLoadingState(false, addBagianSubmitBtn);
+            }
+        });
+    }
     
-    // Reset form action dan method
-    const form = document.getElementById('bagianForm');
-    form.action = '{{ route("bagian.store") }}';
-    document.getElementById('formMethod').value = 'POST';
-    
-    // Reset tombol submit
-    document.getElementById('submitBtn').textContent = 'Simpan';
-    
-    // Clear form fields
-    document.getElementById('bagian_id').value = '';
-    document.getElementById('nama_bagian').value = '';
-    document.getElementById('kepala_bagian').value = '';
-    document.getElementById('status').value = 'Aktif';
-    document.getElementById('keterangan').value = '';
-}
 
-function deleteBagian(button) {
-    // Ambil data dari atribut data
-    const id = button.getAttribute('data-id');
-    const nama = button.getAttribute('data-nama');
-    
-    // Update nama bagian di modal
-    document.getElementById('deleteBagianName').textContent = nama;
-    
-    // Update form action
-    const form = document.getElementById('deleteBagianForm');
-    form.action = `/bagian/${id}`;
-}
+    /**
+     * ANCHOR: Show Edit Bagian Modal
+     * Show the edit bagian modal
+     * @param {number} bagianId - The id of the bagian to edit
+     */
+    const showEditBagianModal = (bagianId) => {
+        const editBagianForm = document.getElementById('editBagianForm');
+        const idInput = document.getElementById('edit_bagian_id');
+        const namaInput = document.getElementById('edit_nama_bagian');
+        const kepalaInput = document.getElementById('edit_kepala_bagian');
+        const statusInput = document.getElementById('edit_status');
+        const keteranganInput = document.getElementById('edit_keterangan');
 
+        const bagian = bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
+        const { id, nama_bagian, kepala_bagian, status, keterangan } = bagian;
 
-// // Search functionality enhancements
-// document.addEventListener('DOMContentLoaded', function() {
-//     const searchInput = document.querySelector('input[name="search"]');
-//     const searchForm = document.querySelector('form[method="GET"]');
-    
-//     // Auto-submit form when user stops typing (debounced)
-//     let searchTimeout;
-//     if (searchInput) {
-//         searchInput.addEventListener('input', function() {
-//             clearTimeout(searchTimeout);
-//             searchTimeout = setTimeout(function() {
-//                 if (searchInput.value.length >= 2 || searchInput.value.length === 0) {
-//                     searchForm.submit();
-//                 }
-//             }, 500); // Wait 500ms after user stops typing
-//         });
-//     }
-    
-//     // Focus search input when pressing Ctrl+K
-//     document.addEventListener('keydown', function(e) {
-//         if (e.ctrlKey && e.key === 'k') {
-//             e.preventDefault();
-//             if (searchInput) {
-//                 searchInput.focus();
-//                 searchInput.select();
-//             }
-//         }
-//     });
-// });
+        idInput.value = id;
+        namaInput.value = nama_bagian || '';
+        kepalaInput.value = kepala_bagian || '';
+        statusInput.value = status || '';
+        keteranganInput.value = keterangan || '';
+
+        editBagianForm.action = `/bagian/${id}`;
+    }
+
+    /**
+     * ANCHOR: Show Delete Bagian Modal
+     * Show the delete bagian modal
+     * @param {number} bagianId - The id of the bagian to delete
+     */
+    const showDeleteBagianModal = (bagianId) => {
+        const deleteBagianName = document.getElementById('deleteBagianName');
+        const deleteBagianForm = document.getElementById('deleteBagianForm');
+
+        const bagian = bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
+        const { id, nama_bagian } = bagian;
+
+        deleteBagianName.textContent = nama_bagian;
+        deleteBagianForm.action = `/bagian/${id}`;
+    }
+
+    /**
+     * ANCHOR: Show Detail Bagian Modal
+     * Show the detail bagian modal
+     * @param {number} bagianId - The id of the bagian to show the details of
+     */
+    const showDetailBagianModal = (bagianId) => {
+        const bagian = bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
+        console.log('Showing details for bagian:', bagian);
+    }
+
+    /**
+     * ANCHOR: Edit Bagian Handlers
+     * Handle the edit bagian form submission
+     */
+    const editBagianHandlers = () => {
+        const editBagianForm = document.getElementById('editBagianForm');
+        const editBagianSubmitBtn = document.getElementById('editBagianSubmitBtn');
+        const editBagianCancelBtn = document.getElementById('editBagianCancelBtn');
+        const csrfToken = (
+            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+            document.querySelector('input[name="_token"]')?.value
+        );
+        
+        editBagianForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearErrors(editBagianForm);
+            setLoadingState(true, editBagianSubmitBtn);
+
+            try {
+                const formData = new FormData(editBagianForm);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                const response = await fetchWithRetry(editBagianForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                clearTimeout(timeoutId);
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    showToast(data.message, 'success', 5000);
+                    editBagianForm.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('modalEditBagian')).hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    handleErrorResponse(data, editBagianForm);
+                }
+            } catch (error) {
+                handleErrorResponse(error, editBagianForm);
+            } finally {
+                setLoadingState(false, editBagianSubmitBtn);
+            }
+        });
+    }
+
+    /**
+     * ANCHOR: Delete Bagian Handlers
+     * Handle the delete bagian form submission
+     */
+    const deleteBagianHandlers = () => {
+        const deleteBagianForm = document.getElementById('deleteBagianForm');
+        const deleteBagianSubmitBtn = document.getElementById('deleteBagianSubmitBtn');
+        const deleteBagianCancelBtn = document.getElementById('deleteBagianCancelBtn');
+        const csrfToken = (
+            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+            document.querySelector('input[name="_token"]')?.value
+        );
+        
+        deleteBagianForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearErrors(deleteBagianForm);
+            setLoadingState(true, deleteBagianSubmitBtn);
+
+            try {
+                const formData = new FormData(deleteBagianForm);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                const response = await fetchWithRetry(deleteBagianForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                clearTimeout(timeoutId);
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    showToast(data.message, 'success', 5000);
+                    deleteBagianForm.reset();
+                    bootstrap.Modal.getInstance(document.getElementById('modalDeleteBagian')).hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    handleErrorResponse(data, deleteBagianForm);
+                }
+            } catch (error) {
+                handleErrorResponse(error, deleteBagianForm);
+            } finally {
+                setLoadingState(false, deleteBagianSubmitBtn);
+            }
+        });
+    }
+
+    // ANCHOR: Run all handlers
+    addBagianHandlers();
+    editBagianHandlers();
+    deleteBagianHandlers();
 </script>
 @endpush

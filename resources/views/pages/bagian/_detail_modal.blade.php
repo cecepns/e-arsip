@@ -27,7 +27,7 @@
     @include('partials.table', [
         'tableId' => 'bagianTableSurat',
         'tableClass' => 'table table-striped table-hover',
-        'thead' => view()->make('pages.bagian._surat_table_head')->render(),
-        'tbody' => view()->make('pages.bagian._surat_table_body')->render(),
+        'thead' => view()->make('pages.bagian._surat_table._head')->render(),
+        'tbody' => view()->make('pages.bagian._surat_table._body')->render(),
     ])
 </div>
