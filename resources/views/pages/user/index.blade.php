@@ -19,7 +19,7 @@
 </div>
 
 <div class="mb-3 d-flex justify-content-between align-items-center">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUserForm">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddUser">
         <i class="fas fa-plus"></i> Tambah User
     </button>
     <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('user.index') }}">
@@ -43,8 +43,8 @@
 
 @include('partials.table', [
     'tableId' => 'userTable',
-    'thead' => view()->make('pages.user._table_head')->render(),
-    'tbody' => view()->make('pages.user._table_body', compact('users'))->render(),
+    'thead' => view()->make('pages.user._table._head')->render(),
+    'tbody' => view()->make('pages.user._table._body', compact('users'))->render(),
 ])
 
 @include('partials.pagination', [
@@ -55,10 +55,17 @@
 ])
 
 @include('partials.modal', [
-    'id' => 'modalUserForm',
+    'id' => 'modalAddUser',
     'size' => 'modal-md',
-    'title' => '<span id="modalTitle">Tambah User</span>',
-    'body' => view('pages.user._form_modal', compact('bagian'))->render(),
+    'title' => 'Tambah User',
+    'body' => view('pages.user._form_modal._add_form', compact('bagian'))->render(),
+])
+
+@include('partials.modal', [
+    'id' => 'modalEditUser',
+    'size' => 'modal-md',
+    'title' => 'Edit User',
+    'body' => view('pages.user._form_modal._edit_form', compact('bagian'))->render(),
 ])
 
 @include('partials.modal', [
@@ -66,8 +73,8 @@
     'id' => 'modalDeleteUser',
     'title' => 'Konfirmasi Hapus User',
     'size' => 'modal-md',
-    'body' => view()->make('pages.user._delete_modal')->render(),
-    'footer' => view()->make('pages.user._delete_modal_footer')->render(),
+    'body' => view()->make('pages.user._delete_modal._body')->render(),
+    'footer' => view()->make('pages.user._delete_modal._footer')->render(),
 ])
 @endsection
 
@@ -84,102 +91,21 @@ function editUser(button) {
 
     console.log('Edit User Data:', { id, username, email, role, bagian }); // Debug log
 
-    // Update modal title
-    document.getElementById('modalTitle').textContent = 'Edit User';
-    
-    // Update form action dan method
-    const form = document.getElementById('userForm');
+    // Update form action
+    const form = document.getElementById('editUserForm');
     form.action = `/user/${id}`;
-    document.getElementById('formMethod').value = 'PUT';
-    
-    // Update tombol submit
-    document.getElementById('submitBtn').textContent = 'Update';
-    
-    // Update password field untuk edit mode
-    const passwordInput = document.getElementById('password');
-    passwordInput.required = false;
-    passwordInput.placeholder = 'Kosongkan jika tidak ingin mengubah password';
-    
-    // Update password help text
-    const passwordHelp = document.getElementById('passwordHelp');
-    if (passwordHelp) {
-        passwordHelp.textContent = 'Kosongkan jika tidak ingin mengubah password (password lama akan dipertahankan)';
-    }
     
     // Populate form dengan data yang ada
-    document.getElementById('user_id').value = id || '';
-    document.getElementById('username').value = username || '';
-    document.getElementById('email').value = email || '';
-    document.getElementById('password').value = ''; // Selalu kosongkan password saat edit
-    document.getElementById('role').value = role || 'Staf';
-    document.getElementById('bagian_id').value = bagian || '';
+    document.getElementById('edit_user_id').value = id || '';
+    document.getElementById('edit_username').value = username || '';
+    document.getElementById('edit_email').value = email || '';
+    document.getElementById('edit_password').value = ''; // Selalu kosongkan password saat edit
+    document.getElementById('edit_role').value = role || 'Staf';
+    document.getElementById('edit_bagian_id').value = bagian || '';
     
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('modalUserForm'));
+    const modal = new bootstrap.Modal(document.getElementById('modalEditUser'));
     modal.show();
-}
-
-// Reset form ketika modal ditutup atau dibuka untuk tambah
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('modalUserForm');
-    
-    // Reset form ketika modal ditutup
-    modal.addEventListener('hidden.bs.modal', function() {
-        resetForm();
-    });
-    
-    // Reset form ketika tombol tambah diklik (hanya jika bukan edit)
-    document.querySelector('[data-bs-target="#modalUserForm"]').addEventListener('click', function() {
-        // Delay kecil untuk memastikan modal sudah terbuka
-        setTimeout(() => {
-            if (document.getElementById('modalTitle').textContent === 'Tambah User') {
-                resetForm();
-            }
-        }, 100);
-    });
-});
-
-function resetForm() {
-    // Reset modal title
-    document.getElementById('modalTitle').textContent = 'Tambah User';
-    
-    // Reset form action dan method
-    const form = document.getElementById('userForm');
-    form.action = '{{ route("user.store") }}';
-    document.getElementById('formMethod').value = 'POST';
-    
-    // Reset tombol submit
-    document.getElementById('submitBtn').textContent = 'Simpan';
-    
-    // Reset password field untuk mode tambah
-    const passwordInput = document.getElementById('password');
-    passwordInput.required = true;
-    passwordInput.placeholder = 'Password';
-    
-    // Reset password help text
-    const passwordHelp = document.getElementById('passwordHelp');
-    if (passwordHelp) {
-        passwordHelp.textContent = 'Password akan disimpan dalam bentuk plain text';
-    }
-    
-    // Clear form fields
-    document.getElementById('user_id').value = '';
-    document.getElementById('username').value = '';
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('role').value = 'Staf';
-    document.getElementById('bagian_id').value = '';
-    
-    // Reset form validation
-    const formElements = form.querySelectorAll('.is-invalid');
-    formElements.forEach(element => {
-        element.classList.remove('is-invalid');
-    });
-    
-    const errorMessages = form.querySelectorAll('.invalid-feedback');
-    errorMessages.forEach(message => {
-        message.remove();
-    });
 }
 
 function deleteUser(button) {

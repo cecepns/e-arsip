@@ -1,0 +1,46 @@
+<form id="editUserForm" action="" method="POST">
+    @csrf
+    @method('PUT')
+    <input type="hidden" name="user_id" id="edit_user_id" value="">
+    
+    <div class="mb-3">
+        <label for="edit_username" class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" id="edit_username" placeholder="Username" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="edit_email" class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" id="edit_email" placeholder="email@example.com" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="edit_password" class="form-label">Password</label>
+        <input type="text" name="password" class="form-control" id="edit_password" placeholder="Kosongkan jika tidak ingin mengubah password">
+        <div class="form-text">Kosongkan jika tidak ingin mengubah password (password lama akan dipertahankan)</div>
+    </div>
+    
+    <div class="mb-3">
+        <label for="edit_role" class="form-label">Role</label>
+        <select name="role" class="form-select" id="edit_role" required>
+            <option value="Staf">Staf</option>
+            <option value="Admin">Admin</option>
+        </select>
+    </div>
+    
+    <div class="mb-3">
+        <label for="edit_bagian_id" class="form-label">Bagian</label>
+        <select name="bagian_id" class="form-select" id="edit_bagian_id">
+            <option value="">Pilih Bagian</option>
+            @foreach($bagian ?? [] as $bagianItem)
+                <option value="{{ $bagianItem->id }}">
+                    {{ $bagianItem->nama_bagian }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+    
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary me-2" aria-label="close" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Update</button>
+    </div>
+</form>
