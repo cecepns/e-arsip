@@ -258,9 +258,10 @@
         const passwordInput = document.getElementById('edit_password');
         const roleInput = document.getElementById('edit_role');
         const bagianInput = document.getElementById('edit_bagian_id');
+        const isKepalaBagianInput = document.getElementById('edit_is_kepala_bagian');
 
         const user = usersDataCurrentPage.data.find(user => user.id === userId);
-        const { id, username, email, password, role, bagian_id } = user;
+        const { id, username, email, password, role, bagian_id, is_kepala_bagian } = user;
         console.log('user', user);
 
         idInput.value = id;
@@ -269,6 +270,7 @@
         passwordInput.value = '';
         roleInput.value = role || '';
         bagianInput.value = bagian_id || '';
+        isKepalaBagianInput.checked = is_kepala_bagian || false;
 
         editUserForm.action = `/user/${id}`;
     }

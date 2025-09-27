@@ -30,6 +30,13 @@
                 <span class="badge-staff">Staf</span>
             @endif
         </td>
+        <td class="text-center">
+            @if($user->is_kepala_bagian)
+                <span class="badge bg-warning text-dark">Kepala Bagian</span>
+            @else
+                <span class="text-muted">-</span>
+            @endif
+        </td>
         <td>
             <div class="action-buttons">
                 <button class="action-btn edit-btn" title="Edit" 
@@ -49,7 +56,7 @@
     </tr>
     @empty
     <tr>
-        <td colspan="7" class="text-center">Tidak ada data user</td>
+        <td colspan="8" class="text-center">Tidak ada data user</td>
     </tr>
     @endforelse
 </tbody>

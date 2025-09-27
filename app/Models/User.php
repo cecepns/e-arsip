@@ -24,6 +24,7 @@ class User extends Authenticatable
         'password',
         'role',
         'bagian_id',
+        'is_kepala_bagian',
     ];
 
     /**
@@ -44,6 +45,7 @@ class User extends Authenticatable
     {
         return [
             // Password tidak di-hash sesuai keinginan klien
+            'is_kepala_bagian' => 'boolean',
         ];
     }
 

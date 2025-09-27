@@ -42,6 +42,7 @@ class UserController extends Controller
                 'password' => 'required|string|max:50',
                 'role' => 'required|in:Admin,Staf',
                 'bagian_id' => 'nullable|exists:bagian,id',
+                'is_kepala_bagian' => 'nullable|boolean',
             ], [
                 'username.required' => 'Username wajib diisi.',
                 'username.string' => 'Username harus berupa teks.',
@@ -57,7 +58,15 @@ class UserController extends Controller
                 'role.required' => 'Role wajib dipilih.',
                 'role.in' => 'Role harus Admin atau Staf.',
                 'bagian_id.exists' => 'Bagian yang dipilih tidak valid.',
+                'is_kepala_bagian.boolean' => 'Status kepala bagian harus berupa boolean.',
             ]);
+
+            // ANCHOR: Business logic - hanya satu kepala bagian per bagian
+            if (!empty($validated['is_kepala_bagian']) && !empty($validated['bagian_id'])) {
+                User::where('bagian_id', $validated['bagian_id'])
+                    ->where('is_kepala_bagian', true)
+                    ->update(['is_kepala_bagian' => false]);
+            }
 
             $user = User::create($validated);
 
@@ -135,6 +144,7 @@ class UserController extends Controller
                 'password' => 'nullable|string|max:50',
                 'role' => 'required|in:Admin,Staf',
                 'bagian_id' => 'nullable|exists:bagian,id',
+                'is_kepala_bagian' => 'nullable|boolean',
             ], [
                 'username.required' => 'Username wajib diisi.',
                 'username.string' => 'Username harus berupa teks.',
@@ -149,7 +159,16 @@ class UserController extends Controller
                 'role.required' => 'Role wajib dipilih.',
                 'role.in' => 'Role harus Admin atau Staf.',
                 'bagian_id.exists' => 'Bagian yang dipilih tidak valid.',
+                'is_kepala_bagian.boolean' => 'Status kepala bagian harus berupa boolean.',
             ]);
+
+            // ANCHOR: Business logic - hanya satu kepala bagian per bagian
+            if (!empty($validated['is_kepala_bagian']) && !empty($validated['bagian_id'])) {
+                User::where('bagian_id', $validated['bagian_id'])
+                    ->where('id', '!=', $id)
+                    ->where('is_kepala_bagian', true)
+                    ->update(['is_kepala_bagian' => false]);
+            }
 
             // Jika password kosong atau null, hapus dari array validated untuk mempertahankan password lama
             if (empty($validated['password']) || $validated['password'] === '') {
