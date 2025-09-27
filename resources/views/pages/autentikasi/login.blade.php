@@ -39,17 +39,11 @@
                     id="username" 
                     name="username" 
                     value="{{ old('username') }}"
-                    required 
+                    required
                     autofocus 
                     placeholder="Masukkan username"
                 />
-                <div class="invalid-feedback">
-                    @error('username')
-                        {{ $message }}
-                    @else
-                        Username wajib diisi
-                    @enderror
-                </div>
+                <div class="invalid-feedback"></div>
             </div>
 
             <div class="form-group mb-3">
@@ -57,29 +51,25 @@
                     <i class="bi bi-lock me-2"></i>Password
                 </label>
                 <div class="password-input">
-                    <input 
-                        type="password" 
-                        class="form-control simple-input @error('password') is-invalid @enderror" 
-                        id="password" 
-                        name="password" 
-                        required 
-                        placeholder="Masukkan password"
-                    />
+                    <div class="w-100">
+                        <input 
+                            type="password" 
+                            class="form-control simple-input @error('password') is-invalid @enderror" 
+                            id="password" 
+                            name="password" 
+                            required
+                            placeholder="Masukkan password"
+                        />
+                        <div class="invalid-feedback"></div>
+                    </div>
                     <button type="button" class="password-toggle" tabindex="-1" onclick="togglePassword()">
                         <i class="bi bi-eye" id="toggleIcon"></i>
                     </button>
                 </div>
-                <div class="invalid-feedback">
-                    @error('password')
-                        {{ $message }}
-                    @else
-                        Password wajib diisi
-                    @enderror
-                </div>
             </div>
 
-            <button type="submit" class="btn btn-primary p-2 w-100 mt-2">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Masuk
+            <button type="submit" class="btn btn-primary p-2 w-100 mt-2" id="loginSubmitBtn">
+                Masuk
             </button>
         </form>
         <div class="login-footer">
@@ -90,7 +80,12 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
 <script>
+/**
+ * ANCHOR: Toggle Password Visibility
+ * Toggle password field visibility
+ */
 function togglePassword() {
     const passwordInput = document.getElementById('password');
     const toggleIcon = document.getElementById('toggleIcon');
@@ -104,5 +99,59 @@ function togglePassword() {
         toggleIcon.classList.add('bi-eye');
     }
 }
+
+/**
+ * ANCHOR: Login Form Handlers
+ * Handle the login form submission with AJAX
+ */
+const loginHandlers = () => {
+    const loginForm = document.getElementById('loginForm');
+    const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+    const csrfToken = (
+        document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+        document.querySelector('input[name="_token"]')?.value
+    );
+
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        clearErrors(loginForm);
+        setLoadingState(true, loginSubmitBtn);
+
+        try {
+            const formData = new FormData(loginForm);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
+            const response = await fetch(loginForm.action, {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            });
+            
+            clearTimeout(timeoutId);
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Response is not JSON');
+            }
+            
+            const data = await response.json();
+            if (response.ok && data.success) {
+                window.location.href = data.redirect_url || '/';
+            } else {
+                handleErrorResponse(data, loginForm);
+            }
+        } catch (error) {
+            handleErrorResponse(error, loginForm);
+            setLoadingState(false, loginSubmitBtn);
+        }
+    });
+}
+
+// ANCHOR: Initialize login handlers
+loginHandlers();
 </script>
 @endpush

@@ -79,6 +79,7 @@
   </head>
   <body>
     @yield('content')
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
     <script src="{{ asset('js/utils.js') }}"></script>
     @stack('scripts')
   </body>
