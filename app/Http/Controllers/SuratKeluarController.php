@@ -5,32 +5,42 @@ namespace App\Http\Controllers;
 use App\Models\SuratKeluar;
 use App\Models\Bagian;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class SuratKeluarController extends Controller
 {
-    // Tampilkan daftar surat keluar
-    public function index(Request $request)
+    /**
+     * Display a listing of the surat keluar.
+     */
+    public function index(Request $request): View
     {
-        // Nanti: filter, hak akses, pencarian
+        $query = $request->get('search');
+        
+        $suratKeluar = SuratKeluar::with('pengirimBagian', 'user')
+            ->when($query, function ($q) use ($query) {
+                $q->where('nomor_surat', 'like', "%{$query}%")
+                  ->orWhere('perihal', 'like', "%{$query}%")
+                  ->orWhere('tujuan', 'like', "%{$query}%");
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
         $bagian = Bagian::where('status', 'Aktif')->get();
-        $suratKeluar = SuratKeluar::with('pengirimBagian', 'user')->get();
-        return view('pages.surat_keluar.index', compact('suratKeluar', 'bagian'));
+
+        return view('pages.surat_keluar.index', compact('suratKeluar', 'query', 'bagian'));
     }
 
-    // Tampilkan form tambah surat keluar
-    public function create()
-    {
-        $bagian = Bagian::where('status', 'Aktif')->get();
-        return view('pages.surat_keluar.create', compact('bagian'));
-    }
-
-    // Simpan surat keluar baru
+    /**
+     * Store a newly created surat keluar in storage.
+     */
     public function store(Request $request)
     {
+        try {
             $validated = $request->validate([
-                'nomor_surat' => 'required|string|max:100',
+                'nomor_surat' => 'required|string|max:100|unique:surat_keluar,nomor_surat',
                 'tanggal_surat' => 'required|date',
                 'tanggal_keluar' => 'required|date',
                 'perihal' => 'required|string|max:255',
@@ -40,11 +50,33 @@ class SuratKeluarController extends Controller
                 'pengirim_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'required|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
+            ], [
+                'nomor_surat.required' => 'Nomor surat wajib diisi.',
+                'nomor_surat.string' => 'Nomor surat harus berupa teks.',
+                'nomor_surat.max' => 'Nomor surat maksimal 100 karakter.',
+                'nomor_surat.unique' => 'Nomor surat sudah digunakan.',
+                'tanggal_surat.required' => 'Tanggal surat wajib diisi.',
+                'tanggal_surat.date' => 'Format tanggal surat tidak valid.',
+                'tanggal_keluar.required' => 'Tanggal keluar wajib diisi.',
+                'tanggal_keluar.date' => 'Format tanggal keluar tidak valid.',
+                'perihal.required' => 'Perihal wajib diisi.',
+                'perihal.string' => 'Perihal harus berupa teks.',
+                'perihal.max' => 'Perihal maksimal 255 karakter.',
+                'tujuan.required' => 'Tujuan wajib diisi.',
+                'tujuan.string' => 'Tujuan harus berupa teks.',
+                'tujuan.max' => 'Tujuan maksimal 150 karakter.',
+                'pengirim_bagian_id.required' => 'Bagian pengirim wajib dipilih.',
+                'pengirim_bagian_id.exists' => 'Bagian pengirim yang dipilih tidak valid.',
+                'lampiran_pdf.required' => 'Lampiran PDF wajib diupload.',
+                'lampiran_pdf.file' => 'Lampiran PDF harus berupa file.',
+                'lampiran_pdf.mimes' => 'Lampiran PDF harus berupa file PDF.',
+                'lampiran_pdf.max' => 'Lampiran PDF maksimal 20MB.',
             ]);
+
             $validated['user_id'] = Auth::id();
             $suratKeluar = SuratKeluar::create($validated);
 
-            // Proses upload lampiran utama (PDF)
+            // ANCHOR: Process PDF attachment upload
             if ($request->hasFile('lampiran_pdf')) {
                 $file = $request->file('lampiran_pdf');
                 $path = $file->store('lampiran/surat_keluar', 'public');
@@ -56,7 +88,7 @@ class SuratKeluarController extends Controller
                 ]);
             }
 
-            // Proses upload dokumen pendukung (multi-file)
+            // ANCHOR: Process supporting documents upload
             if ($request->hasFile('lampiran_pendukung')) {
                 foreach ($request->file('lampiran_pendukung') as $file) {
                     $path = $file->store('lampiran/surat_keluar', 'public');
@@ -69,29 +101,76 @@ class SuratKeluarController extends Controller
                 }
             }
 
-            return redirect()->route('surat_keluar.index')->with('success', 'Surat keluar berhasil ditambahkan.');
+            // ANCHOR: Handle AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Surat keluar berhasil ditambahkan.',
+                    'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user'),
+                    'timestamp' => now()->format('Y-m-d H:i:s')
+                ], 201);
+            }
+
+            return redirect()->route('surat_keluar.index')
+                ->with('success', 'Surat keluar berhasil ditambahkan.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // ANCHOR: Handle validation errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal. Periksa data yang dimasukkan.',
+                    'errors' => $e->errors(),
+                    'error_type' => 'validation'
+                ], 422);
+            }
+            throw $e;
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // ANCHOR: Handle database errors
+            if ($request->ajax()) {
+                $errorMessage = 'Terjadi kesalahan database.';
+                
+                // Check for specific database errors
+                if (str_contains($e->getMessage(), 'Duplicate entry')) {
+                    $errorMessage = 'Data sudah ada dalam sistem.';
+                } elseif (str_contains($e->getMessage(), 'foreign key constraint')) {
+                    $errorMessage = 'Data bagian tidak valid.';
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'error_type' => 'database',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+
+        } catch (\Exception $e) {
+            // ANCHOR: Handle general errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                    'error_type' => 'general',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+        }
     }
 
-    // Tampilkan detail surat keluar
-    public function show($id)
+    /**
+     * Update the specified surat keluar in storage.
+     */
+    public function update(Request $request, string $id)
     {
-        $suratKeluar = SuratKeluar::with('pengirimBagian', 'user')->findOrFail($id);
-        return view('pages.surat_keluar.show', compact('suratKeluar'));
-    }
+        try {
+            $suratKeluar = SuratKeluar::findOrFail($id);
 
-    // Tampilkan form edit surat keluar
-    public function edit($id)
-    {
-        $suratKeluar = SuratKeluar::findOrFail($id);
-        $bagian = Bagian::all();
-        return view('pages.surat_keluar.edit', compact('suratKeluar', 'bagian'));
-    }
-
-    // Update surat keluar
-    public function update(Request $request, $id)
-    {
             $validated = $request->validate([
-                'nomor_surat' => 'required|string|max:100',
+                'nomor_surat' => 'required|string|max:100|unique:surat_keluar,nomor_surat,' . $id,
                 'tanggal_surat' => 'required|date',
                 'tanggal_keluar' => 'required|date',
                 'perihal' => 'required|string|max:255',
@@ -101,11 +180,31 @@ class SuratKeluarController extends Controller
                 'pengirim_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'nullable|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
+            ], [
+                'nomor_surat.required' => 'Nomor surat wajib diisi.',
+                'nomor_surat.string' => 'Nomor surat harus berupa teks.',
+                'nomor_surat.max' => 'Nomor surat maksimal 100 karakter.',
+                'nomor_surat.unique' => 'Nomor surat sudah digunakan.',
+                'tanggal_surat.required' => 'Tanggal surat wajib diisi.',
+                'tanggal_surat.date' => 'Format tanggal surat tidak valid.',
+                'tanggal_keluar.required' => 'Tanggal keluar wajib diisi.',
+                'tanggal_keluar.date' => 'Format tanggal keluar tidak valid.',
+                'perihal.required' => 'Perihal wajib diisi.',
+                'perihal.string' => 'Perihal harus berupa teks.',
+                'perihal.max' => 'Perihal maksimal 255 karakter.',
+                'tujuan.required' => 'Tujuan wajib diisi.',
+                'tujuan.string' => 'Tujuan harus berupa teks.',
+                'tujuan.max' => 'Tujuan maksimal 150 karakter.',
+                'pengirim_bagian_id.required' => 'Bagian pengirim wajib dipilih.',
+                'pengirim_bagian_id.exists' => 'Bagian pengirim yang dipilih tidak valid.',
+                'lampiran_pdf.file' => 'Lampiran PDF harus berupa file.',
+                'lampiran_pdf.mimes' => 'Lampiran PDF harus berupa file PDF.',
+                'lampiran_pdf.max' => 'Lampiran PDF maksimal 20MB.',
             ]);
-            $suratKeluar = SuratKeluar::findOrFail($id);
+
             $suratKeluar->update($validated);
 
-            // Update lampiran utama jika ada file baru
+            // ANCHOR: Update PDF attachment if new file uploaded
             if ($request->hasFile('lampiran_pdf')) {
                 $lama = $suratKeluar->lampiran()->where('tipe_lampiran', 'utama')->first();
                 if ($lama) {
@@ -122,7 +221,7 @@ class SuratKeluarController extends Controller
                 ]);
             }
 
-            // Tambah dokumen pendukung baru
+            // ANCHOR: Add new supporting documents
             if ($request->hasFile('lampiran_pendukung')) {
                 foreach ($request->file('lampiran_pendukung') as $file) {
                     $path = $file->store('lampiran/surat_keluar', 'public');
@@ -135,19 +234,130 @@ class SuratKeluarController extends Controller
                 }
             }
 
-            return redirect()->route('surat_keluar.index')->with('success', 'Surat keluar berhasil diupdate.');
+            // ANCHOR: Handle AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Surat keluar '{$suratKeluar->nomor_surat}' berhasil diperbarui.",
+                    'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user'),
+                    'timestamp' => now()->format('Y-m-d H:i:s')
+                ], 200);
+            }
+
+            return redirect()->route('surat_keluar.index')
+                ->with('success', "Surat keluar '{$suratKeluar->nomor_surat}' berhasil diperbarui.");
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // ANCHOR: Handle validation errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal. Periksa data yang dimasukkan.',
+                    'errors' => $e->errors(),
+                    'error_type' => 'validation'
+                ], 422);
+            }
+            throw $e;
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // ANCHOR: Handle database errors
+            if ($request->ajax()) {
+                $errorMessage = 'Terjadi kesalahan database.';
+                
+                // Check for specific database errors
+                if (str_contains($e->getMessage(), 'Duplicate entry')) {
+                    $errorMessage = 'Data sudah ada dalam sistem.';
+                } elseif (str_contains($e->getMessage(), 'foreign key constraint')) {
+                    $errorMessage = 'Data bagian tidak valid.';
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'error_type' => 'database',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+
+        } catch (\Exception $e) {
+            // ANCHOR: Handle general errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                    'error_type' => 'general',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+        }
     }
 
-    // Hapus surat keluar
-    public function destroy($id)
+    /**
+     * Remove the specified surat keluar from storage.
+     */
+    public function destroy(Request $request, string $id)
     {
+        try {
             $suratKeluar = SuratKeluar::findOrFail($id);
-            // Hapus semua lampiran dari storage
-            foreach ($suratKeluar->lampiran as $lampiran) {
-                Storage::disk('public')->delete($lampiran->path_file);
-                $lampiran->delete();
-            }
+            $nomorSurat = $suratKeluar->nomor_surat;
+            
             $suratKeluar->delete();
-            return redirect()->route('surat_keluar.index')->with('success', 'Surat keluar berhasil dihapus.');
+
+            // ANCHOR: Handle AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Surat keluar '{$nomorSurat}' berhasil dihapus.",
+                    'timestamp' => now()->format('Y-m-d H:i:s')
+                ], 200);
+            }
+
+            return redirect()->route('surat_keluar.index')
+                ->with('success', "Surat keluar '{$nomorSurat}' berhasil dihapus.");
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // ANCHOR: Handle surat keluar not found
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Surat keluar tidak ditemukan.',
+                    'error_type' => 'not_found'
+                ], 404);
+            }
+            throw $e;
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // ANCHOR: Handle database errors
+            if ($request->ajax()) {
+                $errorMessage = 'Terjadi kesalahan database.';
+                
+                // Check for specific database errors
+                if (str_contains($e->getMessage(), 'foreign key constraint')) {
+                    $errorMessage = 'Surat keluar tidak dapat dihapus karena memiliki data terkait.';
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'error_type' => 'database',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+
+        } catch (\Exception $e) {
+            // ANCHOR: Handle general errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                    'error_type' => 'general',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+        }
     }
 }

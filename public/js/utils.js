@@ -182,3 +182,17 @@ function setLoadingState(loading, btnElement) {
         spinner.classList.add('d-none');
     }
 }
+
+/**
+ * ANCHOR: Clear Errors
+ * Clears the errors from the parent element
+ * @param {Element} parentElement - The parent element to clear the errors from
+ */
+function clearErrors(parentElement) {
+    const invalidFields = parentElement.querySelectorAll('.is-invalid');
+    invalidFields.forEach(field => {
+        field.classList.remove('is-invalid');
+        const feedback = field.parentNode.querySelector('.invalid-feedback');
+        if (feedback) feedback.textContent = '';
+    });
+}

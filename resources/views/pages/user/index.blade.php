@@ -75,21 +75,7 @@
 @push('scripts')
 <script>
     const usersDataCurrentPage = {!! json_encode($users) !!};
-
-    /**
-     * ANCHOR: Clear Errors
-     * Clear the errors from the parent element
-     * @param {Element} parentElement - The parent element to clear the errors from
-     */
-    const clearErrors = (parentElement) => {
-        const invalidFields = parentElement.querySelectorAll('.is-invalid');
-        invalidFields.forEach(field => {
-            field.classList.remove('is-invalid');
-            const feedback = field.parentNode.querySelector('.invalid-feedback');
-            if (feedback) feedback.textContent = '';
-        });
-    }
-
+    
     /**
      * ANCHOR: Add User Handlers
      * Handle the add user form submission
