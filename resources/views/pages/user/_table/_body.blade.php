@@ -5,6 +5,7 @@
         <td>{{ $user->username }}</td>
         <td>{{ $user->nama ?? '-' }}</td>
         <td>{{ $user->email }}</td>
+        <td>{{ $user->phone ?? '-' }}</td>
         <td>
             <div class="password-container d-flex align-items-center">
                 <span class="password-display" id="password-{{ $user->id }}" title="Password: {{ $user->password }}">
@@ -57,7 +58,7 @@
     </tr>
     @empty
     <tr>
-        <td colspan="9" class="text-center">Tidak ada data user</td>
+        <td colspan="10" class="text-center">Tidak ada data user</td>
     </tr>
     @endforelse
 </tbody>

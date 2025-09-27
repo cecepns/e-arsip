@@ -20,7 +20,8 @@ class UserController extends Controller
         $users = User::with('bagian')
             ->when($query, function ($q) use ($query) {
                 $q->where('username', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%");
+                  ->orWhere('email', 'like', "%{$query}%")
+                  ->orWhere('phone', 'like', "%{$query}%");
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -40,6 +41,7 @@ class UserController extends Controller
                 'username' => 'required|string|max:50|unique:users,username',
                 'nama' => 'required|string|max:100',
                 'email' => 'required|email|max:100|unique:users,email',
+                'phone' => 'nullable|string|max:20',
                 'password' => 'required|string|max:50',
                 'role' => 'required|in:Admin,Staf',
                 'bagian_id' => 'nullable|exists:bagian,id',
@@ -56,6 +58,8 @@ class UserController extends Controller
                 'email.email' => 'Format email tidak valid.',
                 'email.max' => 'Email maksimal 100 karakter.',
                 'email.unique' => 'Email sudah digunakan.',
+                'phone.string' => 'Nomor telepon harus berupa teks.',
+                'phone.max' => 'Nomor telepon maksimal 20 karakter.',
                 'password.required' => 'Password wajib diisi.',
                 'password.string' => 'Password harus berupa teks.',
                 'password.max' => 'Password maksimal 50 karakter.',
@@ -152,6 +156,7 @@ class UserController extends Controller
                 'username' => 'required|string|max:50|unique:users,username,' . $id,
                 'nama' => 'required|string|max:100',
                 'email' => 'required|email|max:100|unique:users,email,' . $id,
+                'phone' => 'nullable|string|max:20',
                 'password' => 'nullable|string|max:50',
                 'role' => 'required|in:Admin,Staf',
                 'bagian_id' => 'nullable|exists:bagian,id',
@@ -168,6 +173,8 @@ class UserController extends Controller
                 'email.email' => 'Format email tidak valid.',
                 'email.max' => 'Email maksimal 100 karakter.',
                 'email.unique' => 'Email sudah digunakan.',
+                'phone.string' => 'Nomor telepon harus berupa teks.',
+                'phone.max' => 'Nomor telepon maksimal 20 karakter.',
                 'password.string' => 'Password harus berupa teks.',
                 'password.max' => 'Password maksimal 50 karakter.',
                 'role.required' => 'Role wajib dipilih.',

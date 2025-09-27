@@ -21,6 +21,12 @@
     </div>
     
     <div class="mb-3">
+        <label for="add_phone" class="form-label">Nomor Telepon</label>
+        <input type="text" name="phone" class="form-control" id="add_phone" placeholder="081234567890" value="{{ old('phone') }}">
+        <div class="invalid-feedback"></div>
+    </div>
+    
+    <div class="mb-3">
         <label for="add_password" class="form-label">Password</label>
         <input type="text" name="password" class="form-control" id="add_password" placeholder="Password" value="{{ old('password') }}">
         <div class="form-text">Password akan disimpan dalam bentuk plain text</div>

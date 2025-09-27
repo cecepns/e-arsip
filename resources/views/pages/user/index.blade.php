@@ -17,7 +17,7 @@
         <i class="fas fa-plus"></i> Tambah User
     </button>
     <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('user.index') }}">
-        <input type="text" name="search" class="form-control me-2" placeholder="Cari username atau email..." value="{{ $query ?? '' }}">
+        <input type="text" name="search" class="form-control me-2" placeholder="Cari username, email, atau telepon..." value="{{ $query ?? '' }}">
         <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
         @if(isset($query) && $query)
             <a href="{{ route('user.index') }}" class="btn btn-outline-danger ms-1" title="Clear search">
@@ -256,18 +256,20 @@
         const usernameInput = document.getElementById('edit_username');
         const namaInput = document.getElementById('edit_nama');
         const emailInput = document.getElementById('edit_email');
+        const phoneInput = document.getElementById('edit_phone');
         const passwordInput = document.getElementById('edit_password');
         const roleInput = document.getElementById('edit_role');
         const bagianInput = document.getElementById('edit_bagian_id');
         const isKepalaBagianInput = document.getElementById('edit_is_kepala_bagian');
         const user = usersDataCurrentPage.data.find(user => user.id === userId);
-        const { id, username, nama, email, password, role, bagian_id } = user;
+        const { id, username, nama, email, phone, password, role, bagian_id } = user;
         console.log('user', user);
 
         idInput.value = id;
         usernameInput.value = username || '';
         namaInput.value = nama || '';
         emailInput.value = email || '';
+        phoneInput.value = phone || '';
         passwordInput.value = '';
         roleInput.value = role || '';
         bagianInput.value = bagian_id || '';

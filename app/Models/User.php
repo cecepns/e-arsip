@@ -22,6 +22,7 @@ class User extends Authenticatable
         'username',
         'nama',
         'email',
+        'phone',
         'password',
         'role',
         'bagian_id',

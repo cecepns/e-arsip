@@ -22,6 +22,12 @@
     </div>
     
     <div class="mb-3">
+        <label for="edit_phone" class="form-label">Nomor Telepon</label>
+        <input type="text" name="phone" class="form-control" id="edit_phone" placeholder="081234567890">
+        <div class="invalid-feedback"></div>
+    </div>
+    
+    <div class="mb-3">
         <label for="edit_password" class="form-label">Password</label>
         <input type="text" name="password" class="form-control" id="edit_password" placeholder="Kosongkan jika tidak ingin mengubah password">
         <div class="form-text">Kosongkan jika tidak ingin mengubah password (password lama akan dipertahankan)</div>
