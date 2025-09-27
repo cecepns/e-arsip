@@ -14,7 +14,7 @@
             <option value="">Pilih Kepala Bagian (Opsional)</option>
             @foreach(\App\Models\User::whereNotNull('bagian_id')->get() as $user)
                 <option value="{{ $user->id }}" {{ old('kepala_bagian_user_id') == $user->id ? 'selected' : '' }}>
-                    {{ $user->username }} ({{ $user->bagian->nama_bagian ?? 'Tanpa Bagian' }})
+                    {{ $user->nama ?? $user->username }} ({{ $user->bagian->nama_bagian ?? 'Tanpa Bagian' }})
                 </option>
             @endforeach
         </select>

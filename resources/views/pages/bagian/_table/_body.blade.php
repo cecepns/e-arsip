@@ -6,7 +6,7 @@
         <td>
             @if($item->kepalaBagian)
                 <span class="badge bg-warning text-dark">
-                    {{ $item->kepalaBagian->username }}
+                    {{ $item->kepalaBagian->nama ?? $item->kepalaBagian->username }}
                 </span>
             @else
                 <span class="text-muted">-</span>
