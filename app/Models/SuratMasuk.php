@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Auditable;
 
 class SuratMasuk extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Auditable;
 
     protected $table = 'surat_masuk';
 
@@ -23,6 +24,8 @@ class SuratMasuk extends Model
         'keterangan',
         'tujuan_bagian_id',
         'user_id',
+        'created_by',
+        'updated_by',
     ];
 
     protected function casts(): array

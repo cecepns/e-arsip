@@ -7,6 +7,8 @@
         <th>Penerima</th>
         <th>Perihal</th>
         <th>Bagian Pengirim</th>
+        <th>Dibuat Oleh</th>
+        <th>Diupdate Oleh</th>
         <th class="text-center">Aksi</th>
     </tr>
 </thead>

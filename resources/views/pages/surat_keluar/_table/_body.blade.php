@@ -15,6 +15,28 @@
             @endif
         </td>
         <td>
+            <small class="text-muted">
+                @if($surat->creator)
+                    {{ $surat->creator_name }}
+                    <br>
+                    <span class="text-muted">{{ $surat->created_at->format('d-m-Y H:i') }}</span>
+                @else
+                    <span class="text-muted">-</span>
+                @endif
+            </small>
+        </td>
+        <td>
+            <small class="text-muted">
+                @if($surat->updater)
+                    {{ $surat->updater_name }}
+                    <br>
+                    <span class="text-muted">{{ $surat->updated_at->format('d-m-Y H:i') }}</span>
+                @else
+                    <span class="text-muted">-</span>
+                @endif
+            </small>
+        </td>
+        <td>
             <div class="action-buttons">
                 <button class="action-btn view-btn" title="Lihat" 
                         data-bs-toggle="modal" 
@@ -39,7 +61,7 @@
     </tr>
     @empty
     <tr>
-        <td colspan="8" class="text-center">Tidak ada data surat keluar</td>
+        <td colspan="10" class="text-center">Tidak ada data surat keluar</td>
     </tr>
     @endforelse
 </tbody>

@@ -37,14 +37,13 @@ Menampilkan daftar semua surat masuk dalam format tabel yang informatif.
 
 * **Tampilan Tabel:**  
   * **Kolom Data:** Nomor, Nomor Surat, Tanggal Surat, Tanggal Terima, Perihal, Ringkasan Isi, Pengirim, dan Bagian Tujuan.  
-  * **Lampiran:** Ikon yang menandakan adanya lampiran dan dapat diklik untuk melihat.  
 * **Fitur Tambahan:**  
-  * **Tombol Aksi Utama:** Tambah Data, Filter (untuk pencarian spesifik), dan Refresh.  
+  * **Tombol Aksi Utama:** Tambah Data, Filter (untuk pencarian spesifik)  
   * **Aksi per Baris:** Opsi Lihat Detail, Edit, dan Hapus.
 
 #### **Formulir Tambah/Edit Data**
 
-* **Input Data Surat:** Nomor Surat, Tanggal Surat, Tanggal Diterima, Perihal, Ringkasan Isi, Pengirim, Bagian Tujuan, Sifat Surat, Keterangan.  
+* **Input Data Surat:** Nomor Surat(text), Tanggal Surat(date), Tanggal Diterima(date), Perihal(text), Ringkasan Isi(textarea), Pengirim(text), Bagian Tujuan(select), Sifat Surat(select), Keterangan(textarea).  
 * **Unggah Lampiran:**  
   * **File Surat Utama (Wajib):** Format **PDF**.  
   * **Dokumen Pendukung (Opsional):** Format **ZIP, RAR, DOCX, XLSX**.  
@@ -52,7 +51,7 @@ Menampilkan daftar semua surat masuk dalam format tabel yang informatif.
 
 #### **Halaman Detail Surat**
 
-Menyajikan informasi lengkap satu surat masuk, termasuk semua data dari formulir dan tombol untuk melihat/mengunduh lampiran.
+Menyajikan informasi lengkap satu surat masuk, termasuk semua data dari formulir dan tombol untuk melihat/mengunduh lampiran. 
 
 #### **Hak Akses**
 
@@ -67,13 +66,13 @@ Fitur untuk mencatat dan mengarsipkan semua surat yang dikeluarkan instansi.
 Menampilkan daftar semua surat keluar dalam format tabel.
 
 * **Tampilan Tabel:**  
-  * **Kolom Data:** Nomor, Nomor Surat, Tanggal Surat, Tanggal Keluar, Penerima, Perihal, Ringkasan Isi, dan Bagian Pengirim.  
+  * **Kolom Data:** Nomor, Nomor Surat, Tanggal Surat, Tanggal Keluar, Penerima, Perihal, Ringkasan Isi, Tujuan, dan Bagian Pengirim.  
 * **Fitur Tambahan:** Tombol Tambah Data, Filter, dan Refresh.  
 * **Aksi per Baris:** Opsi Lihat Detail, Edit, dan Hapus.
 
 #### **Formulir Tambah/Edit Data**
 
-* **Input Data Surat:** Nomor Surat(text), Tanggal Surat(date), Tanggal Keluar(data), Perihal(textarea), Ringkasan Isi(textarea), Bagian Pengirim(select), Penerima(text), Keterangan(textarea).  
+* **Input Data Surat:** Nomor Surat(text), Tanggal Surat(date), Tanggal Keluar(data), Perihal(textarea), Ringkasan Isi(textarea), Tujuan Surat(text), Bagian Pengirim(select), Penerima(text), Keterangan.  
 * **Unggah Lampiran:**  
   * **File Surat Utama (Wajib):** Format **PDF**.  
   * **Dokumen Pendukung (Opsional):** Format **ZIP, RAR, DOCX, XLSX**.
