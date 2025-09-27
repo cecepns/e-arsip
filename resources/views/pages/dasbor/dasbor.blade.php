@@ -3,14 +3,6 @@
 @section('admin-content')
 {{-- SECTION: Page Header --}}
 <div class="page-header">
-    {{-- ANCHOR: Breadcrumb --}}
-    @include('partials.breadcrumb', [
-        'items' => [
-            ['label' => 'Home', 'url' => '#'],
-            ['label' => 'Dashboard']
-        ]
-    ])
-
     {{-- ANCHOR: Page Title & Subtitle --}}
     @include('partials.page-title', [
         'title' => 'Dashboard',
@@ -182,7 +174,7 @@
         'tableId' => 'activityTable',
         'tableClass' => 'activity-table',
         'thead' => view()->make('pages.dasbor._table_head')->render(),
-        'tbody' => view()->make('pages.dasbor._table_body')->render(),
+        'tbody' => view()->make('pages.dasbor._table_body', ['recentActivity' => $recentActivity])->render(),
     ])
 
     {{-- ANCHOR: Recent Activity Table Footer --}}
@@ -211,13 +203,9 @@
     // Global variables
     let distributionChart;
     const chartData = {
-        labels: ['Surat Masuk', 'Surat Keluar', 'Disposisi'],
-        data: [150, 89, 42],
-        colors: [
-            '#66bb6a', // Surat Masuk - Soft Green
-            '#42a5f5', // Surat Keluar - Soft Blue  
-            '#ffca28', // Disposisi - Soft Yellow
-        ]
+        labels: {!! json_encode($chartData['labels']) !!},
+        data: {!! json_encode($chartData['data']) !!},
+        colors: {!! json_encode($chartData['colors']) !!}
     };
     let originalTableData = [];
 

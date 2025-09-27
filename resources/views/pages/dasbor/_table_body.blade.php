@@ -1,87 +1,33 @@
 <tbody>
-    <tr>
-        <td>1</td>
-        <td class="text-primary"><strong>001/SM/XII/2024</strong></td>
-        <td>15 Desember 2024</td>
-        <td>Undangan Rapat Koordinasi Bulanan</td>
-        <td><span class="badge-incoming">Surat Masuk</span></td>
-        <td>
-            <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat"  data-bs-toggle="modal" data-bs-target="#detailModal">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="action-btn delete-btn" title="Hapus">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </td>
-    </tr>
-    <tr>
-        <td>2</td>
-        <td class="text-primary"><strong>002/SK/XII/2024</strong></td>
-        <td>14 Desember 2024</td>
-        <td>Surat Penawaran Kerjasama Teknologi</td>
-        <td><span class="badge-outgoing">Surat Keluar</span></td>
-        <td>
-            <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="action-btn delete-btn" title="Hapus">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </td>
-    </tr>
-    <tr>
-        <td>3</td>
-        <td class="text-primary"><strong>003/SM/XII/2024</strong></td>
-        <td>13 Desember 2024</td>
-        <td>Laporan Kinerja Bulanan Divisi HRD</td>
-        <td><span class="badge-incoming">Surat Masuk</span></td>
-        <td>
-            <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="action-btn delete-btn" title="Hapus">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </td>
-    </tr>
-    <tr>
-        <td>4</td>
-        <td class="text-primary"><strong>004/SM/XII/2024</strong></td>
-        <td>12 Desember 2024</td>
-        <td>Pengajuan Kenaikan Jabatan</td>
-        <td><span class="badge-incoming">Surat Masuk</span></td>
-        <td>
-            <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="action-btn delete-btn" title="Hapus">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </td>
-    </tr>
-    <tr>
-        <td>5</td>
-        <td class="text-primary"><strong>005/SM/XII/2024</strong></td>
-        <td>11 Desember 2024</td>
-        <td>Delivery Order Pengadaan Barang</td>
-        <td><span class="badge-incoming">Surat Masuk</span></td>
-        <td>
-            <div class="action-buttons">
-                <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="action-btn delete-btn" title="Hapus">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </td>
-    </tr>
+    @forelse($recentActivity as $index => $activity)
+        <tr>
+            <td>{{ $index + 1 }}</td>
+            <td class="text-primary"><strong>{{ $activity['nomor_surat'] }}</strong></td>
+            <td>{{ $activity['tanggal_surat'] ? \Carbon\Carbon::parse($activity['tanggal_surat'])->format('d F Y') : '-' }}</td>
+            <td>{{ $activity['perihal'] }}</td>
+            <td>
+                <span class="badge-{{ $activity['jenis'] == 'Surat Masuk' ? 'incoming' : 'outgoing' }}">
+                    {{ $activity['jenis'] }}
+                </span>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn delete-btn" title="Hapus">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="6" class="text-center text-muted">
+                <i class="fas fa-inbox fa-2x mb-2"></i>
+                <br>
+                Belum ada aktivitas surat terbaru
+            </td>
+        </tr>
+    @endforelse
 </tbody>
