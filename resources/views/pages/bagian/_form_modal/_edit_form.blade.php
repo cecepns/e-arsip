@@ -13,7 +13,7 @@
         <label for="edit_kepala_bagian_user_id" class="form-label">Kepala Bagian</label>
         <select name="kepala_bagian_user_id" class="form-select" id="edit_kepala_bagian_user_id">
             <option value="">Pilih Kepala Bagian (Opsional)</option>
-            @foreach(\App\Models\User::whereNotNull('bagian_id')->get() as $user)
+            @foreach($users as $user)
                 <option value="{{ $user->id }}">
                     {{ $user->nama ?? $user->username }} ({{ $user->bagian->nama_bagian ?? 'Tanpa Bagian' }})
                 </option>

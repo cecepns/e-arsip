@@ -52,14 +52,14 @@
     'id' => 'modalAddBagian',
     'size' => 'modal-md',
     'title' => 'Tambah Bagian',
-    'body' => view('pages.bagian._form_modal._add_form')->render(),
+    'body' => view('pages.bagian._form_modal._add_form', compact('usersNotMarkedAsKepalaBagian'))->render(),
 ])
 
 @include('partials.modal', [
     'id' => 'modalEditBagian',
     'size' => 'modal-md',
     'title' => 'Edit Bagian',
-    'body' => view('pages.bagian._form_modal._edit_form')->render(),
+    'body' => view('pages.bagian._form_modal._edit_form', compact('users'))->render(),
 ])
 
 @include('partials.modal', [
@@ -82,60 +82,8 @@
 @push('scripts')
 <script>
     const bagianDataCurrentPage = {!! json_encode($bagian->items()) !!};
+    const usersData = {!! json_encode($users) !!};
 
-    /**
-     * ANCHOR: Add Bagian Handlers
-     * Handle the add bagian form submission
-     */
-    const addBagianHandlers = () => {
-        const addBagianForm = document.getElementById('addBagianForm');
-        const addBagianSubmitBtn = document.getElementById('addBagianSubmitBtn');
-        const addBagianCancelBtn = document.getElementById('addBagianCancelBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        addBagianForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            clearErrors(addBagianForm);
-            setLoadingState(true, addBagianSubmitBtn);
-
-            try {
-                const formData = new FormData(addBagianForm);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-                const response = await fetchWithRetry(addBagianForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                });
-                clearTimeout(timeoutId);
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response is not JSON');
-                }
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    showToast(data.message, 'success', 5000);
-                    addBagianForm.reset();
-                    bootstrap.Modal.getInstance(document.getElementById('modalAddBagian')).hide();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    handleErrorResponse(data, addBagianForm);
-                }
-            } catch (error) {
-                handleErrorResponse(error, addBagianForm);
-            } finally {
-                setLoadingState(false, addBagianSubmitBtn);
-            }
-        });
-    }
     
 
     /**
@@ -300,7 +248,6 @@
     }
 
     // ANCHOR: Run all handlers
-    addBagianHandlers();
     editBagianHandlers();
     deleteBagianHandlers();
 </script>
