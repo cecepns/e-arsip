@@ -30,8 +30,8 @@ class AuthController extends Controller
         // Find user by username (automatically excludes soft deleted users due to SoftDeletes trait)
         $user = User::where('username', $validated['username'])->first();
 
-        // Check if user exists, is not soft deleted, and password matches (plain text comparison - no hashing)
-        if ($user && $user->password === $validated['password']) {
+        // Check if user exists, is not soft deleted, and password matches (hashed comparison)
+        if ($user && \Illuminate\Support\Facades\Hash::check($validated['password'], $user->password)) {
             // Manually log in the user
             Auth::login($user);
             $request->session()->regenerate();

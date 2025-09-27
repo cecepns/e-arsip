@@ -7,18 +7,6 @@
         <td>{{ $user->email }}</td>
         <td>{{ $user->phone ?? '-' }}</td>
         <td>
-            <div class="password-container d-flex align-items-center">
-                <span class="password-display" id="password-{{ $user->id }}" title="Password: {{ $user->password }}">
-                    ••••••••
-                </span>
-                <button type="button" class="btn btn-sm btn-outline-secondary ms-2 password-toggle" 
-                        onclick="togglePassword('{{ $user->id }}')" 
-                        title="Toggle password visibility">
-                    <i class="fas fa-eye" id="toggle-icon-{{ $user->id }}"></i>
-                </button>
-            </div>
-        </td>
-        <td>
             @if($user->bagian)
                 {{ $user->bagian->nama_bagian }}
             @else
@@ -47,6 +35,12 @@
                         onclick="showEditUserModal({{ $user->id }})">
                     <i class="fas fa-edit"></i>
                 </button>
+                <button class="action-btn reset-btn" title="Reset Password" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#modalResetPassword"
+                        onclick="showResetPasswordModal({{ $user->id }})">
+                    <i class="fas fa-key"></i>
+                </button>
                 <button class="action-btn delete-btn" title="Hapus" 
                         data-bs-toggle="modal" 
                         data-bs-target="#modalDeleteUser"
@@ -58,7 +52,7 @@
     </tr>
     @empty
     <tr>
-        <td colspan="10" class="text-center">Tidak ada data user</td>
+        <td colspan="9" class="text-center">Tidak ada data user</td>
     </tr>
     @endforelse
 </tbody>

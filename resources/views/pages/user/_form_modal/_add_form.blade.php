@@ -28,8 +28,13 @@
     
     <div class="mb-3">
         <label for="add_password" class="form-label">Password</label>
-        <input type="text" name="password" class="form-control" id="add_password" placeholder="Password" value="{{ old('password') }}">
-        <div class="form-text">Password akan disimpan dalam bentuk plain text</div>
+        <div class="input-group">
+            <input type="password" name="password" class="form-control" id="add_password" placeholder="Password" value="{{ old('password') }}">
+            <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('add_password')">
+                <i class="fas fa-eye" id="add_password_icon"></i>
+            </button>
+        </div>
+        <div class="form-text">Password minimal 8 karakter, harus mengandung huruf besar, huruf kecil, angka, dan simbol</div>
         <div class="invalid-feedback"></div>
     </div>
     

@@ -116,6 +116,16 @@
     color: white;
 }
 
+.reset-btn {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.reset-btn:hover {
+    background-color: #e8650e;
+    color: white;
+}
+
 /* Form Styling */
 .form-text {
     font-size: 0.8em;

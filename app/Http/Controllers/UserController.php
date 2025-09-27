@@ -42,7 +42,7 @@ class UserController extends Controller
                 'nama' => 'required|string|max:100',
                 'email' => 'required|email|max:100|unique:users,email',
                 'phone' => 'nullable|string|max:20',
-                'password' => 'required|string|max:50',
+                'password' => 'required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
                 'role' => 'required|in:Admin,Staf',
                 'bagian_id' => 'nullable|exists:bagian,id',
                 'is_kepala_bagian' => 'nullable|boolean',
@@ -62,7 +62,8 @@ class UserController extends Controller
                 'phone.max' => 'Nomor telepon maksimal 20 karakter.',
                 'password.required' => 'Password wajib diisi.',
                 'password.string' => 'Password harus berupa teks.',
-                'password.max' => 'Password maksimal 50 karakter.',
+                'password.min' => 'Password minimal 8 karakter.',
+                'password.regex' => 'Password harus mengandung huruf besar, huruf kecil, angka, dan simbol.',
                 'role.required' => 'Role wajib dipilih.',
                 'role.in' => 'Role harus Admin atau Staf.',
                 'bagian_id.exists' => 'Bagian yang dipilih tidak valid.',
@@ -157,7 +158,7 @@ class UserController extends Controller
                 'nama' => 'required|string|max:100',
                 'email' => 'required|email|max:100|unique:users,email,' . $id,
                 'phone' => 'nullable|string|max:20',
-                'password' => 'nullable|string|max:50',
+                'password' => 'nullable|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
                 'role' => 'required|in:Admin,Staf',
                 'bagian_id' => 'nullable|exists:bagian,id',
                 'is_kepala_bagian' => 'nullable|boolean',
@@ -176,7 +177,8 @@ class UserController extends Controller
                 'phone.string' => 'Nomor telepon harus berupa teks.',
                 'phone.max' => 'Nomor telepon maksimal 20 karakter.',
                 'password.string' => 'Password harus berupa teks.',
-                'password.max' => 'Password maksimal 50 karakter.',
+                'password.min' => 'Password minimal 8 karakter.',
+                'password.regex' => 'Password harus mengandung huruf besar, huruf kecil, angka, dan simbol.',
                 'role.required' => 'Role wajib dipilih.',
                 'role.in' => 'Role harus Admin atau Staf.',
                 'bagian_id.exists' => 'Bagian yang dipilih tidak valid.',
@@ -328,6 +330,53 @@ class UserController extends Controller
                     'error_type' => 'database',
                     'debug' => config('app.debug') ? $e->getMessage() : null
                 ], 500);
+            }
+            throw $e;
+
+        } catch (\Exception $e) {
+            // ANCHOR: Handle general errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                    'error_type' => 'general',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Reset user password.
+     */
+    public function resetPassword(Request $request, string $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $newPassword = $user->resetPassword();
+
+            // ANCHOR: Handle AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Password untuk user '{$user->username}' berhasil direset.",
+                    'new_password' => $newPassword,
+                    'timestamp' => now()->format('Y-m-d H:i:s')
+                ], 200);
+            }
+
+            return redirect()->route('user.index')
+                ->with('success', "Password untuk user '{$user->username}' berhasil direset. Password baru: {$newPassword}");
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // ANCHOR: Handle user not found
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak ditemukan.',
+                    'error_type' => 'not_found'
+                ], 404);
             }
             throw $e;
 

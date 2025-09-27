@@ -5,7 +5,6 @@
         <th>Nama</th>
         <th>Email</th>
         <th>Telepon</th>
-        <th>Password</th>
         <th>Bagian</th>
         <th class="text-center">Role</th>
         <th class="text-center">Kepala Bagian</th>

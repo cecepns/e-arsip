@@ -45,7 +45,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            // Password tidak di-hash sesuai keinginan klien
+            'password' => 'hashed', // Auto-hash passwords
         ];
     }
 
@@ -95,5 +95,23 @@ class User extends Authenticatable
     public function isKepalaBagian(): bool
     {
         return $this->bagianKepala()->exists();
+    }
+
+    /**
+     * Reset user password and return the new password.
+     */
+    public function resetPassword(): string
+    {
+        $newPassword = $this->generateRandomPassword();
+        $this->update(['password' => $newPassword]);
+        return $newPassword;
+    }
+
+    /**
+     * Generate a random password.
+     */
+    private function generateRandomPassword(): string
+    {
+        return \Illuminate\Support\Str::random(12);
     }
 }

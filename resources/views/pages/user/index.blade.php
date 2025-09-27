@@ -70,6 +70,15 @@
     'body' => view()->make('pages.user._delete_modal._body')->render(),
     'footer' => view()->make('pages.user._delete_modal._footer')->render(),
 ])
+
+@include('partials.modal', [
+    'type' => 'warning',
+    'id' => 'modalResetPassword',
+    'title' => 'Reset Password User',
+    'size' => 'modal-md',
+    'body' => view()->make('pages.user._reset_modal._body')->render(),
+    'footer' => view()->make('pages.user._reset_modal._footer')->render(),
+])
 @endsection
 
 @push('scripts')
@@ -246,6 +255,64 @@
     }
 
     /**
+     * ANCHOR: Reset Password Handlers
+     * Handle the reset password form submission
+     */
+    const resetPasswordHandlers = () => {
+        const resetPasswordForm = document.getElementById('resetPasswordForm');
+        const resetPasswordSubmitBtn = document.getElementById('resetPasswordSubmitBtn');
+        const csrfToken = (
+            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+            document.querySelector('input[name="_token"]')?.value
+        );
+        
+        resetPasswordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearErrors(resetPasswordForm);
+            setLoadingState(true, resetPasswordSubmitBtn);
+
+            try {
+                const formData = new FormData(resetPasswordForm);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                const response = await fetchWithRetry(resetPasswordForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                clearTimeout(timeoutId);
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    // Show password result in modal
+                    showPasswordResult(data.new_password);
+                    
+                    // Hide submit button and show close button
+                    document.getElementById('resetPasswordSubmitBtn').style.display = 'none';
+                    document.getElementById('resetPasswordCancelBtn').style.display = 'none';
+                    document.getElementById('resetPasswordCloseBtn').style.display = 'inline-block';
+                    
+                    // Don't close modal automatically
+                    // Don't reload page automatically
+                } else {
+                    handleErrorResponse(data, resetPasswordForm);
+                }
+            } catch (error) {
+                handleErrorResponse(error, resetPasswordForm);
+            } finally {
+                setLoadingState(false, resetPasswordSubmitBtn);
+            }
+        });
+    }
+
+    /**
      * ANCHOR: Show Edit User Modal
      * Show the edit user modal
      * @param {number} id - The id of the user to edit
@@ -297,31 +364,83 @@
     }
 
     /**
-     * ANCHOR: Toggle Password
-     * Toggle the password visibility
-     * @param {number} userId - The id of the user to toggle the password for
+     * ANCHOR: Show Reset Password Modal
+     * Show the reset password modal
+     * @param {number} userId - The id of the user to reset password
      */
-    const togglePassword = (userId) => {
-        const passwordElement = document.getElementById(`password-${userId}`);
-        const toggleIcon = document.getElementById(`toggle-icon-${userId}`);
+    const showResetPasswordModal = (userId) => {
+        const resetUserName = document.getElementById('resetUserName');
+        const resetPasswordForm = document.getElementById('resetPasswordForm');
+
+        const user = usersDataCurrentPage.data.find(user => user.id === userId);
+        const { id, username } = user;
+
+        resetUserName.textContent = username;
+        resetPasswordForm.action = `/user/${id}/reset-password`;
         
-        if (passwordElement && toggleIcon) {
-            // Get the original password from title attribute
-            const originalPassword = passwordElement.getAttribute('title').replace('Password: ', '');
-            
-            // Check current state
-            if (passwordElement.textContent === originalPassword) {
-                // Hide password (show dots)
-                passwordElement.textContent = '••••••••';
+        // Reset modal state
+        resetModalState();
+    }
+
+    /**
+     * ANCHOR: Reset Modal State
+     * Reset the modal to initial state
+     */
+    const resetModalState = () => {
+        // Hide password result
+        document.getElementById('passwordResult').style.display = 'none';
+        
+        // Show submit and cancel buttons
+        document.getElementById('resetPasswordSubmitBtn').style.display = 'inline-block';
+        document.getElementById('resetPasswordCancelBtn').style.display = 'inline-block';
+        document.getElementById('resetPasswordCloseBtn').style.display = 'none';
+    }
+
+    /**
+     * ANCHOR: Show Password Result
+     * Show the generated password in the modal
+     * @param {string} newPassword - The new generated password
+     */
+    const showPasswordResult = (newPassword) => {
+        document.getElementById('newPasswordDisplay').value = newPassword;
+        document.getElementById('passwordResult').style.display = 'block';
+    }
+
+    /**
+     * ANCHOR: Copy Password
+     * Copy the generated password to clipboard
+     */
+    const copyPassword = async () => {
+        const passwordInput = document.getElementById('newPasswordDisplay');
+        try {
+            await navigator.clipboard.writeText(passwordInput.value);
+            showToast('Password berhasil disalin ke clipboard!', 'success', 3000);
+        } catch (err) {
+            // Fallback for older browsers
+            passwordInput.select();
+            document.execCommand('copy');
+            showToast('Password berhasil disalin ke clipboard!', 'success', 3000);
+        }
+    }
+
+    /**
+     * ANCHOR: Toggle Password Visibility
+     * Toggle the password visibility for form inputs
+     * @param {string} inputId - The id of the password input
+     */
+    const togglePasswordVisibility = (inputId) => {
+        const passwordInput = document.getElementById(inputId);
+        const toggleIcon = document.getElementById(`${inputId}_icon`);
+        
+        if (passwordInput && toggleIcon) {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
                 toggleIcon.classList.remove('fa-eye');
                 toggleIcon.classList.add('fa-eye-slash');
-                toggleIcon.parentElement.title = 'Show password';
             } else {
-                // Show password (show original)
-                passwordElement.textContent = originalPassword;
+                passwordInput.type = 'password';
                 toggleIcon.classList.remove('fa-eye-slash');
                 toggleIcon.classList.add('fa-eye');
-                toggleIcon.parentElement.title = 'Hide password';
             }
         }
     }
@@ -365,6 +484,12 @@
     addUserHandlers();
     editUserHandlers();
     deleteUserHandlers();
+    resetPasswordHandlers();
     handleKepalaBagianCheckbox();
+    
+    // ANCHOR: Reset modal state when modal is hidden
+    document.getElementById('modalResetPassword').addEventListener('hidden.bs.modal', function () {
+        resetModalState();
+    });
 </script>
 @endpush

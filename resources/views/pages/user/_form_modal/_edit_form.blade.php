@@ -29,8 +29,13 @@
     
     <div class="mb-3">
         <label for="edit_password" class="form-label">Password</label>
-        <input type="text" name="password" class="form-control" id="edit_password" placeholder="Kosongkan jika tidak ingin mengubah password">
-        <div class="form-text">Kosongkan jika tidak ingin mengubah password (password lama akan dipertahankan)</div>
+        <div class="input-group">
+            <input type="password" name="password" class="form-control" id="edit_password" placeholder="Kosongkan jika tidak ingin mengubah password">
+            <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('edit_password')">
+                <i class="fas fa-eye" id="edit_password_icon"></i>
+            </button>
+        </div>
+        <div class="form-text">Kosongkan jika tidak ingin mengubah password. Jika diisi, minimal 8 karakter dengan huruf besar, huruf kecil, angka, dan simbol</div>
         <div class="invalid-feedback"></div>
     </div>
     
