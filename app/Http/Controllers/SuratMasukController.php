@@ -19,12 +19,32 @@ class SuratMasukController extends Controller
     public function index(Request $request): View
     {
         $query = $request->get('search');
+        $filterBagian = $request->get('filter_bagian');
+        $filterSifat = $request->get('filter_sifat');
+        $filterTanggalMulai = $request->get('filter_tanggal_mulai');
+        $filterTanggalAkhir = $request->get('filter_tanggal_akhir');
         
         $suratMasuk = SuratMasuk::with(['tujuanBagian', 'user', 'creator', 'updater', 'disposisi'])
             ->when($query, function ($q) use ($query) {
                 $q->where('nomor_surat', 'like', "%{$query}%")
                   ->orWhere('perihal', 'like', "%{$query}%")
                   ->orWhere('pengirim', 'like', "%{$query}%");
+            })
+            ->when($filterBagian, function ($q) use ($filterBagian) {
+                $q->where('tujuan_bagian_id', $filterBagian);
+            })
+            ->when($filterSifat, function ($q) use ($filterSifat) {
+                $q->where('sifat_surat', $filterSifat);
+            })
+            ->when($filterTanggalMulai, function ($q) use ($filterTanggalMulai) {
+                $q->where('tanggal_surat', '>=', $filterTanggalMulai);
+            })
+            ->when($filterTanggalAkhir, function ($q) use ($filterTanggalAkhir) {
+                $q->where('tanggal_surat', '<=', $filterTanggalAkhir);
+            })
+            ->when(auth()->user()->role === 'staf', function ($q) {
+                // ANCHOR: Staf hanya bisa melihat surat yang ditujukan ke bagiannya
+                $q->where('tujuan_bagian_id', auth()->user()->bagian_id);
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -52,11 +72,29 @@ class SuratMasukController extends Controller
                 'tujuan_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'required|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
+                'buat_disposisi' => 'nullable|boolean',
+                'disposisi_tujuan_bagian_id' => 'required_if:buat_disposisi,1|exists:bagian,id',
+                'disposisi_prioritas' => 'required_if:buat_disposisi,1|string|in:Normal,Tinggi,Sangat Tinggi',
+                'disposisi_instruksi' => 'required_if:buat_disposisi,1|string',
+                'disposisi_catatan' => 'nullable|string',
             ]);
 
             $validated['user_id'] = Auth::id();
             // ANCHOR: Audit fields (created_by, updated_by) are automatically handled by Auditable trait
             $suratMasuk = SuratMasuk::create($validated);
+
+            // ANCHOR: Create disposisi if requested
+            if ($request->has('buat_disposisi') && $request->buat_disposisi) {
+                $disposisi = Disposisi::create([
+                    'surat_masuk_id' => $suratMasuk->id,
+                    'tujuan_bagian_id' => $validated['disposisi_tujuan_bagian_id'],
+                    'prioritas' => $validated['disposisi_prioritas'],
+                    'instruksi' => $validated['disposisi_instruksi'],
+                    'catatan' => $validated['disposisi_catatan'] ?? null,
+                    'status' => 'Belum Dikerjakan',
+                    'user_id' => Auth::id(),
+                ]);
+            }
 
             // ANCHOR: Process PDF attachment upload
             if ($request->hasFile('lampiran_pdf')) {
@@ -130,6 +168,17 @@ class SuratMasukController extends Controller
         try {
             $suratMasuk = SuratMasuk::with(['tujuanBagian', 'user', 'lampiran', 'creator', 'updater', 'disposisi.tujuanBagian'])->findOrFail($id);
             
+            // ANCHOR: Cek hak akses untuk staf
+            if (auth()->user()->role === 'staf' && $suratMasuk->tujuan_bagian_id !== auth()->user()->bagian_id) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki akses untuk melihat surat ini.'
+                    ], 403);
+                }
+                abort(403, 'Anda tidak memiliki akses untuk melihat surat ini.');
+            }
+            
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
@@ -163,6 +212,17 @@ class SuratMasukController extends Controller
     {
         try {
             $suratMasuk = SuratMasuk::findOrFail($id);
+            
+            // ANCHOR: Cek hak akses untuk staf
+            if (auth()->user()->role === 'staf' && $suratMasuk->tujuan_bagian_id !== auth()->user()->bagian_id) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki akses untuk mengedit surat ini.'
+                    ], 403);
+                }
+                abort(403, 'Anda tidak memiliki akses untuk mengedit surat ini.');
+            }
 
             $validated = $request->validate([
                 'nomor_surat' => 'required|string|max:100|unique:surat_masuk,nomor_surat,' . $id,
@@ -230,6 +290,17 @@ class SuratMasukController extends Controller
     {
         try {
             $suratMasuk = SuratMasuk::findOrFail($id);
+            
+            // ANCHOR: Cek hak akses untuk staf
+            if (auth()->user()->role === 'staf' && $suratMasuk->tujuan_bagian_id !== auth()->user()->bagian_id) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki akses untuk menghapus surat ini.'
+                    ], 403);
+                }
+                abort(403, 'Anda tidak memiliki akses untuk menghapus surat ini.');
+            }
 
             // ANCHOR: Delete associated lampiran files
             foreach ($suratMasuk->lampiran as $lampiran) {

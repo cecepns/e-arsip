@@ -27,6 +27,58 @@
     </form>
 </div>
 
+{{-- Filter Spesifik --}}
+<div class="card mb-3">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Spesifik</h6>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ route('surat_masuk.index') }}" id="filterForm">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="filter_bagian" class="form-label">Bagian Tujuan</label>
+                    <select name="filter_bagian" id="filter_bagian" class="form-select">
+                        <option value="">Semua Bagian</option>
+                        @foreach($bagian as $b)
+                            <option value="{{ $b->id }}" {{ request('filter_bagian') == $b->id ? 'selected' : '' }}>
+                                {{ $b->nama_bagian }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filter_sifat" class="form-label">Sifat Surat</label>
+                    <select name="filter_sifat" id="filter_sifat" class="form-select">
+                        <option value="">Semua Sifat</option>
+                        <option value="Biasa" {{ request('filter_sifat') == 'Biasa' ? 'selected' : '' }}>Biasa</option>
+                        <option value="Segera" {{ request('filter_sifat') == 'Segera' ? 'selected' : '' }}>Segera</option>
+                        <option value="Penting" {{ request('filter_sifat') == 'Penting' ? 'selected' : '' }}>Penting</option>
+                        <option value="Rahasia" {{ request('filter_sifat') == 'Rahasia' ? 'selected' : '' }}>Rahasia</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filter_tanggal_mulai" class="form-label">Tanggal Mulai</label>
+                    <input type="date" name="filter_tanggal_mulai" id="filter_tanggal_mulai" class="form-control" value="{{ request('filter_tanggal_mulai') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="filter_tanggal_akhir" class="form-label">Tanggal Akhir</label>
+                    <input type="date" name="filter_tanggal_akhir" id="filter_tanggal_akhir" class="form-control" value="{{ request('filter_tanggal_akhir') }}">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Terapkan Filter
+                    </button>
+                    <a href="{{ route('surat_masuk.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Reset Filter
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 @if(isset($query) && $query)
 <div class="alert alert-info mb-3">
     <i class="fas fa-search me-2"></i>
@@ -247,6 +299,29 @@
             }
         });
     }
+
+    /**
+     * ANCHOR: Toggle Disposisi Fields
+     * Toggle the visibility of disposisi fields based on checkbox
+     */
+    const toggleDisposisiFields = () => {
+        const checkbox = document.getElementById('add_buat_disposisi');
+        const fields = document.getElementById('add_disposisi_fields');
+        
+        if (checkbox.checked) {
+            fields.style.display = 'block';
+        } else {
+            fields.style.display = 'none';
+        }
+    }
+
+    // Add event listener for disposisi checkbox
+    document.addEventListener('DOMContentLoaded', function() {
+        const disposisiCheckbox = document.getElementById('add_buat_disposisi');
+        if (disposisiCheckbox) {
+            disposisiCheckbox.addEventListener('change', toggleDisposisiFields);
+        }
+    });
 
     /**
      * ANCHOR: Show Edit Surat Masuk Modal

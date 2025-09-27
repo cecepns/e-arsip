@@ -6,6 +6,13 @@
         <td>{{ $surat->tanggal_surat->format('d-m-Y') }}</td>
         <td>{{ $surat->tanggal_terima->format('d-m-Y') }}</td>
         <td>{{ $surat->perihal }}</td>
+        <td>
+            @if($surat->ringkasan_isi)
+                {{ Str::limit($surat->ringkasan_isi, 50) }}
+            @else
+                <span class="text-muted">-</span>
+            @endif
+        </td>
         <td>{{ $surat->pengirim }}</td>
         <td>
             @if($surat->tujuanBagian)
@@ -61,7 +68,7 @@
     </tr>
     @empty
     <tr>
-        <td colspan="10" class="text-center">Tidak ada data surat masuk</td>
+        <td colspan="11" class="text-center">Tidak ada data surat masuk</td>
     </tr>
     @endforelse
 </tbody>
