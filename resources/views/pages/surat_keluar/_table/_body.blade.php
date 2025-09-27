@@ -17,7 +17,9 @@
         <td>
             <div class="action-buttons">
                 <button class="action-btn view-btn" title="Lihat" 
-                        onclick="window.location.href='{{ route('surat_keluar.show', $surat->id) }}'">
+                        data-bs-toggle="modal" 
+                        data-bs-target="#modalDetailSuratKeluar"
+                        onclick="showDetailSuratKeluarModal({{ $surat->id }})">
                     <i class="fas fa-eye"></i>
                 </button>
                 <button class="action-btn edit-btn" title="Edit" 

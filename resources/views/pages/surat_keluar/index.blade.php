@@ -6,12 +6,6 @@
 
 @section('admin-content')
 <div class="page-header">
-    @include('partials.breadcrumb', [
-        'items' => [
-            ['label' => 'Home', 'url' => route('dasbor.index')],
-            ['label' => 'Surat Keluar']
-        ]
-    ])
     @include('partials.page-title', [
         'title' => 'Manajemen Surat Keluar',
         'subtitle' => 'Kelola surat keluar instansi beserta lampiran dan detailnya.'
@@ -75,6 +69,14 @@
     'size' => 'modal-md',
     'body' => view()->make('pages.surat_keluar._delete_modal._body')->render(),
     'footer' => view()->make('pages.surat_keluar._delete_modal._footer')->render(),
+])
+
+@include('partials.modal', [
+    'id' => 'modalDetailSuratKeluar',
+    'size' => 'modal-xl',
+    'title' => 'Detail Surat Keluar',
+    'body' => view()->make('pages.surat_keluar._detail_modal._body')->render(),
+    'footer' => view()->make('pages.surat_keluar._detail_modal._footer')->render(),
 ])
 @endsection
 
@@ -298,6 +300,170 @@
 
         deleteSuratKeluarName.textContent = nomor_surat;
         deleteSuratKeluarForm.action = `/surat-keluar/${id}`;
+    }
+
+    /**
+     * ANCHOR: Show Detail Surat Keluar Modal
+     * Show the detail surat keluar modal
+     * @param {number} suratKeluarId - The id of the surat keluar to show
+     */
+    const showDetailSuratKeluarModal = async (suratKeluarId) => {
+        try {
+            // Show loading state
+            const lampiranContent = document.getElementById('detail-lampiran-content');
+            lampiranContent.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                    <p>Memuat detail surat keluar...</p>
+                </div>
+            `;
+
+            // Fetch detail data
+            const csrfToken = (
+                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                document.querySelector('input[name="_token"]')?.value
+            );
+
+            const response = await fetch(`/surat-keluar/${suratKeluarId}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch detail data');
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                populateDetailModal(data.suratKeluar);
+            } else {
+                throw new Error(data.message || 'Failed to load detail');
+            }
+
+        } catch (error) {
+            console.error('Error loading detail:', error);
+            const lampiranContent = document.getElementById('detail-lampiran-content');
+            lampiranContent.innerHTML = `
+                <div class="text-center text-danger py-4">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <p>Gagal memuat detail surat keluar</p>
+                    <small class="text-muted">${error.message}</small>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * ANCHOR: Populate Detail Modal
+     * Populate the detail modal with surat keluar data
+     * @param {Object} suratKeluar - The surat keluar data
+     */
+    const populateDetailModal = (suratKeluar) => {
+        // Basic information
+        document.getElementById('detail-nomor-surat').textContent = suratKeluar.nomor_surat || '-';
+        document.getElementById('detail-tanggal-surat').textContent = suratKeluar.tanggal_surat ? 
+            new Date(suratKeluar.tanggal_surat).toLocaleDateString('id-ID') : '-';
+        document.getElementById('detail-tanggal-keluar').textContent = suratKeluar.tanggal_keluar ? 
+            new Date(suratKeluar.tanggal_keluar).toLocaleDateString('id-ID') : '-';
+        document.getElementById('detail-perihal').textContent = suratKeluar.perihal || '-';
+        document.getElementById('detail-tujuan').textContent = suratKeluar.tujuan || '-';
+        
+        // Related information
+        document.getElementById('detail-bagian-pengirim').textContent = 
+            suratKeluar.pengirim_bagian?.nama_bagian || '-';
+        document.getElementById('detail-user').textContent = 
+            suratKeluar.user?.username || '-';
+        
+        // Timestamps
+        document.getElementById('detail-created-at').textContent = suratKeluar.created_at ? 
+            new Date(suratKeluar.created_at).toLocaleString('id-ID') : '-';
+
+        // Ringkasan isi
+        const ringkasanSection = document.getElementById('detail-ringkasan-section');
+        const ringkasanContent = document.getElementById('detail-ringkasan-isi');
+        if (suratKeluar.ringkasan_isi) {
+            ringkasanContent.textContent = suratKeluar.ringkasan_isi;
+            ringkasanSection.style.display = 'block';
+        } else {
+            ringkasanSection.style.display = 'none';
+        }
+
+        // Keterangan
+        const keteranganSection = document.getElementById('detail-keterangan-section');
+        const keteranganContent = document.getElementById('detail-keterangan');
+        if (suratKeluar.keterangan) {
+            keteranganContent.textContent = suratKeluar.keterangan;
+            keteranganSection.style.display = 'block';
+        } else {
+            keteranganSection.style.display = 'none';
+        }
+
+        // Lampiran
+        populateLampiranDetail(suratKeluar.lampiran || []);
+    }
+
+    /**
+     * ANCHOR: Populate Lampiran Detail
+     * Populate the lampiran section with attachment data
+     * @param {Array} lampiran - Array of lampiran data
+     */
+    const populateLampiranDetail = (lampiran) => {
+        const lampiranContent = document.getElementById('detail-lampiran-content');
+        
+        if (lampiran.length === 0) {
+            lampiranContent.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-paperclip fa-2x mb-2"></i>
+                    <p>Tidak ada lampiran</p>
+                </div>
+            `;
+            return;
+        }
+
+        let lampiranHtml = '<div class="row">';
+        
+        lampiran.forEach((file, index) => {
+            const isPdf = file.nama_file.toLowerCase().endsWith('.pdf');
+            const iconClass = isPdf ? 'fa-file-pdf text-danger' : 'fa-file-alt text-primary';
+            const downloadUrl = `/storage/${file.path_file}`;
+            
+            lampiranHtml += `
+                <div class="col-md-6 mb-3">
+                    <div class="card border">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas ${iconClass} fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-1 text-truncate" title="${file.nama_file}">
+                                        ${file.nama_file}
+                                    </h6>
+                                    <small class="text-muted">
+                                        ${file.tipe_lampiran === 'utama' ? 'Lampiran Utama' : 'Dokumen Pendukung'}
+                                    </small>
+                                </div>
+                                <div class="ms-2">
+                                    <a href="${downloadUrl}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       title="Download ${file.nama_file}"
+                                       download="${file.nama_file}">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        lampiranHtml += '</div>';
+        lampiranContent.innerHTML = lampiranHtml;
     }
 
     addSuratKeluarHandlers();

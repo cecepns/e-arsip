@@ -162,6 +162,54 @@ class SuratKeluarController extends Controller
     }
 
     /**
+     * Display the specified surat keluar.
+     */
+    public function show(Request $request, string $id)
+    {
+        try {
+            $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user', 'lampiran'])->findOrFail($id);
+            
+            // ANCHOR: Handle AJAX request
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'suratKeluar' => $suratKeluar,
+                    'timestamp' => now()->format('Y-m-d H:i:s')
+                ], 200);
+            }
+            
+            // For non-AJAX requests, you could return a dedicated view
+            return response()->json([
+                'success' => true,
+                'suratKeluar' => $suratKeluar
+            ]);
+            
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // ANCHOR: Handle surat keluar not found
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Surat keluar tidak ditemukan.',
+                    'error_type' => 'not_found'
+                ], 404);
+            }
+            throw $e;
+            
+        } catch (\Exception $e) {
+            // ANCHOR: Handle general errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                    'error_type' => 'general',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+        }
+    }
+
+    /**
      * Update the specified surat keluar in storage.
      */
     public function update(Request $request, string $id)
