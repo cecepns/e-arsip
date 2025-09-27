@@ -29,6 +29,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user/{id}', [UserController::class, 'show'])->name('user.show');
     Route::post('/user/{id}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
 
+    // ANCHOR: Manajemen Surat Masuk
+    Route::get('/surat-masuk', [\App\Http\Controllers\SuratMasukController::class, 'index'])->name('surat_masuk.index');
+    Route::post('/surat-masuk', [\App\Http\Controllers\SuratMasukController::class, 'store'])->name('surat_masuk.store');
+    Route::get('/surat-masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'show'])->name('surat_masuk.show');
+    Route::put('/surat-masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'update'])->name('surat_masuk.update');
+    Route::delete('/surat-masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'destroy'])->name('surat_masuk.destroy');
+
     // ANCHOR: Manajemen Surat Keluar
     Route::get('/surat-keluar', [\App\Http\Controllers\SuratKeluarController::class, 'index'])->name('surat_keluar.index');
     Route::get('/surat-keluar/create', [\App\Http\Controllers\SuratKeluarController::class, 'create'])->name('surat_keluar.create');

@@ -96,7 +96,20 @@ class SuratMasukController extends Controller
             return redirect()->route('surat_masuk.index')
                 ->with('success', 'Surat masuk berhasil ditambahkan.');
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // ANCHOR: Handle validation errors
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'errors' => $e->errors(),
+                    'error_type' => 'validation'
+                ], 422);
+            }
+            throw $e;
+            
         } catch (\Exception $e) {
+            // ANCHOR: Handle general errors
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,

@@ -33,7 +33,7 @@
             </a>
         </div>
         <div class="nav-item">
-            <a href="#" class="nav-link">
+            <a href="{{ route('surat_masuk.index') }}" class="nav-link{{ request()->routeIs('surat_masuk.index') ? ' active' : '' }}">
                 <i class="fas fa-inbox"></i>
                 <span>Surat Masuk</span>
             </a>
