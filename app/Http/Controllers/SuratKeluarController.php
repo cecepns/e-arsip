@@ -19,7 +19,7 @@ class SuratKeluarController extends Controller
     {
         $query = $request->get('search');
         
-        $suratKeluar = SuratKeluar::with('pengirimBagian', 'user')
+        $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user', 'creator', 'updater'])
             ->when($query, function ($q) use ($query) {
                 $q->where('nomor_surat', 'like', "%{$query}%")
                   ->orWhere('perihal', 'like', "%{$query}%")
@@ -74,6 +74,7 @@ class SuratKeluarController extends Controller
             ]);
 
             $validated['user_id'] = Auth::id();
+            // ANCHOR: Audit fields (created_by, updated_by) are automatically handled by Auditable trait
             $suratKeluar = SuratKeluar::create($validated);
 
             // ANCHOR: Process PDF attachment upload
@@ -167,7 +168,7 @@ class SuratKeluarController extends Controller
     public function show(Request $request, string $id)
     {
         try {
-            $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user', 'lampiran'])->findOrFail($id);
+            $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user', 'lampiran', 'creator', 'updater'])->findOrFail($id);
             
             // ANCHOR: Handle AJAX request
             if ($request->ajax()) {
@@ -250,6 +251,7 @@ class SuratKeluarController extends Controller
                 'lampiran_pdf.max' => 'Lampiran PDF maksimal 20MB.',
             ]);
 
+            // ANCHOR: Audit fields (updated_by) are automatically handled by Auditable trait
             $suratKeluar->update($validated);
 
             // ANCHOR: Update PDF attachment if new file uploaded
