@@ -9,6 +9,12 @@
     </div>
     
     <div class="mb-3">
+        <label for="add_nama" class="form-label">Nama Lengkap</label>
+        <input type="text" name="nama" class="form-control" id="add_nama" placeholder="Nama Lengkap" value="{{ old('nama') }}">
+        <div class="invalid-feedback"></div>
+    </div>
+    
+    <div class="mb-3">
         <label for="add_email" class="form-label">Email</label>
         <input type="email" name="email" class="form-control" id="add_email" placeholder="email@example.com" value="{{ old('email') }}">
         <div class="invalid-feedback"></div>

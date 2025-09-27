@@ -3,6 +3,7 @@
     <tr>
         <td class="text-center">{{ $index + 1 }}</td>
         <td>{{ $user->username }}</td>
+        <td>{{ $user->nama ?? '-' }}</td>
         <td>{{ $user->email }}</td>
         <td>
             <div class="password-container d-flex align-items-center">
@@ -56,7 +57,7 @@
     </tr>
     @empty
     <tr>
-        <td colspan="8" class="text-center">Tidak ada data user</td>
+        <td colspan="9" class="text-center">Tidak ada data user</td>
     </tr>
     @endforelse
 </tbody>

@@ -10,6 +10,12 @@
     </div>
     
     <div class="mb-3">
+        <label for="edit_nama" class="form-label">Nama Lengkap</label>
+        <input type="text" name="nama" class="form-control" id="edit_nama" placeholder="Nama Lengkap" required>
+        <div class="invalid-feedback"></div>
+    </div>
+    
+    <div class="mb-3">
         <label for="edit_email" class="form-label">Email</label>
         <input type="email" name="email" class="form-control" id="edit_email" placeholder="email@example.com" required>
         <div class="invalid-feedback"></div>

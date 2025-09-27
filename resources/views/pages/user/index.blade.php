@@ -254,17 +254,19 @@
         const editUserForm = document.getElementById('editUserForm');
         const idInput = document.getElementById('edit_user_id');
         const usernameInput = document.getElementById('edit_username');
+        const namaInput = document.getElementById('edit_nama');
         const emailInput = document.getElementById('edit_email');
         const passwordInput = document.getElementById('edit_password');
         const roleInput = document.getElementById('edit_role');
         const bagianInput = document.getElementById('edit_bagian_id');
         const isKepalaBagianInput = document.getElementById('edit_is_kepala_bagian');
         const user = usersDataCurrentPage.data.find(user => user.id === userId);
-        const { id, username, email, password, role, bagian_id } = user;
+        const { id, username, nama, email, password, role, bagian_id } = user;
         console.log('user', user);
 
         idInput.value = id;
         usernameInput.value = username || '';
+        namaInput.value = nama || '';
         emailInput.value = email || '';
         passwordInput.value = '';
         roleInput.value = role || '';

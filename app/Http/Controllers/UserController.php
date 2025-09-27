@@ -38,6 +38,7 @@ class UserController extends Controller
         try {
             $validated = $request->validate([
                 'username' => 'required|string|max:50|unique:users,username',
+                'nama' => 'required|string|max:100',
                 'email' => 'required|email|max:100|unique:users,email',
                 'password' => 'required|string|max:50',
                 'role' => 'required|in:Admin,Staf',
@@ -48,6 +49,9 @@ class UserController extends Controller
                 'username.string' => 'Username harus berupa teks.',
                 'username.max' => 'Username maksimal 50 karakter.',
                 'username.unique' => 'Username sudah digunakan.',
+                'nama.required' => 'Nama wajib diisi.',
+                'nama.string' => 'Nama harus berupa teks.',
+                'nama.max' => 'Nama maksimal 100 karakter.',
                 'email.required' => 'Email wajib diisi.',
                 'email.email' => 'Format email tidak valid.',
                 'email.max' => 'Email maksimal 100 karakter.',
@@ -146,6 +150,7 @@ class UserController extends Controller
 
             $validated = $request->validate([
                 'username' => 'required|string|max:50|unique:users,username,' . $id,
+                'nama' => 'required|string|max:100',
                 'email' => 'required|email|max:100|unique:users,email,' . $id,
                 'password' => 'nullable|string|max:50',
                 'role' => 'required|in:Admin,Staf',
@@ -156,6 +161,9 @@ class UserController extends Controller
                 'username.string' => 'Username harus berupa teks.',
                 'username.max' => 'Username maksimal 50 karakter.',
                 'username.unique' => 'Username sudah digunakan.',
+                'nama.required' => 'Nama wajib diisi.',
+                'nama.string' => 'Nama harus berupa teks.',
+                'nama.max' => 'Nama maksimal 100 karakter.',
                 'email.required' => 'Email wajib diisi.',
                 'email.email' => 'Format email tidak valid.',
                 'email.max' => 'Email maksimal 100 karakter.',

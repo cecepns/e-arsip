@@ -2,6 +2,7 @@
     <tr>
         <th class="text-center">No</th>
         <th>Username</th>
+        <th>Nama</th>
         <th>Email</th>
         <th>Password</th>
         <th>Bagian</th>
