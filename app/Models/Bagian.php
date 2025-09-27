@@ -15,7 +15,7 @@ class Bagian extends Model
     protected $fillable = [
         'nama_bagian',
         'keterangan',
-        'kepala_bagian',
+        'kepala_bagian_user_id',
         'status',
     ];
 
@@ -49,5 +49,13 @@ class Bagian extends Model
     public function disposisi()
     {
         return $this->hasMany(Disposisi::class, 'tujuan_bagian_id');
+    }
+
+    /**
+     * Get the kepala bagian user for this bagian.
+     */
+    public function kepalaBagian()
+    {
+        return $this->belongsTo(User::class, 'kepala_bagian_user_id');
     }
 }

@@ -147,16 +147,16 @@
         const editBagianForm = document.getElementById('editBagianForm');
         const idInput = document.getElementById('edit_bagian_id');
         const namaInput = document.getElementById('edit_nama_bagian');
-        const kepalaInput = document.getElementById('edit_kepala_bagian');
+        const kepalaInput = document.getElementById('edit_kepala_bagian_user_id');
         const statusInput = document.getElementById('edit_status');
         const keteranganInput = document.getElementById('edit_keterangan');
 
         const bagian = bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
-        const { id, nama_bagian, kepala_bagian, status, keterangan } = bagian;
+        const { id, nama_bagian, kepala_bagian_user_id, status, keterangan } = bagian;
 
         idInput.value = id;
         namaInput.value = nama_bagian || '';
-        kepalaInput.value = kepala_bagian || '';
+        kepalaInput.value = kepala_bagian_user_id || '';
         statusInput.value = status || '';
         keteranganInput.value = keterangan || '';
 

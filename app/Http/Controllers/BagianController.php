@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bagian;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -14,7 +15,7 @@ class BagianController extends Controller
     {
         $query = $request->get('search');
         
-        $bagian = Bagian::with(['users', 'suratMasuk', 'suratKeluar'])
+        $bagian = Bagian::with(['kepalaBagian', 'users', 'suratMasuk', 'suratKeluar'])
             ->when($query, function ($q) use ($query) {
                 $q->where('nama_bagian', 'like', "%{$query}%")
                   ->orWhere('kepala_bagian', 'like', "%{$query}%");
@@ -31,15 +32,14 @@ class BagianController extends Controller
         try {
             $validated = $request->validate([
                 'nama_bagian' => 'required|string|max:100',
-                'kepala_bagian' => 'nullable|string|max:100',
+                'kepala_bagian_user_id' => 'nullable|exists:users,id',
                 'status' => 'required|in:Aktif,Nonaktif',
                 'keterangan' => 'nullable|string',
             ], [
                 'nama_bagian.required' => 'Nama bagian wajib diisi.',
                 'nama_bagian.string' => 'Nama bagian harus berupa teks.',
                 'nama_bagian.max' => 'Nama bagian maksimal 100 karakter.',
-                'kepala_bagian.string' => 'Kepala bagian harus berupa teks.',
-                'kepala_bagian.max' => 'Kepala bagian maksimal 100 karakter.',
+                'kepala_bagian_user_id.exists' => 'User kepala bagian tidak valid.',
                 'status.required' => 'Status wajib dipilih.',
                 'status.in' => 'Status harus Aktif atau Nonaktif.',
                 'keterangan.string' => 'Keterangan harus berupa teks.',
@@ -115,15 +115,14 @@ class BagianController extends Controller
 
             $validated = $request->validate([
                 'nama_bagian' => 'required|string|max:100',
-                'kepala_bagian' => 'nullable|string|max:100',
+                'kepala_bagian_user_id' => 'nullable|exists:users,id',
                 'status' => 'required|in:Aktif,Nonaktif',
                 'keterangan' => 'nullable|string',
             ], [
                 'nama_bagian.required' => 'Nama bagian wajib diisi.',
                 'nama_bagian.string' => 'Nama bagian harus berupa teks.',
                 'nama_bagian.max' => 'Nama bagian maksimal 100 karakter.',
-                'kepala_bagian.string' => 'Kepala bagian harus berupa teks.',
-                'kepala_bagian.max' => 'Kepala bagian maksimal 100 karakter.',
+                'kepala_bagian_user_id.exists' => 'User kepala bagian tidak valid.',
                 'status.required' => 'Status wajib dipilih.',
                 'status.in' => 'Status harus Aktif atau Nonaktif.',
                 'keterangan.string' => 'Keterangan harus berupa teks.',
@@ -305,4 +304,5 @@ class BagianController extends Controller
             throw $e;
         }
     }
+
 }

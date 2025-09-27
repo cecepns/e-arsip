@@ -10,8 +10,16 @@
     </div>
     
     <div class="mb-3">
-        <label for="edit_kepala_bagian" class="form-label">Kepala Bagian</label>
-        <input type="text" name="kepala_bagian" class="form-control" id="edit_kepala_bagian" placeholder="Kepala Bagian">
+        <label for="edit_kepala_bagian_user_id" class="form-label">Kepala Bagian</label>
+        <select name="kepala_bagian_user_id" class="form-select" id="edit_kepala_bagian_user_id">
+            <option value="">Pilih Kepala Bagian (Opsional)</option>
+            @foreach(\App\Models\User::whereNotNull('bagian_id')->get() as $user)
+                <option value="{{ $user->id }}">
+                    {{ $user->username }} ({{ $user->bagian->nama_bagian ?? 'Tanpa Bagian' }})
+                </option>
+            @endforeach
+        </select>
+        <div class="form-text">Pilih user yang akan menjadi kepala bagian. Kosongkan jika belum ada user.</div>
         <div class="invalid-feedback"></div>
     </div>
     

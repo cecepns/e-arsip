@@ -50,9 +50,10 @@
                 Kepala Bagian
             </label>
         </div>
-        <div class="form-text">Centang jika user ini adalah kepala bagian</div>
+        <div class="form-text">Centang jika user ini akan menjadi kepala bagian. Pastikan bagian sudah dipilih.</div>
         <div class="invalid-feedback"></div>
     </div>
+    
     
     <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-secondary me-2" aria-label="close" data-bs-dismiss="modal" id="addUserCancelBtn">Batal</button>

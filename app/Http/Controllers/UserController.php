@@ -63,12 +63,18 @@ class UserController extends Controller
 
             // ANCHOR: Business logic - hanya satu kepala bagian per bagian
             if (!empty($validated['is_kepala_bagian']) && !empty($validated['bagian_id'])) {
-                User::where('bagian_id', $validated['bagian_id'])
-                    ->where('is_kepala_bagian', true)
-                    ->update(['is_kepala_bagian' => false]);
+                // Reset kepala bagian lama di bagian yang sama
+                \App\Models\Bagian::where('id', $validated['bagian_id'])
+                    ->update(['kepala_bagian_user_id' => null]);
             }
 
             $user = User::create($validated);
+
+            // ANCHOR: Set user sebagai kepala bagian jika checkbox dicentang
+            if (!empty($validated['is_kepala_bagian']) && !empty($validated['bagian_id'])) {
+                \App\Models\Bagian::where('id', $validated['bagian_id'])
+                    ->update(['kepala_bagian_user_id' => $user->id]);
+            }
 
             // ANCHOR: Handle AJAX request
             if ($request->ajax()) {
@@ -164,10 +170,10 @@ class UserController extends Controller
 
             // ANCHOR: Business logic - hanya satu kepala bagian per bagian
             if (!empty($validated['is_kepala_bagian']) && !empty($validated['bagian_id'])) {
-                User::where('bagian_id', $validated['bagian_id'])
-                    ->where('id', '!=', $id)
-                    ->where('is_kepala_bagian', true)
-                    ->update(['is_kepala_bagian' => false]);
+                // Reset kepala bagian lama di bagian yang sama (kecuali user yang sedang diedit)
+                \App\Models\Bagian::where('id', $validated['bagian_id'])
+                    ->where('kepala_bagian_user_id', '!=', $id)
+                    ->update(['kepala_bagian_user_id' => null]);
             }
 
             // Jika password kosong atau null, hapus dari array validated untuk mempertahankan password lama
@@ -181,6 +187,17 @@ class UserController extends Controller
             }
 
             $user->update($validated);
+
+            // ANCHOR: Update kepala bagian di tabel bagian
+            if (!empty($validated['is_kepala_bagian']) && !empty($validated['bagian_id'])) {
+                // Set user sebagai kepala bagian
+                \App\Models\Bagian::where('id', $validated['bagian_id'])
+                    ->update(['kepala_bagian_user_id' => $user->id]);
+            } else {
+                // Reset kepala bagian jika checkbox tidak dicentang
+                \App\Models\Bagian::where('kepala_bagian_user_id', $user->id)
+                    ->update(['kepala_bagian_user_id' => null]);
+            }
 
             // ANCHOR: Handle AJAX request
             if ($request->ajax()) {
@@ -250,6 +267,10 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($id);
             $username = $user->username;
+            
+            // ANCHOR: Reset kepala bagian jika user yang dihapus adalah kepala bagian
+            \App\Models\Bagian::where('kepala_bagian_user_id', $user->id)
+                ->update(['kepala_bagian_user_id' => null]);
             
             $user->delete();
 

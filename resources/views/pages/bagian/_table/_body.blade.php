@@ -3,7 +3,15 @@
     <tr>
         <td class="text-center">{{ $index + 1 }}</td>
         <td>{{ $item->nama_bagian }}</td>
-        <td>{{ $item->kepala_bagian ?? '-' }}</td>
+        <td>
+            @if($item->kepalaBagian)
+                <span class="badge bg-warning text-dark">
+                    {{ $item->kepalaBagian->username }}
+                </span>
+            @else
+                <span class="text-muted">-</span>
+            @endif
+        </td>
         <td class="text-center">
             <span class="badge-incoming mb-1">Masuk: {{ $item->suratMasuk->count() }}</span>
             <br>

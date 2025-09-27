@@ -31,7 +31,7 @@
             @endif
         </td>
         <td class="text-center">
-            @if($user->is_kepala_bagian)
+            @if($user->isKepalaBagian())
                 <span class="badge bg-warning text-dark">Kepala Bagian</span>
             @else
                 <span class="text-muted">-</span>

@@ -24,7 +24,6 @@ class User extends Authenticatable
         'password',
         'role',
         'bagian_id',
-        'is_kepala_bagian',
     ];
 
     /**
@@ -45,7 +44,6 @@ class User extends Authenticatable
     {
         return [
             // Password tidak di-hash sesuai keinginan klien
-            'is_kepala_bagian' => 'boolean',
         ];
     }
 
@@ -79,5 +77,21 @@ class User extends Authenticatable
     public function disposisi()
     {
         return $this->hasMany(Disposisi::class);
+    }
+
+    /**
+     * Get the bagian where this user is kepala bagian.
+     */
+    public function bagianKepala()
+    {
+        return $this->hasOne(Bagian::class, 'kepala_bagian_user_id');
+    }
+
+    /**
+     * Check if this user is kepala bagian of any bagian.
+     */
+    public function isKepalaBagian(): bool
+    {
+        return $this->bagianKepala()->exists();
     }
 }

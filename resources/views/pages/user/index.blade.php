@@ -259,9 +259,8 @@
         const roleInput = document.getElementById('edit_role');
         const bagianInput = document.getElementById('edit_bagian_id');
         const isKepalaBagianInput = document.getElementById('edit_is_kepala_bagian');
-
         const user = usersDataCurrentPage.data.find(user => user.id === userId);
-        const { id, username, email, password, role, bagian_id, is_kepala_bagian } = user;
+        const { id, username, email, password, role, bagian_id } = user;
         console.log('user', user);
 
         idInput.value = id;
@@ -270,7 +269,9 @@
         passwordInput.value = '';
         roleInput.value = role || '';
         bagianInput.value = bagian_id || '';
-        isKepalaBagianInput.checked = is_kepala_bagian || false;
+        
+        // Check if user is kepala bagian
+        isKepalaBagianInput.checked = user.bagian && user.bagian.kepala_bagian_user_id == id;
 
         editUserForm.action = `/user/${id}`;
     }
@@ -321,9 +322,45 @@
         }
     }
 
+    /**
+     * ANCHOR: Handle checkbox kepala bagian
+     * Enable/disable checkbox based on bagian selection
+     */
+    const handleKepalaBagianCheckbox = () => {
+        const addBagianSelect = document.getElementById('add_bagian_id');
+        const addKepalaBagianCheckbox = document.getElementById('add_is_kepala_bagian');
+        const editBagianSelect = document.getElementById('edit_bagian_id');
+        const editKepalaBagianCheckbox = document.getElementById('edit_is_kepala_bagian');
+
+        // Handle add form
+        if (addBagianSelect && addKepalaBagianCheckbox) {
+            addBagianSelect.addEventListener('change', function() {
+                if (this.value) {
+                    addKepalaBagianCheckbox.disabled = false;
+                } else {
+                    addKepalaBagianCheckbox.disabled = true;
+                    addKepalaBagianCheckbox.checked = false;
+                }
+            });
+        }
+
+        // Handle edit form
+        if (editBagianSelect && editKepalaBagianCheckbox) {
+            editBagianSelect.addEventListener('change', function() {
+                if (this.value) {
+                    editKepalaBagianCheckbox.disabled = false;
+                } else {
+                    editKepalaBagianCheckbox.disabled = true;
+                    editKepalaBagianCheckbox.checked = false;
+                }
+            });
+        }
+    }
+
     // ANCHOR: Run all handlers
     addUserHandlers();
     editUserHandlers();
     deleteUserHandlers();
+    handleKepalaBagianCheckbox();
 </script>
 @endpush
