@@ -62,7 +62,16 @@ class SuratKeluarController extends Controller
     {
         try {
             $validated = $request->validate([
-                'nomor_surat' => 'required|string|max:100|unique:surat_keluar,nomor_surat',
+                'nomor_surat' => [
+                    'required',
+                    'string',
+                    'max:100',
+                    function ($attribute, $value, $fail) {
+                        if (SuratKeluar::where('nomor_surat', $value)->exists()) {
+                            $fail('Nomor surat sudah digunakan.');
+                        }
+                    }
+                ],
                 'tanggal_surat' => 'required|date',
                 'tanggal_keluar' => 'required|date',
                 'perihal' => 'required|string|max:255',
@@ -177,7 +186,20 @@ class SuratKeluarController extends Controller
             $suratKeluar = SuratKeluar::findOrFail($id);
 
             $validated = $request->validate([
-                'nomor_surat' => 'required|string|max:100|unique:surat_keluar,nomor_surat,' . $id,
+                'nomor_surat' => [
+                    'required',
+                    'string',
+                    'max:100',
+                    function ($attribute, $value, $fail) use ($id) {
+                        $query = SuratKeluar::where('nomor_surat', $value);
+                        if ($id) {
+                            $query->where('id', '!=', $id);
+                        }
+                        if ($query->exists()) {
+                            $fail('Nomor surat sudah digunakan.');
+                        }
+                    }
+                ],
                 'tanggal_surat' => 'required|date',
                 'tanggal_keluar' => 'required|date',
                 'perihal' => 'required|string|max:255',
