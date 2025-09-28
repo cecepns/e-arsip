@@ -251,10 +251,13 @@
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');
 
+        // ANCHOR: Sidebar toggle only for desktop screens
         if (sidebarToggle && sidebar && mainContent) {
             sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                mainContent.classList.toggle('sidebar-collapsed');
+                if (window.innerWidth > 768) {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('sidebar-collapsed');
+                }
             });
         }
 
