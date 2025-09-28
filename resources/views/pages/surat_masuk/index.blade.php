@@ -153,104 +153,6 @@
 <script>
     const suratMasukDataCurrentPage = {!! json_encode($suratMasuk) !!};
 
-
-    /**
-     * ANCHOR: Edit Surat Masuk Handlers
-     * Handle the edit surat masuk form submission
-     */
-    const editSuratMasukHandlers = () => {
-        const editSuratMasukForm = document.getElementById('editSuratMasukForm');
-        const editSuratMasukSubmitBtn = document.getElementById('editSuratMasukSubmitBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        
-        editSuratMasukForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            clearErrors(editSuratMasukForm);
-            setLoadingState(true, editSuratMasukSubmitBtn);
-
-            try {
-                const formData = new FormData(editSuratMasukForm);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-                const response = await fetchWithRetry(editSuratMasukForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                });
-                clearTimeout(timeoutId);
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response is not JSON');
-                }
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    showToast(data.message, 'success', 5000);
-                    editSuratMasukForm.reset();
-                    bootstrap.Modal.getInstance(document.getElementById('modalEditSuratMasuk')).hide();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    handleErrorResponse(data, editSuratMasukForm);
-                }
-            } catch (error) {
-                handleErrorResponse(error, editSuratMasukForm);
-            } finally {
-                setLoadingState(false, editSuratMasukSubmitBtn);
-            }
-        });
-    }
-
-
-
-    /**
-     * ANCHOR: Show Edit Surat Masuk Modal
-     * Show the edit surat masuk modal
-     * @param {number} suratMasukId - The id of the surat masuk to edit
-     */
-    const showEditSuratMasukModal = (suratMasukId) => {
-        const editSuratMasukForm = document.getElementById('editSuratMasukForm');
-        const idInput = document.getElementById('edit_surat_masuk_id');
-        const nomorSuratInput = document.getElementById('edit_nomor_surat');
-        const tanggalSuratInput = document.getElementById('edit_tanggal_surat');
-        const tanggalTerimaInput = document.getElementById('edit_tanggal_terima');
-        const perihalInput = document.getElementById('edit_perihal');
-        const pengirimInput = document.getElementById('edit_pengirim');
-        const sifatSuratInput = document.getElementById('edit_sifat_surat');
-        const tujuanBagianInput = document.getElementById('edit_tujuan_bagian_id');
-        const ringkasanIsiInput = document.getElementById('edit_ringkasan_isi');
-        const keteranganInput = document.getElementById('edit_keterangan');
-
-        const suratMasuk = suratMasukDataCurrentPage.data.find(surat => surat.id === suratMasukId);
-        const { id, nomor_surat, tanggal_surat, tanggal_terima, perihal, pengirim, sifat_surat, tujuan_bagian_id, ringkasan_isi, keterangan } = suratMasuk;
-
-        const formatDateForInput = (isoDate) => {
-            if (!isoDate) return '';
-            return new Date(isoDate).toISOString().split('T')[0];
-        };
-
-        idInput.value = id;
-        nomorSuratInput.value = nomor_surat || '';
-        tanggalSuratInput.value = formatDateForInput(tanggal_surat) || '';
-        tanggalTerimaInput.value = formatDateForInput(tanggal_terima) || '';
-        perihalInput.value = perihal || '';
-        pengirimInput.value = pengirim || '';
-        sifatSuratInput.value = sifat_surat || '';
-        tujuanBagianInput.value = tujuan_bagian_id || '';
-        ringkasanIsiInput.value = ringkasan_isi || '';
-        keteranganInput.value = keterangan || '';
-
-        editSuratMasukForm.action = `/surat-masuk/${id}`;
-    }
-
-
     /**
      * ANCHOR: Show Detail Surat Masuk Modal
      * Show the detail surat masuk modal
@@ -429,23 +331,6 @@
     }
 
     /**
-     * ANCHOR: Edit from Detail Modal
-     * Open edit modal from detail modal
-     */
-    const editFromDetail = () => {
-        if (window.currentDetailSuratMasukId) {
-            // Close detail modal
-            bootstrap.Modal.getInstance(document.getElementById('modalDetailSuratMasuk')).hide();
-            
-            // Open edit modal after a short delay
-            setTimeout(() => {
-                showEditSuratMasukModal(window.currentDetailSuratMasukId);
-                bootstrap.Modal.getInstance(document.getElementById('modalEditSuratMasuk')).show();
-            }, 300);
-        }
-    };
-
-    /**
      * ANCHOR: Delete from Detail Modal
      * Open delete modal from detail modal
      */
@@ -538,8 +423,6 @@
         
         console.log('Filter form ready - manual submit only');
     }
-
-    editSuratMasukHandlers();
     
     // Initialize simple filter handlers
     simpleFilterHandlers();

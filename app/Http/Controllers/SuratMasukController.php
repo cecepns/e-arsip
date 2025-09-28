@@ -275,6 +275,32 @@ class SuratMasukController extends Controller
                 'tujuan_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'nullable|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
+            ], [
+                'nomor_surat.required' => 'Nomor surat wajib diisi.',
+                'nomor_surat.string' => 'Nomor surat harus berupa teks.',
+                'nomor_surat.max' => 'Nomor surat maksimal 100 karakter.',
+                'nomor_surat.unique' => 'Nomor surat sudah digunakan.',
+                'tanggal_surat.required' => 'Tanggal surat wajib diisi.',
+                'tanggal_surat.date' => 'Format tanggal surat tidak valid.',
+                'tanggal_terima.required' => 'Tanggal terima wajib diisi.',
+                'tanggal_terima.date' => 'Format tanggal terima tidak valid.',
+                'perihal.required' => 'Perihal wajib diisi.',
+                'perihal.string' => 'Perihal harus berupa teks.',
+                'perihal.max' => 'Perihal maksimal 255 karakter.',
+                'pengirim.required' => 'Pengirim wajib diisi.',
+                'pengirim.string' => 'Pengirim harus berupa teks.',
+                'pengirim.max' => 'Pengirim maksimal 150 karakter.',
+                'sifat_surat.required' => 'Sifat surat wajib dipilih.',
+                'sifat_surat.string' => 'Sifat surat harus berupa teks.',
+                'sifat_surat.in' => 'Sifat surat harus Biasa, Segera, Penting, atau Rahasia.',
+                'tujuan_bagian_id.required' => 'Bagian tujuan wajib dipilih.',
+                'tujuan_bagian_id.exists' => 'Bagian tujuan yang dipilih tidak valid.',
+                'lampiran_pdf.file' => 'Lampiran PDF harus berupa file.',
+                'lampiran_pdf.mimes' => 'Lampiran PDF harus berupa file PDF.',
+                'lampiran_pdf.max' => 'Lampiran PDF maksimal 20MB.',
+                'lampiran_pendukung.*.file' => 'Dokumen pendukung harus berupa file.',
+                'lampiran_pendukung.*.mimes' => 'Dokumen pendukung harus berupa ZIP, RAR, DOCX, atau XLSX.',
+                'lampiran_pendukung.*.max' => 'Dokumen pendukung maksimal 20MB per file.',
             ]);
 
             // ANCHOR: Audit fields (updated_by) are automatically handled by Auditable trait
@@ -296,6 +322,20 @@ class SuratMasukController extends Controller
                     'file_size' => $file->getSize(),
                     'tipe_lampiran' => 'utama',
                 ]);
+            }
+
+            // ANCHOR: Process supporting documents upload
+            if ($request->hasFile('lampiran_pendukung')) {
+                foreach ($request->file('lampiran_pendukung') as $file) {
+                    $path = $file->store('lampiran/surat_masuk', 'public');
+                    $suratMasuk->lampiran()->create([
+                        'tipe_surat' => 'masuk',
+                        'nama_file' => $file->getClientOriginalName(),
+                        'path_file' => $path,
+                        'file_size' => $file->getSize(),
+                        'tipe_lampiran' => 'pendukung',
+                    ]);
+                }
             }
 
             if ($request->ajax()) {
