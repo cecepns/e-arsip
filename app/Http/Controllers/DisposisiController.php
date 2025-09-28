@@ -26,8 +26,8 @@ class DisposisiController extends Controller
         $sifatSurat = $request->get('sifat_surat');
         
         $disposisi = Disposisi::with([
-            'suratMasuk.tujuanBagian', 
-            'tujuanBagian', 
+            'suratMasuk.tujuanBagian.kepalaBagian', 
+            'tujuanBagian.kepalaBagian', 
             'user', 
             'creator', 
             'updater'
@@ -87,8 +87,8 @@ class DisposisiController extends Controller
     {
         try {
             $disposisi = Disposisi::with([
-                'suratMasuk.tujuanBagian', 
-                'tujuanBagian', 
+                'suratMasuk.tujuanBagian.kepalaBagian', 
+                'tujuanBagian.kepalaBagian', 
                 'user', 
                 'creator', 
                 'updater'
@@ -143,7 +143,7 @@ class DisposisiController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Disposisi berhasil diperbarui.',
-                    'disposisi' => $disposisi->load(['suratMasuk.tujuanBagian', 'tujuanBagian', 'user', 'creator', 'updater']),
+                    'disposisi' => $disposisi->load(['suratMasuk.tujuanBagian.kepalaBagian', 'tujuanBagian.kepalaBagian', 'user', 'creator', 'updater']),
                     'timestamp' => now()->format('Y-m-d H:i:s')
                 ], 200);
             }

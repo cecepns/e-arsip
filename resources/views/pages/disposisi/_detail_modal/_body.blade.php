@@ -28,11 +28,17 @@
             <div class="mb-3">
                 <p class="mb-2">
                     <span class="fw-semibold text-dark">Disposisi Dari:</span>
-                    <span id="detailDisposisiDari" class="text-info">-</span>
+                    <div class="d-flex flex-column">
+                        <span id="detailDisposisiDari" class="text-info fw-semibold">-</span>
+                        <small id="detailDisposisiDariBagian" class="text-muted">-</small>
+                    </div>
                 </p>
                 <p class="mb-2">
                     <span class="fw-semibold text-dark">Disposisi Kepada:</span>
-                    <span id="detailDisposisiKepada" class="text-success">-</span>
+                    <div class="d-flex flex-column">
+                        <span id="detailDisposisiKepada" class="text-success fw-semibold">-</span>
+                        <small id="detailDisposisiKepadaBagian" class="text-muted">-</small>
+                    </div>
                 </p>
                 <p class="mb-2">
                     <span class="fw-semibold text-dark">Sifat Surat:</span>

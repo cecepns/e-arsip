@@ -71,6 +71,15 @@
                 <label class="form-label">Perihal</label>
                 <input type="text" class="form-control" id="editPerihal" readonly>
             </div>
+            <div class="mb-3">
+                <label class="form-label">Disposisi Dari</label>
+                <div class="form-control-plaintext">
+                    <div class="d-flex flex-column">
+                        <span id="editDisposisiDari" class="fw-semibold text-info">-</span>
+                        <small id="editDisposisiDariBagian" class="text-muted">-</small>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-md-6">
             <div class="mb-3">

@@ -7,14 +7,20 @@
         <td>{{ $item->suratMasuk->perihal ?? '-' }}</td>
         <td>
             @if($item->suratMasuk && $item->suratMasuk->tujuanBagian)
-                {{ $item->suratMasuk->tujuanBagian->nama_bagian }}
+                <div class="d-flex flex-column">
+                    <span class="fw-semibold text-primary">{{ $item->suratMasuk->tujuanBagian->kepalaBagian->nama ?? 'Belum ditentukan' }}</span>
+                    <small class="text-muted">{{ $item->suratMasuk->tujuanBagian->nama_bagian }}</small>
+                </div>
             @else
                 <span class="text-muted">-</span>
             @endif
         </td>
         <td>
             @if($item->tujuanBagian)
-                {{ $item->tujuanBagian->nama_bagian }}
+                <div class="d-flex flex-column">
+                    <span class="fw-semibold text-success">{{ $item->tujuanBagian->kepalaBagian->nama ?? 'Belum ditentukan' }}</span>
+                    <small class="text-muted">{{ $item->tujuanBagian->nama_bagian }}</small>
+                </div>
             @else
                 <span class="text-muted">-</span>
             @endif

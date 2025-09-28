@@ -288,8 +288,10 @@ document.addEventListener('DOMContentLoaded', function() {
             new Date(disposisi.surat_masuk.tanggal_surat).toLocaleDateString('id-ID') : '-';
         document.getElementById('detailPerihal').textContent = disposisi.surat_masuk?.perihal || '-';
         document.getElementById('detailPengirim').textContent = disposisi.surat_masuk?.pengirim || '-';
-        document.getElementById('detailDisposisiDari').textContent = disposisi.surat_masuk?.tujuan_bagian?.nama_bagian || '-';
-        document.getElementById('detailDisposisiKepada').textContent = disposisi.tujuan_bagian?.nama_bagian || '-';
+        document.getElementById('detailDisposisiDari').textContent = disposisi.surat_masuk?.tujuan_bagian?.kepala_bagian?.nama || 'Belum ditentukan';
+        document.getElementById('detailDisposisiDariBagian').textContent = disposisi.surat_masuk?.tujuan_bagian?.nama_bagian || '-';
+        document.getElementById('detailDisposisiKepada').textContent = disposisi.tujuan_bagian?.kepala_bagian?.nama || 'Belum ditentukan';
+        document.getElementById('detailDisposisiKepadaBagian').textContent = disposisi.tujuan_bagian?.nama_bagian || '-';
         document.getElementById('detailSifatSurat').textContent = disposisi.surat_masuk?.sifat_surat || '-';
         document.getElementById('detailTanggalDisposisi').textContent = disposisi.tanggal_disposisi ? 
             new Date(disposisi.tanggal_disposisi).toLocaleDateString('id-ID') : '-';
@@ -319,6 +321,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editPerihal').value = disposisi.surat_masuk.perihal || '';
             document.getElementById('editPengirim').value = disposisi.surat_masuk.pengirim || '';
             document.getElementById('editSifatSurat').value = disposisi.surat_masuk.sifat_surat || '';
+            
+            // Populate disposisi dari info
+            document.getElementById('editDisposisiDari').textContent = disposisi.surat_masuk.tujuan_bagian?.kepala_bagian?.nama || 'Belum ditentukan';
+            document.getElementById('editDisposisiDariBagian').textContent = disposisi.surat_masuk.tujuan_bagian?.nama_bagian || '-';
         }
     }
 
