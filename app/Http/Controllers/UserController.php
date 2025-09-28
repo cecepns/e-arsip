@@ -204,65 +204,29 @@ class UserController extends Controller
             $user = User::findOrFail($id);
             $username = $user->username;
             
+            // ANCHOR: Prevent self-deletion
+            if ($user->id === auth()->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak dapat menghapus akun sendiri.',
+                    'error_type' => 'self_deletion'
+                ], 422);
+            }
+            
             // ANCHOR: Reset kepala bagian jika user yang dihapus adalah kepala bagian
             \App\Models\Bagian::where('kepala_bagian_user_id', $user->id)
                 ->update(['kepala_bagian_user_id' => null]);
             
             $user->delete();
 
-            // ANCHOR: Handle AJAX request
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "User '{$username}' berhasil dihapus.",
-                    'timestamp' => now()->format('Y-m-d H:i:s')
-                ], 200);
-            }
-
-            return redirect()->route('user.index')
-                ->with('success', "User '{$username}' berhasil dihapus.");
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // ANCHOR: Handle user not found
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User tidak ditemukan.',
-                    'error_type' => 'not_found'
-                ], 404);
-            }
-            throw $e;
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            // ANCHOR: Handle database errors
-            if ($request->ajax()) {
-                $errorMessage = 'Terjadi kesalahan database.';
-                
-                // Check for specific database errors
-                if (str_contains($e->getMessage(), 'foreign key constraint')) {
-                    $errorMessage = 'User tidak dapat dihapus karena memiliki data terkait.';
-                }
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessage,
-                    'error_type' => 'database',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return response()->json([
+                'success' => true,
+                'message' => "User '{$username}' berhasil dihapus.",
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ], 200);
 
         } catch (\Exception $e) {
-            // ANCHOR: Handle general errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 }

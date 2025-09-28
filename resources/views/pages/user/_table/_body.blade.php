@@ -2,7 +2,12 @@
     @forelse($users as $index => $user)
     <tr>
         <td class="text-center">{{ $index + 1 }}</td>
-        <td>{{ $user->username }}</td>
+        <td>
+            @if($user->id === auth()->id())
+                <span class="badge bg-primary me-2">Anda</span>
+            @endif
+            {{ $user->username }}
+        </td>
         <td>{{ $user->nama ?? '-' }}</td>
         <td>{{ $user->email }}</td>
         <td>{{ $user->phone ?? '-' }}</td>
@@ -35,12 +40,19 @@
                         onclick="showEditUserModal({{ $user->id }})">
                     <i class="fas fa-edit"></i>
                 </button>
+                @if($user->id !== auth()->id())
                 <button class="action-btn delete-btn" title="Hapus" 
                         data-bs-toggle="modal" 
                         data-bs-target="#modalDeleteUser"
                         onclick="showDeleteUserModal({{ $user->id }})">
                     <i class="fas fa-trash"></i>
                 </button>
+                @else
+                <button class="action-btn delete-btn disabled" title="Tidak dapat menghapus akun sendiri" 
+                        disabled>
+                    <i class="fas fa-trash"></i>
+                </button>
+                @endif
             </div>
         </td>
     </tr>

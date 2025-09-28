@@ -70,7 +70,7 @@
 @push('scripts')
 <script>
     const usersDataCurrentPage = {!! json_encode($users->items()) !!};
-    
+
     /**
      * ANCHOR: Toggle Password Visibility
      * Toggle the password visibility for form inputs
@@ -93,4 +93,17 @@
         }
     }
 </script>
+
+<style>
+    .action-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    .action-btn.disabled:hover {
+        background-color: #dc3545 !important;
+        color: white !important;
+    }
+</style>
 @endpush
