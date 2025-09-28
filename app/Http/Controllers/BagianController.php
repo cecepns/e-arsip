@@ -26,7 +26,9 @@ class BagianController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        $users = User::with('bagian')->whereNotNull('bagian_id')->get();
+        $users = User::with('bagian')
+            ->where('role', '!=', 'Admin')
+            ->get();
         $kepalaBagianUserIds = $bagian->pluck('kepala_bagian_user_id')->filter()->unique();
         $usersNotMarkedAsKepalaBagian = $users->whereNotIn('id', $kepalaBagianUserIds)->values();
         return view('pages.bagian.index', compact('bagian', 'query', 'users', 'usersNotMarkedAsKepalaBagian'));
@@ -53,6 +55,11 @@ class BagianController extends Controller
                 'keterangan.string' => 'Keterangan harus berupa teks.',
                 'nama_bagian.unique' => 'Nama bagian sudah ada.',
             ]);
+
+            if (!empty($validated['kepala_bagian_user_id'])) {
+                Bagian::where('kepala_bagian_user_id', $validated['kepala_bagian_user_id'])
+                    ->update(['kepala_bagian_user_id' => null]);
+            }
 
             $bagian = Bagian::create($validated);
 
@@ -90,6 +97,12 @@ class BagianController extends Controller
                 'status.in' => 'Status harus Aktif atau Nonaktif.',
                 'keterangan.string' => 'Keterangan harus berupa teks.',
             ]);
+
+            if (!empty($validated['kepala_bagian_user_id'])) {
+                Bagian::where('kepala_bagian_user_id', $validated['kepala_bagian_user_id'])
+                    ->where('id', '!=', $id)
+                    ->update(['kepala_bagian_user_id' => null]);
+            }
 
             $bagian->update($validated);
 

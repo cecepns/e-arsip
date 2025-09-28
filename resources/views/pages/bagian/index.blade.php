@@ -14,7 +14,7 @@
 
 <div class="mb-3 d-flex justify-content-between align-items-center">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddBagian">
-        <i class="fas fa-plus"></i> Tambah Bagian
+        Tambah Bagian
     </button>
     <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('bagian.index') }}">
         <input type="text" name="search" class="form-control me-2" placeholder="Cari nama bagian..." value="{{ $query ?? '' }}">
@@ -81,35 +81,12 @@
 
 @push('scripts')
 <script>
-    const bagianDataCurrentPage = {!! json_encode($bagian->items()) !!};
-    const usersData = {!! json_encode($users) !!};
+    // ANCHOR: Make data globally accessible for modals
+    window.bagianDataCurrentPage = {!! json_encode($bagian->items()) !!};
+    window.usersData = {!! json_encode($users) !!};
 
     
 
-    /**
-     * ANCHOR: Show Edit Bagian Modal
-     * Show the edit bagian modal
-     * @param {number} bagianId - The id of the bagian to edit
-     */
-    const showEditBagianModal = (bagianId) => {
-        const editBagianForm = document.getElementById('editBagianForm');
-        const idInput = document.getElementById('edit_bagian_id');
-        const namaInput = document.getElementById('edit_nama_bagian');
-        const kepalaInput = document.getElementById('edit_kepala_bagian_user_id');
-        const statusInput = document.getElementById('edit_status');
-        const keteranganInput = document.getElementById('edit_keterangan');
-
-        const bagian = bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
-        const { id, nama_bagian, kepala_bagian_user_id, status, keterangan } = bagian;
-
-        idInput.value = id;
-        namaInput.value = nama_bagian || '';
-        kepalaInput.value = kepala_bagian_user_id || '';
-        statusInput.value = status || '';
-        keteranganInput.value = keterangan || '';
-
-        editBagianForm.action = `/bagian/${id}`;
-    }
 
     /**
      * ANCHOR: Show Delete Bagian Modal
@@ -120,7 +97,7 @@
         const deleteBagianName = document.getElementById('deleteBagianName');
         const deleteBagianForm = document.getElementById('deleteBagianForm');
 
-        const bagian = bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
+        const bagian = window.bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
         const { id, nama_bagian } = bagian;
 
         deleteBagianName.textContent = nama_bagian;
@@ -133,64 +110,10 @@
      * @param {number} bagianId - The id of the bagian to show the details of
      */
     const showDetailBagianModal = (bagianId) => {
-        const bagian = bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
+        const bagian = window.bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
         console.log('Showing details for bagian:', bagian);
     }
 
-    /**
-     * ANCHOR: Edit Bagian Handlers
-     * Handle the edit bagian form submission
-     */
-    const editBagianHandlers = () => {
-        const editBagianForm = document.getElementById('editBagianForm');
-        const editBagianSubmitBtn = document.getElementById('editBagianSubmitBtn');
-        const editBagianCancelBtn = document.getElementById('editBagianCancelBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        
-        editBagianForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            clearErrors(editBagianForm);
-            setLoadingState(true, editBagianSubmitBtn);
-
-            try {
-                const formData = new FormData(editBagianForm);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-                const response = await fetchWithRetry(editBagianForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                });
-                clearTimeout(timeoutId);
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response is not JSON');
-                }
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    showToast(data.message, 'success', 5000);
-                    editBagianForm.reset();
-                    bootstrap.Modal.getInstance(document.getElementById('modalEditBagian')).hide();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    handleErrorResponse(data, editBagianForm);
-                }
-            } catch (error) {
-                handleErrorResponse(error, editBagianForm);
-            } finally {
-                setLoadingState(false, editBagianSubmitBtn);
-            }
-        });
-    }
 
     /**
      * ANCHOR: Delete Bagian Handlers
@@ -248,7 +171,6 @@
     }
 
     // ANCHOR: Run all handlers
-    editBagianHandlers();
     deleteBagianHandlers();
 </script>
 @endpush
