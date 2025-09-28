@@ -10,9 +10,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\AjaxErrorHandler;
 
 class SuratMasukController extends Controller
 {
+    use AjaxErrorHandler;
     /**
      * Display a listing of the surat masuk.
      */
@@ -81,6 +83,39 @@ class SuratMasukController extends Controller
                 'disposisi_prioritas' => 'required_if:buat_disposisi,1|string|in:Normal,Tinggi,Sangat Tinggi',
                 'disposisi_instruksi' => 'required_if:buat_disposisi,1|string',
                 'disposisi_catatan' => 'nullable|string',
+            ], [
+                'nomor_surat.required' => 'Nomor surat wajib diisi.',
+                'nomor_surat.string' => 'Nomor surat harus berupa teks.',
+                'nomor_surat.max' => 'Nomor surat maksimal 100 karakter.',
+                'nomor_surat.unique' => 'Nomor surat sudah digunakan.',
+                'tanggal_surat.required' => 'Tanggal surat wajib diisi.',
+                'tanggal_surat.date' => 'Format tanggal surat tidak valid.',
+                'tanggal_terima.required' => 'Tanggal terima wajib diisi.',
+                'tanggal_terima.date' => 'Format tanggal terima tidak valid.',
+                'perihal.required' => 'Perihal wajib diisi.',
+                'perihal.string' => 'Perihal harus berupa teks.',
+                'perihal.max' => 'Perihal maksimal 255 karakter.',
+                'pengirim.required' => 'Pengirim wajib diisi.',
+                'pengirim.string' => 'Pengirim harus berupa teks.',
+                'pengirim.max' => 'Pengirim maksimal 150 karakter.',
+                'sifat_surat.required' => 'Sifat surat wajib dipilih.',
+                'sifat_surat.string' => 'Sifat surat harus berupa teks.',
+                'sifat_surat.in' => 'Sifat surat harus Biasa, Segera, Penting, atau Rahasia.',
+                'tujuan_bagian_id.required' => 'Bagian tujuan wajib dipilih.',
+                'tujuan_bagian_id.exists' => 'Bagian tujuan yang dipilih tidak valid.',
+                'lampiran_pdf.required' => 'Lampiran PDF wajib diupload.',
+                'lampiran_pdf.file' => 'Lampiran PDF harus berupa file.',
+                'lampiran_pdf.mimes' => 'Lampiran PDF harus berupa file PDF.',
+                'lampiran_pdf.max' => 'Lampiran PDF maksimal 20MB.',
+                'lampiran_pendukung.*.file' => 'Dokumen pendukung harus berupa file.',
+                'lampiran_pendukung.*.mimes' => 'Dokumen pendukung harus berupa ZIP, RAR, DOCX, atau XLSX.',
+                'lampiran_pendukung.*.max' => 'Dokumen pendukung maksimal 20MB per file.',
+                'disposisi_tujuan_bagian_id.required_if' => 'Tujuan disposisi wajib dipilih jika membuat disposisi.',
+                'disposisi_tujuan_bagian_id.exists' => 'Tujuan disposisi yang dipilih tidak valid.',
+                'disposisi_prioritas.required_if' => 'Prioritas disposisi wajib dipilih jika membuat disposisi.',
+                'disposisi_prioritas.in' => 'Prioritas harus Normal, Tinggi, atau Sangat Tinggi.',
+                'disposisi_instruksi.required_if' => 'Instruksi disposisi wajib diisi jika membuat disposisi.',
+                'disposisi_instruksi.string' => 'Instruksi harus berupa teks.',
             ]);
 
             $validated['user_id'] = Auth::id();
@@ -108,6 +143,7 @@ class SuratMasukController extends Controller
                     'tipe_surat' => 'masuk',
                     'nama_file' => $file->getClientOriginalName(),
                     'path_file' => $path,
+                    'file_size' => $file->getSize(),
                     'tipe_lampiran' => 'utama',
                 ]);
             }
@@ -120,6 +156,7 @@ class SuratMasukController extends Controller
                         'tipe_surat' => 'masuk',
                         'nama_file' => $file->getClientOriginalName(),
                         'path_file' => $path,
+                        'file_size' => $file->getSize(),
                         'tipe_lampiran' => 'pendukung',
                     ]);
                 }
@@ -151,16 +188,7 @@ class SuratMasukController extends Controller
             throw $e;
             
         } catch (\Exception $e) {
-            // ANCHOR: Handle general errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 
@@ -197,15 +225,7 @@ class SuratMasukController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 
@@ -258,6 +278,7 @@ class SuratMasukController extends Controller
                     'tipe_surat' => 'masuk',
                     'nama_file' => $file->getClientOriginalName(),
                     'path_file' => $path,
+                    'file_size' => $file->getSize(),
                     'tipe_lampiran' => 'utama',
                 ]);
             }
@@ -275,15 +296,7 @@ class SuratMasukController extends Controller
                 ->with('success', 'Surat masuk berhasil diperbarui.');
 
         } catch (\Exception $e) {
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 
@@ -325,15 +338,7 @@ class SuratMasukController extends Controller
                 ->with('success', 'Surat masuk berhasil dihapus.');
 
         } catch (\Exception $e) {
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 }

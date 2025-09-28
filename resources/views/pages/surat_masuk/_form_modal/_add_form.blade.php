@@ -73,16 +73,16 @@
             </div>
             
             <div class="mb-3">
-                <label for="add_lampiran_pdf" class="form-label">Lampiran PDF (Wajib)</label>
-                <input type="file" name="lampiran_pdf" class="form-control" id="add_lampiran_pdf" accept=".pdf" required>
-                <div class="form-text">Format: PDF, Maksimal 20MB</div>
+                <label for="add_lampiran_pdf" class="form-label">Lampiran Surat Utama (PDF)</label>
+                <input type="file" name="lampiran_pdf" class="form-control" id="add_lampiran_pdf" accept="application/pdf" required>
+                <div class="form-text">File PDF maksimal 20MB</div>
                 <div class="invalid-feedback"></div>
             </div>
             
             <div class="mb-3">
-                <label for="add_lampiran_pendukung" class="form-label">Dokumen Pendukung (Opsional)</label>
-                <input type="file" name="lampiran_pendukung[]" class="form-control" id="add_lampiran_pendukung" accept=".zip,.rar,.docx,.xlsx" multiple>
-                <div class="form-text">Format: ZIP, RAR, DOCX, XLSX. Maksimal 20MB per file</div>
+                <label for="add_lampiran_pendukung" class="form-label">Dokumen Pendukung</label>
+                <input type="file" name="lampiran_pendukung[]" class="form-control" id="add_lampiran_pendukung" multiple accept=".zip,.rar,.docx,.xlsx">
+                <div class="form-text">File ZIP, RAR, DOCX, XLSX maksimal 20MB</div>
                 <div class="invalid-feedback"></div>
             </div>
             
@@ -144,8 +144,8 @@
         </div>
     </div>
     
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary me-2" aria-label="close" data-bs-dismiss="modal" id="addSuratMasukCancelBtn">Batal</button>
         <button type="submit" class="btn btn-primary" id="addSuratMasukSubmitBtn">
             <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
             <i class="fas fa-save"></i> Simpan

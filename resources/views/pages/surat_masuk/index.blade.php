@@ -198,6 +198,15 @@
                     if (response.ok && data.success) {
                         showToast(data.message, 'success', 5000);
                         addSuratMasukForm.reset();
+                        // Hide disposisi fields after successful submission
+                        const disposisiFields = document.getElementById('add_disposisi_fields');
+                        if (disposisiFields) {
+                            disposisiFields.style.display = 'none';
+                        }
+                        const disposisiCheckbox = document.getElementById('add_buat_disposisi');
+                        if (disposisiCheckbox) {
+                            disposisiCheckbox.checked = false;
+                        }
                         bootstrap.Modal.getInstance(document.getElementById('modalAddSuratMasuk')).hide();
                         setTimeout(() => {
                             window.location.reload();
@@ -330,10 +339,47 @@
         const checkbox = document.getElementById('add_buat_disposisi');
         const fields = document.getElementById('add_disposisi_fields');
         
-        if (checkbox.checked) {
-            fields.style.display = 'block';
-        } else {
-            fields.style.display = 'none';
+        if (checkbox && fields) {
+            if (checkbox.checked) {
+                fields.style.display = 'block';
+            } else {
+                fields.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * ANCHOR: Reset Add Surat Masuk Form on Modal Close
+     * Reset form and clear errors when modal is closed
+     */
+    const resetAddSuratMasukFormOnModalClose = () => {
+        const modalAddSuratMasuk = document.getElementById('modalAddSuratMasuk');
+        const addSuratMasukForm = document.getElementById('addSuratMasukForm');
+        
+        if (modalAddSuratMasuk && addSuratMasukForm) {
+            modalAddSuratMasuk.addEventListener('hidden.bs.modal', function() {
+                // Reset form
+                addSuratMasukForm.reset();
+                
+                // Clear validation errors
+                clearErrors(addSuratMasukForm);
+                
+                // Reset loading state if any
+                const addSuratMasukSubmitBtn = document.getElementById('addSuratMasukSubmitBtn');
+                setLoadingState(false, addSuratMasukSubmitBtn);
+                
+                // Hide disposisi fields
+                const disposisiFields = document.getElementById('add_disposisi_fields');
+                if (disposisiFields) {
+                    disposisiFields.style.display = 'none';
+                }
+                
+                // Uncheck disposisi checkbox
+                const disposisiCheckbox = document.getElementById('add_buat_disposisi');
+                if (disposisiCheckbox) {
+                    disposisiCheckbox.checked = false;
+                }
+            });
         }
     }
 
@@ -343,6 +389,9 @@
         if (disposisiCheckbox) {
             disposisiCheckbox.addEventListener('change', toggleDisposisiFields);
         }
+        
+        // Initialize form reset functionality
+        resetAddSuratMasukFormOnModalClose();
     });
 
     /**
