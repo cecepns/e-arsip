@@ -31,7 +31,7 @@
 <div class="alert alert-info mb-3">
     <i class="fas fa-search me-2"></i> 
     Hasil pencarian untuk: <strong>"{{ $query }}"</strong> 
-    - Ditemukan {{ $users->count() }} user
+    - Ditemukan {{ $users->total() }} user
 </div>
 @endif
 
@@ -42,10 +42,10 @@
 ])
 
 @include('partials.pagination', [
-    'currentPage' => 1,
-    'totalPages' => 2,
-    'baseUrl' => '#',
-    'showInfo' => 'Menampilkan 1-5 dari 8 user'
+    'currentPage' => $users->currentPage(),
+    'totalPages' => $users->lastPage(),
+    'baseUrl' => route('user.index'),
+    'showInfo' => "Menampilkan {$users->firstItem()}-{$users->lastItem()} dari {$users->total()} user"
 ])
 
 @include('partials.modal', [
@@ -83,7 +83,7 @@
 
 @push('scripts')
 <script>
-    const usersDataCurrentPage = {!! json_encode($users) !!};
+    const usersDataCurrentPage = {!! json_encode($users->items()) !!};
     
     /**
      * ANCHOR: Add User Handlers
@@ -328,7 +328,7 @@
         const roleInput = document.getElementById('edit_role');
         const bagianInput = document.getElementById('edit_bagian_id');
         const isKepalaBagianInput = document.getElementById('edit_is_kepala_bagian');
-        const user = usersDataCurrentPage.data.find(user => user.id === userId);
+        const user = usersDataCurrentPage.find(user => user.id === userId);
         const { id, username, nama, email, phone, password, role, bagian_id } = user;
         console.log('user', user);
 
@@ -356,7 +356,7 @@
         const deleteUserName = document.getElementById('deleteUserName');
         const deleteUserForm = document.getElementById('deleteUserForm');
 
-        const user = usersDataCurrentPage.data.find(user => user.id === userId);
+        const user = usersDataCurrentPage.find(user => user.id === userId);
         const { id, username } = user;
 
         deleteUserName.textContent = username;
@@ -372,7 +372,7 @@
         const resetUserName = document.getElementById('resetUserName');
         const resetPasswordForm = document.getElementById('resetPasswordForm');
 
-        const user = usersDataCurrentPage.data.find(user => user.id === userId);
+        const user = usersDataCurrentPage.find(user => user.id === userId);
         const { id, username } = user;
 
         resetUserName.textContent = username;

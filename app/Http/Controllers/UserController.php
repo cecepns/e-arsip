@@ -24,7 +24,7 @@ class UserController extends Controller
                   ->orWhere('phone', 'like', "%{$query}%");
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(2);
 
         $bagian = Bagian::where('status', 'Aktif')->get();
 
