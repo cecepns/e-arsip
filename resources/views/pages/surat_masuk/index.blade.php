@@ -478,85 +478,23 @@
     window.loadDisposisiForEdit = async (suratMasukId) => {
         try {
             // Clear existing disposisi fields first
-            clearAllDisposisiFields();
+            if (window.editDisposisiManager) {
+                window.editDisposisiManager.clearAllDisposisiFields();
+            }
             
             // Get surat masuk data from current page data
             const suratMasuk = suratMasukDataCurrentPage.data.find(surat => surat.id === suratMasukId);
             
             if (suratMasuk && suratMasuk.disposisi && suratMasuk.disposisi.length > 0) {
-                // Display existing disposisi as grid items (read-only)
-                displayExistingDisposisi(suratMasuk.disposisi);
+                // Populate disposisi using the manager
+                window.editDisposisiManager.populateDisposisi(suratMasuk.disposisi);
             }
-            
-            // Update empty state
-            toggleEmptyState();
         } catch (error) {
             console.error('Error loading disposisi for edit:', error);
-            toggleEmptyState();
+            if (window.editDisposisiManager) {
+                window.editDisposisiManager.toggleEmptyState();
+            }
         }
-    }
-
-    /**
-     * ANCHOR: Display Existing Disposisi
-     * Display existing disposisi as read-only grid items
-     * @param {Array} disposisiList - Array of existing disposisi data
-     */
-    window.displayExistingDisposisi = (disposisiList) => {
-        const container = document.getElementById('disposisi_container');
-        
-        disposisiList.forEach((disposisi, index) => {
-            const statusBadgeClass = getStatusBadgeClass(disposisi.status);
-            const statusIcon = getStatusIcon(disposisi.status);
-            
-            const disposisiHtml = `
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card disposisi-item h-100" data-index="${index}">
-                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">
-                                <i class="fas fa-share-alt me-2"></i>Disposisi ${index + 1}
-                            </h6>
-                            <span class="badge ${statusBadgeClass}">
-                                <i class="${statusIcon} me-1"></i>${disposisi.status}
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-muted">Tujuan Disposisi</label>
-                                <div class="p-2 bg-light rounded">
-                                    <i class="fas fa-building me-2 text-primary"></i>
-                                    ${disposisi.tujuan_bagian ? disposisi.tujuan_bagian.nama_bagian : 'Tidak ada data'}
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-muted">Instruksi</label>
-                                <div class="p-2 bg-light rounded" style="min-height: 60px;">
-                                    <i class="fas fa-clipboard-list me-2 text-primary"></i>
-                                    ${disposisi.isi_instruksi || 'Tidak ada instruksi'}
-                                </div>
-                            </div>
-                            ${disposisi.catatan ? `
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold text-muted">Catatan</label>
-                                    <div class="p-2 bg-light rounded">
-                                        <i class="fas fa-sticky-note me-2 text-primary"></i>
-                                        ${disposisi.catatan}
-                                    </div>
-                                </div>
-                            ` : ''}
-                            <div class="mb-3">
-                                <label class="form-label fw-bold text-muted">Dibuat</label>
-                                <div class="p-2 bg-light rounded">
-                                    <i class="fas fa-calendar me-2 text-primary"></i>
-                                    ${disposisi.created_at ? new Date(disposisi.created_at).toLocaleDateString('id-ID') : 'Tidak ada data'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            container.insertAdjacentHTML('beforeend', disposisiHtml);
-        });
     }
 
     /**
@@ -602,141 +540,255 @@
     // ========================================
     
     /**
-     * ANCHOR: Toggle Empty State
-     * Show/hide empty state based on disposisi count
+     * ANCHOR: Disposisi Manager Class
+     * Manages disposisi functionality for different forms
      */
-    window.toggleEmptyState = () => {
-        const emptyState = document.getElementById('disposisi_empty_state');
-        const container = document.getElementById('disposisi_container');
-        const disposisiCount = document.querySelectorAll('.disposisi-item').length;
-        
-        if (emptyState && container) {
-            if (disposisiCount === 0) {
-                emptyState.style.display = 'block';
-            } else {
-                emptyState.style.display = 'none';
+    class DisposisiManager {
+        constructor(formPrefix = '') {
+            this.formPrefix = formPrefix;
+            this.containerId = `${formPrefix}disposisi_container`;
+            this.emptyStateId = `${formPrefix}disposisi_empty_state`;
+            this.addButtonId = `${formPrefix}add_disposisi_btn`;
+        }
+
+        /**
+         * Get container element
+         */
+        getContainer() {
+            return document.getElementById(this.containerId);
+        }
+
+        /**
+         * Get empty state element
+         */
+        getEmptyState() {
+            return document.getElementById(this.emptyStateId);
+        }
+
+        /**
+         * Get add button element
+         */
+        getAddButton() {
+            return document.getElementById(this.addButtonId);
+        }
+
+        /**
+         * Toggle Empty State
+         * Show/hide empty state based on disposisi count
+         */
+        toggleEmptyState() {
+            const emptyState = this.getEmptyState();
+            const container = this.getContainer();
+            const disposisiCount = container ? container.querySelectorAll('.disposisi-item').length : 0;
+            
+            if (emptyState && container) {
+                if (disposisiCount === 0) {
+                    emptyState.style.display = 'block';
+                } else {
+                    emptyState.style.display = 'none';
+                }
             }
         }
-    }
 
-    /**
-     * ANCHOR: Add Disposisi Field
-     * Add a new disposisi field dynamically
-     */
-    window.addDisposisiField = () => {
-        const container = document.getElementById('disposisi_container');
-        const disposisiCount = document.querySelectorAll('.disposisi-item').length;
-        const disposisiIndex = disposisiCount;
-        
-        const disposisiHtml = `
-            <div class="col-md-6 col-lg-4 mb-3">
-                <div class="card disposisi-item h-100" data-index="${disposisiIndex}">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">
-                            <i class="fas fa-share-alt me-2"></i>Disposisi ${disposisiIndex + 1}
-                        </h6>
-                        <button type="button" class="btn btn-danger btn-sm remove-disposisi" onclick="removeDisposisiField(${disposisiIndex})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label">Tujuan Disposisi</label>
-                            <select name="disposisi[${disposisiIndex}][tujuan_bagian_id]" class="form-select disposisi-tujuan" required>
-                                <option value="">Pilih Bagian Tujuan</option>
-                                @foreach($bagian ?? [] as $b)
-                                    <option value="{{ $b->id }}">{{ $b->nama_bagian }}</option>
-                                @endforeach
-                            </select>
-                            <div class="invalid-feedback"></div>
+        /**
+         * Add Disposisi Field
+         * Add a new disposisi field dynamically
+         */
+        addDisposisiField() {
+            const container = this.getContainer();
+            if (!container) return;
+
+            const disposisiCount = container.querySelectorAll('.disposisi-item').length;
+            const disposisiIndex = disposisiCount;
+            
+            const disposisiHtml = `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card disposisi-item h-100" data-index="${disposisiIndex}">
+                        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-share-alt me-2"></i>Disposisi ${disposisiIndex + 1}
+                            </h6>
+                            <button type="button" class="btn btn-danger btn-sm remove-disposisi" data-index="${disposisiIndex}">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select name="disposisi[${disposisiIndex}][status]" class="form-select disposisi-status" required>
-                                <option value="Menunggu">Menunggu</option>
-                                <option value="Dikerjakan">Dikerjakan</option>
-                                <option value="Selesai">Selesai</option>
-                            </select>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Instruksi</label>
-                            <textarea name="disposisi[${disposisiIndex}][instruksi]" class="form-control disposisi-instruksi" rows="3" placeholder="Instruksi untuk bagian tujuan" required></textarea>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Catatan</label>
-                            <textarea name="disposisi[${disposisiIndex}][catatan]" class="form-control disposisi-catatan" rows="2" placeholder="Catatan tambahan (opsional)"></textarea>
-                            <div class="invalid-feedback"></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Tujuan Disposisi</label>
+                                <select name="disposisi[${disposisiIndex}][tujuan_bagian_id]" class="form-select disposisi-tujuan" required>
+                                    <option value="">Pilih Bagian Tujuan</option>
+                                    @foreach($bagian ?? [] as $b)
+                                        <option value="{{ $b->id }}">{{ $b->nama_bagian }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select name="disposisi[${disposisiIndex}][status]" class="form-select disposisi-status" required>
+                                    <option value="Menunggu">Menunggu</option>
+                                    <option value="Dikerjakan">Dikerjakan</option>
+                                    <option value="Selesai">Selesai</option>
+                                </select>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Instruksi</label>
+                                <textarea name="disposisi[${disposisiIndex}][instruksi]" class="form-control disposisi-instruksi" rows="3" placeholder="Instruksi untuk bagian tujuan" required></textarea>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Catatan</label>
+                                <textarea name="disposisi[${disposisiIndex}][catatan]" class="form-control disposisi-catatan" rows="2" placeholder="Catatan tambahan (opsional)"></textarea>
+                                <div class="invalid-feedback"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
-        
-        container.insertAdjacentHTML('beforeend', disposisiHtml);
-        updateDisposisiNumbers();
-        toggleEmptyState();
-    }
+            `;
+            
+            container.insertAdjacentHTML('beforeend', disposisiHtml);
+            this.updateDisposisiNumbers();
+            this.toggleEmptyState();
+        }
 
-    /**
-     * ANCHOR: Remove Disposisi Field
-     * Remove a specific disposisi field
-     * @param {number} index - The index of the disposisi field to remove
-     */
-    window.removeDisposisiField = (index) => {
-        const disposisiItem = document.querySelector(`[data-index="${index}"]`);
-        if (disposisiItem) {
-            disposisiItem.remove();
-            updateDisposisiNumbers();
-            toggleEmptyState();
+        /**
+         * Remove Disposisi Field
+         * Remove a specific disposisi field
+         * @param {number} index - The index of the disposisi field to remove
+         */
+        removeDisposisiField(index) {
+            const container = this.getContainer();
+            if (!container) return;
+
+            const disposisiItem = container.querySelector(`[data-index="${index}"]`);
+            if (disposisiItem) {
+                disposisiItem.remove();
+                this.updateDisposisiNumbers();
+                this.toggleEmptyState();
+            }
+        }
+
+        /**
+         * Clear All Disposisi Fields
+         * Clear all disposisi fields from the container
+         */
+        clearAllDisposisiFields() {
+            const container = this.getContainer();
+            if (container) {
+                container.innerHTML = '';
+                this.toggleEmptyState();
+            }
+        }
+
+        /**
+         * Update Disposisi Numbers
+         * Update the numbering of disposisi fields
+         */
+        updateDisposisiNumbers() {
+            const container = this.getContainer();
+            if (!container) return;
+
+            const disposisiItems = container.querySelectorAll('.disposisi-item');
+            disposisiItems.forEach((item, index) => {
+                const title = item.querySelector('h6');
+                const removeBtn = item.querySelector('.remove-disposisi');
+                
+                if (title) {
+                    title.innerHTML = `<i class="fas fa-share-alt me-2"></i>Disposisi ${index + 1}`;
+                }
+                
+                if (removeBtn) {
+                    removeBtn.setAttribute('data-index', index);
+                }
+                
+                // Update data-index
+                item.setAttribute('data-index', index);
+                
+                // Update form field names
+                const tujuanSelect = item.querySelector('.disposisi-tujuan');
+                const statusSelect = item.querySelector('.disposisi-status');
+                const instruksiTextarea = item.querySelector('.disposisi-instruksi');
+                const catatanTextarea = item.querySelector('.disposisi-catatan');
+                
+                if (tujuanSelect) tujuanSelect.name = `disposisi[${index}][tujuan_bagian_id]`;
+                if (statusSelect) statusSelect.name = `disposisi[${index}][status]`;
+                if (instruksiTextarea) instruksiTextarea.name = `disposisi[${index}][instruksi]`;
+                if (catatanTextarea) catatanTextarea.name = `disposisi[${index}][catatan]`;
+            });
+        }
+
+        /**
+         * Populate existing disposisi data
+         * @param {Array} disposisiData - Array of disposisi objects
+         */
+        populateDisposisi(disposisiData = []) {
+            this.clearAllDisposisiFields();
+            
+            disposisiData.forEach((disposisi, index) => {
+                this.addDisposisiField();
+                
+                // Fill the form fields
+                const container = this.getContainer();
+                const disposisiItem = container.querySelector(`[data-index="${index}"]`);
+                
+                if (disposisiItem) {
+                    const tujuanSelect = disposisiItem.querySelector('.disposisi-tujuan');
+                    const statusSelect = disposisiItem.querySelector('.disposisi-status');
+                    const instruksiTextarea = disposisiItem.querySelector('.disposisi-instruksi');
+                    const catatanTextarea = disposisiItem.querySelector('.disposisi-catatan');
+                    
+                    if (tujuanSelect && disposisi.tujuan_bagian_id) {
+                        tujuanSelect.value = disposisi.tujuan_bagian_id;
+                    }
+                    if (statusSelect && disposisi.status) {
+                        statusSelect.value = disposisi.status;
+                    }
+                    if (instruksiTextarea && disposisi.isi_instruksi) {
+                        instruksiTextarea.value = disposisi.isi_instruksi;
+                    }
+                    if (catatanTextarea && disposisi.catatan) {
+                        catatanTextarea.value = disposisi.catatan;
+                    }
+                }
+            });
+        }
+
+        /**
+         * Initialize disposisi functionality
+         */
+        initialize() {
+            // Initialize empty state
+            this.toggleEmptyState();
+            
+            // Add event listener for add disposisi button
+            const addButton = this.getAddButton();
+            if (addButton) {
+                addButton.addEventListener('click', () => this.addDisposisiField());
+            }
+
+            // Add event delegation for remove buttons
+            const container = this.getContainer();
+            if (container) {
+                container.addEventListener('click', (e) => {
+                    if (e.target.closest('.remove-disposisi')) {
+                        const button = e.target.closest('.remove-disposisi');
+                        const index = parseInt(button.getAttribute('data-index'));
+                        this.removeDisposisiField(index);
+                    }
+                });
+            }
         }
     }
 
-    /**
-     * ANCHOR: Clear All Disposisi Fields
-     * Clear all disposisi fields from the container
-     */
-    window.clearAllDisposisiFields = () => {
-        const container = document.getElementById('disposisi_container');
-        if (container) {
-            container.innerHTML = '';
-            toggleEmptyState();
-        }
-    }
+    // Global disposisi manager instance
+    window.disposisiManager = new DisposisiManager();
 
-    /**
-     * ANCHOR: Update Disposisi Numbers
-     * Update the numbering of disposisi fields
-     */
-    window.updateDisposisiNumbers = () => {
-        const disposisiItems = document.querySelectorAll('.disposisi-item');
-        disposisiItems.forEach((item, index) => {
-            const title = item.querySelector('h6');
-            const removeBtn = item.querySelector('.remove-disposisi');
-            
-            if (title) {
-                title.innerHTML = `<i class="fas fa-share-alt me-2"></i>Disposisi ${index + 1}`;
-            }
-            
-            if (removeBtn) {
-                removeBtn.setAttribute('onclick', `removeDisposisiField(${index})`);
-            }
-            
-            // Update data-index
-            item.setAttribute('data-index', index);
-            
-            // Update form field names
-            const tujuanSelect = item.querySelector('.disposisi-tujuan');
-            const statusSelect = item.querySelector('.disposisi-status');
-            const instruksiTextarea = item.querySelector('.disposisi-instruksi');
-            const catatanTextarea = item.querySelector('.disposisi-catatan');
-            
-            if (tujuanSelect) tujuanSelect.name = `disposisi[${index}][tujuan_bagian_id]`;
-            if (statusSelect) statusSelect.name = `disposisi[${index}][status]`;
-            if (instruksiTextarea) instruksiTextarea.name = `disposisi[${index}][instruksi]`;
-            if (catatanTextarea) catatanTextarea.name = `disposisi[${index}][catatan]`;
-        });
-    }
+    // Legacy functions for backward compatibility
+    window.toggleEmptyState = () => window.disposisiManager.toggleEmptyState();
+    window.addDisposisiField = () => window.disposisiManager.addDisposisiField();
+    window.removeDisposisiField = (index) => window.disposisiManager.removeDisposisiField(index);
+    window.clearAllDisposisiFields = () => window.disposisiManager.clearAllDisposisiFields();
+    window.updateDisposisiNumbers = () => window.disposisiManager.updateDisposisiNumbers();
 </script>
 @endpush

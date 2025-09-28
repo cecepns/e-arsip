@@ -85,7 +85,7 @@
                 
                 <div class="mb-3">
                     <label for="add_keterangan" class="form-label">Keterangan</label>
-                    <textarea name="keterangan" class="form-control" id="add_keterangan" rows="3" placeholder="Keterangan tambahan">{{ old('keterangan') }}</textarea>
+                    <textarea name="keterangan" class="form-control" id="add_keterangan" rows="5" placeholder="Keterangan tambahan">{{ old('keterangan') }}</textarea>
                     <div class="invalid-feedback"></div>
                 </div>
             </div>
@@ -96,15 +96,15 @@
     <div class="mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Disposisi</h5>
-            <button type="button" class="btn btn-primary" id="add_disposisi_btn">
+            <button type="button" class="btn btn-primary" id="create_add_disposisi_btn">
                 Tambah Disposisi
             </button>
         </div>
         <div class="card-body">
-            <div class="row" id="disposisi_container">
+            <div class="row" id="create_disposisi_container">
                 <!-- Disposisi cards will be added here dynamically -->
             </div>
-            <div id="disposisi_empty_state" class="text-center text-muted py-4">
+            <div id="create_disposisi_empty_state" class="text-center text-muted py-4">
                 <i class="fas fa-share-alt fa-3x mb-3"></i>
                 <h6>Belum ada disposisi</h6>
                 <p class="mb-0">Klik "Tambah Disposisi" untuk mulai menambahkan disposisi</p>
@@ -222,7 +222,9 @@
                 addSuratMasukSubmitBtn.disabled = false;
                 
                 // Clear all disposisi fields
-                clearAllDisposisiFields();
+                if (window.addDisposisiManager) {
+                    window.addDisposisiManager.clearAllDisposisiFields();
+                }
             });
         }
     }
@@ -232,14 +234,9 @@
         addSuratMasukHandlers();
         resetAddSuratMasukFormOnModalClose();
         
-        // Initialize empty state
-        toggleEmptyState();
-        
-        // Add event listener for add disposisi button
-        const addDisposisiBtn = document.getElementById('add_disposisi_btn');
-        if (addDisposisiBtn) {
-            addDisposisiBtn.addEventListener('click', addDisposisiField);
-        }
+        // Initialize disposisi manager for add form
+        window.addDisposisiManager = new DisposisiManager('create_');
+        window.addDisposisiManager.initialize();
     });
 </script>
 @endpush

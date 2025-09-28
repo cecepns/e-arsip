@@ -96,15 +96,15 @@
     <div class="mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Disposisi</h5>
-            <button type="button" class="btn btn-primary" id="add_disposisi_btn">
+            <button type="button" class="btn btn-primary" id="edit_add_disposisi_btn">
                 Tambah Disposisi
             </button>
         </div>
         <div class="mt-3">
-            <div class="row" id="disposisi_container">
+            <div class="row" id="edit_disposisi_container">
                 <!-- Disposisi cards will be added here dynamically -->
             </div>
-            <div id="disposisi_empty_state" class="text-center text-muted py-4">
+            <div id="edit_disposisi_empty_state" class="text-center text-muted py-4">
                 <i class="fas fa-share-alt fa-3x mb-3"></i>
                 <h6>Belum ada disposisi</h6>
                 <p class="mb-0">Surat ini belum memiliki disposisi. Klik "Tambah Disposisi" untuk menambahkan disposisi baru.</p>
@@ -217,7 +217,9 @@
                 editSuratMasukSubmitBtn.disabled = false;
                 
                 // Clear all disposisi fields
-                clearAllDisposisiFields();
+                if (window.editDisposisiManager) {
+                    window.editDisposisiManager.clearAllDisposisiFields();
+                }
             });
         }
     }
@@ -227,14 +229,9 @@
         editSuratMasukHandlers();
         resetEditSuratMasukFormOnModalClose();
         
-        // Initialize empty state
-        toggleEmptyState();
-        
-        // Add event listener for add disposisi button
-        const addDisposisiBtn = document.getElementById('add_disposisi_btn');
-        if (addDisposisiBtn) {
-            addDisposisiBtn.addEventListener('click', addDisposisiField);
-        }
+        // Initialize disposisi manager for edit form
+        window.editDisposisiManager = new DisposisiManager('edit_');
+        window.editDisposisiManager.initialize();
     });
 </script>
 @endpush
