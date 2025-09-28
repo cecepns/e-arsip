@@ -63,7 +63,7 @@
             </a>
         </div>
         <div class="nav-item">
-            <a href="#" class="nav-link">
+            <a href="{{ route('settings.index') }}" class="nav-link{{ request()->routeIs('settings.*') ? ' active' : '' }}">
                 <i class="fas fa-cog"></i>
                 <span>Pengaturan</span>
             </a>

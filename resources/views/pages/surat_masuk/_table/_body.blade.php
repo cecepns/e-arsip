@@ -6,34 +6,10 @@
         <td>{{ $surat->tanggal_surat->format('d-m-Y') }}</td>
         <td>{{ $surat->tanggal_terima->format('d-m-Y') }}</td>
         <td>{{ $surat->perihal }}</td>
-        <td>
-            @if($surat->ringkasan_isi)
-                {{ Str::limit($surat->ringkasan_isi, 50) }}
-            @else
-                <span class="text-muted">-</span>
-            @endif
-        </td>
         <td>{{ $surat->pengirim }}</td>
         <td>
             @if($surat->tujuanBagian)
                 {{ $surat->tujuanBagian->nama_bagian }}
-            @else
-                <span class="text-muted">-</span>
-            @endif
-        </td>
-        <td>
-            @if($surat->disposisi && $surat->disposisi->count() > 0)
-                @foreach($surat->disposisi as $disposisi)
-                    <span class="badge 
-                        @if($disposisi->status == 'Menunggu') bg-warning
-                        @elseif($disposisi->status == 'Dikerjakan') bg-info
-                        @elseif($disposisi->status == 'Selesai') bg-success
-                        @else bg-secondary
-                        @endif">
-                        {{ $disposisi->status }}
-                    </span>
-                    @if(!$loop->last)<br>@endif
-                @endforeach
             @else
                 <span class="text-muted">-</span>
             @endif

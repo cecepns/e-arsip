@@ -25,7 +25,7 @@ class SuratMasukController extends Controller
         $bagianId = $request->get('bagian_id');
         $tanggal = $request->get('tanggal');
         
-        $suratMasuk = SuratMasuk::with(['tujuanBagian', 'user', 'creator', 'updater', 'disposisi'])
+        $suratMasuk = SuratMasuk::with(['tujuanBagian', 'user', 'creator', 'updater', 'disposisi.tujuanBagian'])
             ->when($query, function ($q) use ($query) {
                 $q->where('nomor_surat', 'like', "%{$query}%")
                   ->orWhere('perihal', 'like', "%{$query}%")
@@ -78,11 +78,11 @@ class SuratMasukController extends Controller
                 'tujuan_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'required|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
-                'buat_disposisi' => 'nullable|boolean',
-                'disposisi_tujuan_bagian_id' => 'required_if:buat_disposisi,true|required_if:buat_disposisi,1|exists:bagian,id|nullable|different:tujuan_bagian_id',
-                'disposisi_status' => 'required_if:buat_disposisi,true|required_if:buat_disposisi,1|string|in:Menunggu,Dikerjakan,Selesai|nullable',
-                'disposisi_instruksi' => 'required_if:buat_disposisi,true|required_if:buat_disposisi,1|string|nullable|min:10',
-                'disposisi_catatan' => 'nullable|string',
+            'disposisi' => 'nullable|array',
+            'disposisi.*.tujuan_bagian_id' => 'required_with:disposisi|exists:bagian,id|different:tujuan_bagian_id',
+            'disposisi.*.status' => 'required_with:disposisi|string|in:Menunggu,Dikerjakan,Selesai',
+            'disposisi.*.instruksi' => 'required_with:disposisi|string|min:10',
+            'disposisi.*.catatan' => 'nullable|string',
             ], [
                 'nomor_surat.required' => 'Nomor surat wajib diisi.',
                 'nomor_surat.string' => 'Nomor surat harus berupa teks.',
@@ -110,41 +110,44 @@ class SuratMasukController extends Controller
                 'lampiran_pendukung.*.file' => 'Dokumen pendukung harus berupa file.',
                 'lampiran_pendukung.*.mimes' => 'Dokumen pendukung harus berupa ZIP, RAR, DOCX, atau XLSX.',
                 'lampiran_pendukung.*.max' => 'Dokumen pendukung maksimal 20MB per file.',
-                'disposisi_tujuan_bagian_id.required_if' => 'Tujuan disposisi wajib dipilih jika membuat disposisi.',
-                'disposisi_tujuan_bagian_id.exists' => 'Tujuan disposisi yang dipilih tidak valid.',
-                'disposisi_tujuan_bagian_id.different' => 'Tujuan disposisi harus berbeda dengan bagian tujuan surat.',
-                'disposisi_status.required_if' => 'Status disposisi wajib dipilih jika membuat disposisi.',
-                'disposisi_status.in' => 'Status harus Menunggu, Dikerjakan, atau Selesai.',
-                'disposisi_instruksi.required_if' => 'Instruksi disposisi wajib diisi jika membuat disposisi.',
-                'disposisi_instruksi.string' => 'Instruksi harus berupa teks.',
-                'disposisi_instruksi.min' => 'Instruksi minimal 10 karakter.',
-                'disposisi_catatan.string' => 'Catatan harus berupa teks.',
+                'disposisi.required_if' => 'Minimal satu disposisi harus ditambahkan jika membuat disposisi.',
+                'disposisi.array' => 'Data disposisi harus berupa array.',
+                'disposisi.*.tujuan_bagian_id.required_with' => 'Tujuan disposisi wajib dipilih.',
+                'disposisi.*.tujuan_bagian_id.exists' => 'Tujuan disposisi yang dipilih tidak valid.',
+                'disposisi.*.tujuan_bagian_id.different' => 'Tujuan disposisi harus berbeda dengan bagian tujuan surat.',
+                'disposisi.*.status.required_with' => 'Status disposisi wajib dipilih.',
+                'disposisi.*.status.in' => 'Status harus Menunggu, Dikerjakan, atau Selesai.',
+                'disposisi.*.instruksi.required_with' => 'Instruksi disposisi wajib diisi.',
+                'disposisi.*.instruksi.string' => 'Instruksi harus berupa teks.',
+                'disposisi.*.instruksi.min' => 'Instruksi minimal 10 karakter.',
+                'disposisi.*.catatan.string' => 'Catatan harus berupa teks.',
             ]);
 
             $validated['user_id'] = Auth::id();
             // ANCHOR: Audit fields (created_by, updated_by) are automatically handled by Auditable trait
             $suratMasuk = SuratMasuk::create($validated);
 
-            // ANCHOR: Create disposisi if requested
-            if ($request->has('buat_disposisi') && 
-                ($request->buat_disposisi === true || 
-                 $request->buat_disposisi === '1' || 
-                 $request->buat_disposisi === 1)) {
+            // ANCHOR: Create multiple disposisi if provided
+            if ($request->has('disposisi') && 
+                is_array($request->disposisi) && 
+                !empty($request->disposisi)) {
                 
-                // ANCHOR: Check if disposisi already exists for this surat and bagian
-                $existingDisposisi = Disposisi::where('surat_masuk_id', $suratMasuk->id)
-                    ->where('tujuan_bagian_id', $validated['disposisi_tujuan_bagian_id'])
-                    ->first();
-                
-                if (!$existingDisposisi) {
-                    Disposisi::create([
-                        'surat_masuk_id' => $suratMasuk->id,
-                        'tujuan_bagian_id' => $validated['disposisi_tujuan_bagian_id'],
-                        'isi_instruksi' => $validated['disposisi_instruksi'],
-                        'catatan' => $validated['disposisi_catatan'] ?? null,
-                        'status' => $validated['disposisi_status'] ?? 'Menunggu',
-                        'user_id' => Auth::id(),
-                    ]);
+                foreach ($request->disposisi as $disposisiData) {
+                    // ANCHOR: Check if disposisi already exists for this surat and bagian
+                    $existingDisposisi = Disposisi::where('surat_masuk_id', $suratMasuk->id)
+                        ->where('tujuan_bagian_id', $disposisiData['tujuan_bagian_id'])
+                        ->first();
+                    
+                    if (!$existingDisposisi) {
+                        Disposisi::create([
+                            'surat_masuk_id' => $suratMasuk->id,
+                            'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id'],
+                            'isi_instruksi' => $disposisiData['instruksi'],
+                            'catatan' => $disposisiData['catatan'] ?? null,
+                            'status' => $disposisiData['status'] ?? 'Menunggu',
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
                 }
             }
 
@@ -275,6 +278,11 @@ class SuratMasukController extends Controller
                 'tujuan_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'nullable|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
+                'disposisi' => 'nullable|array',
+                'disposisi.*.tujuan_bagian_id' => 'required_with:disposisi|exists:bagian,id|different:tujuan_bagian_id',
+                'disposisi.*.status' => 'required_with:disposisi|string|in:Menunggu,Dikerjakan,Selesai',
+                'disposisi.*.instruksi' => 'required_with:disposisi|string|min:10',
+                'disposisi.*.catatan' => 'nullable|string',
             ], [
                 'nomor_surat.required' => 'Nomor surat wajib diisi.',
                 'nomor_surat.string' => 'Nomor surat harus berupa teks.',
@@ -335,6 +343,30 @@ class SuratMasukController extends Controller
                         'file_size' => $file->getSize(),
                         'tipe_lampiran' => 'pendukung',
                     ]);
+                }
+            }
+
+            // ANCHOR: Create multiple disposisi if provided
+            if ($request->has('disposisi') && 
+                is_array($request->disposisi) && 
+                !empty($request->disposisi)) {
+                
+                foreach ($request->disposisi as $disposisiData) {
+                    // ANCHOR: Check if disposisi already exists for this surat and bagian
+                    $existingDisposisi = Disposisi::where('surat_masuk_id', $suratMasuk->id)
+                        ->where('tujuan_bagian_id', $disposisiData['tujuan_bagian_id'])
+                        ->first();
+                    
+                    if (!$existingDisposisi) {
+                        Disposisi::create([
+                            'surat_masuk_id' => $suratMasuk->id,
+                            'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id'],
+                            'isi_instruksi' => $disposisiData['instruksi'],
+                            'catatan' => $disposisiData['catatan'] ?? null,
+                            'status' => $disposisiData['status'] ?? 'Menunggu',
+                            'user_id' => Auth::id(),
+                        ]);
+                    }
                 }
             }
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DasborController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingsController;
 
 // SECTIONProtected routes - require authentication
 Route::middleware(['auth'])->group(function () {
@@ -55,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/disposisi/{id}', [\App\Http\Controllers\DisposisiController::class, 'show'])->name('disposisi.show');
     Route::put('/disposisi/{id}', [\App\Http\Controllers\DisposisiController::class, 'update'])->name('disposisi.update');
     Route::delete('/disposisi/{id}', [\App\Http\Controllers\DisposisiController::class, 'destroy'])->name('disposisi.destroy');
+
+    // ANCHOR: Pengaturan Instansi (Admin Only)
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
 });
 // !SECTION Protected routes - require authentication
 
