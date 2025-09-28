@@ -354,28 +354,37 @@ class SuratMasukController extends Controller
                 }
             }
 
-            // ANCHOR: Create multiple disposisi if provided
-            if ($request->has('disposisi') && 
-                is_array($request->disposisi) && 
-                !empty($request->disposisi)) {
-                
-                foreach ($request->disposisi as $disposisiData) {
-                    // ANCHOR: Check if disposisi already exists for this surat and bagian
-                    $existingDisposisi = Disposisi::where('surat_masuk_id', $suratMasuk->id)
-                        ->where('tujuan_bagian_id', $disposisiData['tujuan_bagian_id'])
-                        ->first();
-                    
-                    if (!$existingDisposisi) {
-                        Disposisi::create([
-                            'surat_masuk_id' => $suratMasuk->id,
-                            'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id'],
-                            'isi_instruksi' => $disposisiData['instruksi'],
-                            'catatan' => $disposisiData['catatan'] ?? null,
-                            'status' => $disposisiData['status'] ?? 'Menunggu',
-                            'user_id' => Auth::id(),
-                        ]);
+            // ANCHOR: Handle disposisi updates
+            if ($request->has('disposisi')) {
+                // ANCHOR: Get current disposisi IDs from request
+                $requestDisposisiIds = [];
+                if (is_array($request->disposisi) && !empty($request->disposisi)) {
+                    foreach ($request->disposisi as $disposisiData) {
+                        $requestDisposisiIds[] = $disposisiData['tujuan_bagian_id'];
+                        
+                        // ANCHOR: Update or create disposisi
+                        Disposisi::updateOrCreate(
+                            [
+                                'surat_masuk_id' => $suratMasuk->id,
+                                'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id']
+                            ],
+                            [
+                                'isi_instruksi' => $disposisiData['instruksi'],
+                                'catatan' => $disposisiData['catatan'] ?? null,
+                                'status' => $disposisiData['status'] ?? 'Menunggu',
+                                'user_id' => Auth::id(),
+                            ]
+                        );
                     }
                 }
+                
+                // ANCHOR: Remove disposisi that are no longer in the request
+                Disposisi::where('surat_masuk_id', $suratMasuk->id)
+                    ->whereNotIn('tujuan_bagian_id', $requestDisposisiIds)
+                    ->delete();
+            } else {
+                // ANCHOR: If no disposisi in request, remove all existing disposisi
+                Disposisi::where('surat_masuk_id', $suratMasuk->id)->delete();
             }
 
             if ($request->ajax()) {

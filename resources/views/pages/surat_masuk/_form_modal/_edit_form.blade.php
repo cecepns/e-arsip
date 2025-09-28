@@ -85,7 +85,7 @@
                 
                 <div class="mb-3">
                     <label for="edit_keterangan" class="form-label">Keterangan</label>
-                    <textarea name="keterangan" class="form-control" id="edit_keterangan" rows="3" placeholder="Keterangan tambahan"></textarea>
+                    <textarea name="keterangan" class="form-control" id="edit_keterangan" rows="5" placeholder="Keterangan tambahan"></textarea>
                     <div class="invalid-feedback"></div>
                 </div>
             </div>
