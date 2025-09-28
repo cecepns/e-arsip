@@ -22,6 +22,10 @@
                     <span class="fw-semibold text-dark">Perihal:</span>
                     <span id="detail-perihal" class="text-dark">-</span>
                 </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Sifat Surat:</span>
+                    <span id="detail-sifat-surat">-</span>
+                </p>
             </div>
         </div>
         <div class="col-md-6">

@@ -34,6 +34,18 @@
             </div>
             
             <div class="mb-3">
+                <label for="add_sifat_surat" class="form-label">Sifat Surat</label>
+                <select name="sifat_surat" class="form-select" id="add_sifat_surat" required>
+                    <option value="">Pilih Sifat Surat</option>
+                    <option value="Biasa" {{ old('sifat_surat') == 'Biasa' ? 'selected' : '' }}>Biasa</option>
+                    <option value="Segera" {{ old('sifat_surat') == 'Segera' ? 'selected' : '' }}>Segera</option>
+                    <option value="Penting" {{ old('sifat_surat') == 'Penting' ? 'selected' : '' }}>Penting</option>
+                    <option value="Rahasia" {{ old('sifat_surat') == 'Rahasia' ? 'selected' : '' }}>Rahasia</option>
+                </select>
+                <div class="invalid-feedback"></div>
+            </div>
+            
+            <div class="mb-3">
                 <label for="add_pengirim_bagian_id" class="form-label">Bagian Pengirim</label>
                 <select name="pengirim_bagian_id" class="form-select" id="add_pengirim_bagian_id" required>
                     <option value="">Pilih Bagian</option>
@@ -83,3 +95,90 @@
         </button>
     </div>
 </form>
+
+@push('scripts')
+<script>
+    /**
+     * ANCHOR: Add Surat Keluar Handlers
+     * Handle the add surat keluar form submission
+     */
+    const addSuratKeluarHandlers = () => {
+        const addSuratKeluarForm = document.getElementById('addSuratKeluarForm');
+        const addSuratKeluarSubmitBtn = document.getElementById('addSuratKeluarSubmitBtn');
+        const csrfToken = (
+            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+            document.querySelector('input[name="_token"]')?.value
+        );
+        
+        if (addSuratKeluarForm) {
+            addSuratKeluarForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                clearErrors(addSuratKeluarForm);
+                setLoadingState(true, addSuratKeluarSubmitBtn);
+
+                try {
+                    const formData = new FormData(addSuratKeluarForm);
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 30000);
+                    const response = await fetchWithRetry(addSuratKeluarForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        signal: controller.signal,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken
+                        }
+                    });
+                    clearTimeout(timeoutId);
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('Response is not JSON');
+                    }
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        showToast(data.message, 'success', 5000);
+                        addSuratKeluarForm.reset();
+                        bootstrap.Modal.getInstance(document.getElementById('modalAddSuratKeluar')).hide();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        handleErrorResponse(data, addSuratKeluarForm);
+                    }
+                } catch (error) {
+                    handleErrorResponse(error, addSuratKeluarForm);
+                } finally {
+                    setLoadingState(false, addSuratKeluarSubmitBtn);
+                }
+            });
+        }
+    }
+
+    /**
+     * ANCHOR: Reset Form on Modal Close
+     * Reset form and clear errors when modal is closed
+     */
+    const resetAddSuratKeluarFormOnModalClose = () => {
+        const modalAddSuratKeluar = document.getElementById('modalAddSuratKeluar');
+        const addSuratKeluarForm = document.getElementById('addSuratKeluarForm');
+        
+        modalAddSuratKeluar.addEventListener('hidden.bs.modal', function() {
+            // Reset form
+            addSuratKeluarForm.reset();
+            
+            // Clear validation errors
+            clearErrors(addSuratKeluarForm);
+            
+            // Reset loading state if any
+            const addSuratKeluarSubmitBtn = document.getElementById('addSuratKeluarSubmitBtn');
+            setLoadingState(false, addSuratKeluarSubmitBtn);
+        });
+    }
+
+    // ANCHOR: Initialize add surat keluar handlers when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        addSuratKeluarHandlers();
+        resetAddSuratKeluarFormOnModalClose();
+    });
+</script>
+@endpush

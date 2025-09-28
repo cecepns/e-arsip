@@ -9,9 +9,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\AjaxErrorHandler;
 
 class SuratKeluarController extends Controller
 {
+    use AjaxErrorHandler;
     /**
      * Display a listing of the surat keluar.
      */
@@ -46,6 +48,7 @@ class SuratKeluarController extends Controller
                 'perihal' => 'required|string|max:255',
                 'ringkasan_isi' => 'nullable|string',
                 'tujuan' => 'required|string|max:150',
+                'sifat_surat' => 'required|string|in:Biasa,Segera,Penting,Rahasia',
                 'keterangan' => 'nullable|string',
                 'pengirim_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'required|file|mimes:pdf|max:20480',
@@ -65,6 +68,9 @@ class SuratKeluarController extends Controller
                 'tujuan.required' => 'Tujuan wajib diisi.',
                 'tujuan.string' => 'Tujuan harus berupa teks.',
                 'tujuan.max' => 'Tujuan maksimal 150 karakter.',
+                'sifat_surat.required' => 'Sifat surat wajib dipilih.',
+                'sifat_surat.string' => 'Sifat surat harus berupa teks.',
+                'sifat_surat.in' => 'Sifat surat harus Biasa, Segera, Penting, atau Rahasia.',
                 'pengirim_bagian_id.required' => 'Bagian pengirim wajib dipilih.',
                 'pengirim_bagian_id.exists' => 'Bagian pengirim yang dipilih tidak valid.',
                 'lampiran_pdf.required' => 'Lampiran PDF wajib diupload.',
@@ -102,63 +108,15 @@ class SuratKeluarController extends Controller
                 }
             }
 
-            // ANCHOR: Handle AJAX request
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Surat keluar berhasil ditambahkan.',
-                    'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user'),
-                    'timestamp' => now()->format('Y-m-d H:i:s')
-                ], 201);
-            }
-
-            return redirect()->route('surat_keluar.index')
-                ->with('success', 'Surat keluar berhasil ditambahkan.');
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // ANCHOR: Handle validation errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validasi gagal. Periksa data yang dimasukkan.',
-                    'errors' => $e->errors(),
-                    'error_type' => 'validation'
-                ], 422);
-            }
-            throw $e;
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            // ANCHOR: Handle database errors
-            if ($request->ajax()) {
-                $errorMessage = 'Terjadi kesalahan database.';
-                
-                // Check for specific database errors
-                if (str_contains($e->getMessage(), 'Duplicate entry')) {
-                    $errorMessage = 'Data sudah ada dalam sistem.';
-                } elseif (str_contains($e->getMessage(), 'foreign key constraint')) {
-                    $errorMessage = 'Data bagian tidak valid.';
-                }
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessage,
-                    'error_type' => 'database',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return response()->json([
+                'success' => true,
+                'message' => 'Surat keluar berhasil ditambahkan.',
+                'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user'),
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ], 201);
 
         } catch (\Exception $e) {
-            // ANCHOR: Handle general errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 
@@ -185,28 +143,8 @@ class SuratKeluarController extends Controller
                 'suratKeluar' => $suratKeluar
             ]);
             
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // ANCHOR: Handle surat keluar not found
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Surat keluar tidak ditemukan.',
-                    'error_type' => 'not_found'
-                ], 404);
-            }
-            throw $e;
-            
         } catch (\Exception $e) {
-            // ANCHOR: Handle general errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 
@@ -225,6 +163,7 @@ class SuratKeluarController extends Controller
                 'perihal' => 'required|string|max:255',
                 'ringkasan_isi' => 'nullable|string',
                 'tujuan' => 'required|string|max:150',
+                'sifat_surat' => 'required|string|in:Biasa,Segera,Penting,Rahasia',
                 'keterangan' => 'nullable|string',
                 'pengirim_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'nullable|file|mimes:pdf|max:20480',
@@ -244,6 +183,9 @@ class SuratKeluarController extends Controller
                 'tujuan.required' => 'Tujuan wajib diisi.',
                 'tujuan.string' => 'Tujuan harus berupa teks.',
                 'tujuan.max' => 'Tujuan maksimal 150 karakter.',
+                'sifat_surat.required' => 'Sifat surat wajib dipilih.',
+                'sifat_surat.string' => 'Sifat surat harus berupa teks.',
+                'sifat_surat.in' => 'Sifat surat harus Biasa, Segera, Penting, atau Rahasia.',
                 'pengirim_bagian_id.required' => 'Bagian pengirim wajib dipilih.',
                 'pengirim_bagian_id.exists' => 'Bagian pengirim yang dipilih tidak valid.',
                 'lampiran_pdf.file' => 'Lampiran PDF harus berupa file.',
@@ -284,63 +226,15 @@ class SuratKeluarController extends Controller
                 }
             }
 
-            // ANCHOR: Handle AJAX request
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "Surat keluar '{$suratKeluar->nomor_surat}' berhasil diperbarui.",
-                    'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user'),
-                    'timestamp' => now()->format('Y-m-d H:i:s')
-                ], 200);
-            }
-
-            return redirect()->route('surat_keluar.index')
-                ->with('success', "Surat keluar '{$suratKeluar->nomor_surat}' berhasil diperbarui.");
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // ANCHOR: Handle validation errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validasi gagal. Periksa data yang dimasukkan.',
-                    'errors' => $e->errors(),
-                    'error_type' => 'validation'
-                ], 422);
-            }
-            throw $e;
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            // ANCHOR: Handle database errors
-            if ($request->ajax()) {
-                $errorMessage = 'Terjadi kesalahan database.';
-                
-                // Check for specific database errors
-                if (str_contains($e->getMessage(), 'Duplicate entry')) {
-                    $errorMessage = 'Data sudah ada dalam sistem.';
-                } elseif (str_contains($e->getMessage(), 'foreign key constraint')) {
-                    $errorMessage = 'Data bagian tidak valid.';
-                }
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessage,
-                    'error_type' => 'database',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return response()->json([
+                'success' => true,
+                'message' => "Surat keluar '{$suratKeluar->nomor_surat}' berhasil diperbarui.",
+                'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user'),
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ], 200);
 
         } catch (\Exception $e) {
-            // ANCHOR: Handle general errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 
@@ -355,59 +249,14 @@ class SuratKeluarController extends Controller
             
             $suratKeluar->delete();
 
-            // ANCHOR: Handle AJAX request
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "Surat keluar '{$nomorSurat}' berhasil dihapus.",
-                    'timestamp' => now()->format('Y-m-d H:i:s')
-                ], 200);
-            }
-
-            return redirect()->route('surat_keluar.index')
-                ->with('success', "Surat keluar '{$nomorSurat}' berhasil dihapus.");
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // ANCHOR: Handle surat keluar not found
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Surat keluar tidak ditemukan.',
-                    'error_type' => 'not_found'
-                ], 404);
-            }
-            throw $e;
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            // ANCHOR: Handle database errors
-            if ($request->ajax()) {
-                $errorMessage = 'Terjadi kesalahan database.';
-                
-                // Check for specific database errors
-                if (str_contains($e->getMessage(), 'foreign key constraint')) {
-                    $errorMessage = 'Surat keluar tidak dapat dihapus karena memiliki data terkait.';
-                }
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessage,
-                    'error_type' => 'database',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return response()->json([
+                'success' => true,
+                'message' => "Surat keluar '{$nomorSurat}' berhasil dihapus.",
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ], 200);
 
         } catch (\Exception $e) {
-            // ANCHOR: Handle general errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 }

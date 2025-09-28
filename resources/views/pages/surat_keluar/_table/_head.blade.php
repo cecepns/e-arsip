@@ -5,6 +5,7 @@
         <th>Tanggal Surat</th>
         <th>Tanggal Keluar</th>
         <th>Penerima</th>
+        <th>Sifat Surat</th>
         <th>Perihal</th>
         <th>Bagian Pengirim</th>
         <th>Dibuat Oleh</th>

@@ -20,6 +20,7 @@ class SuratKeluar extends Model
         'perihal',
         'ringkasan_isi',
         'tujuan',
+        'sifat_surat',
         'keterangan',
         'pengirim_bagian_id',
         'user_id',

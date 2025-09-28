@@ -36,6 +36,18 @@
             </div>
             
             <div class="mb-3">
+                <label for="edit_sifat_surat" class="form-label">Sifat Surat</label>
+                <select name="sifat_surat" class="form-select" id="edit_sifat_surat" required>
+                    <option value="">Pilih Sifat Surat</option>
+                    <option value="Biasa">Biasa</option>
+                    <option value="Segera">Segera</option>
+                    <option value="Penting">Penting</option>
+                    <option value="Rahasia">Rahasia</option>
+                </select>
+                <div class="invalid-feedback"></div>
+            </div>
+            
+            <div class="mb-3">
                 <label for="edit_pengirim_bagian_id" class="form-label">Bagian Pengirim</label>
                 <select name="pengirim_bagian_id" class="form-select" id="edit_pengirim_bagian_id" required>
                     <option value="">Pilih Bagian</option>

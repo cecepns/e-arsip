@@ -84,61 +84,6 @@
 <script>
     const suratKeluarDataCurrentPage = {!! json_encode($suratKeluar) !!};
 
-    /**
-     * ANCHOR: Add Surat Keluar Handlers
-     * Handle the add surat keluar form submission
-     */
-    const addSuratKeluarHandlers = () => {
-        const addSuratKeluarForm = document.getElementById('addSuratKeluarForm');
-        const addSuratKeluarSubmitBtn = document.getElementById('addSuratKeluarSubmitBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        
-        if (addSuratKeluarForm) {
-            addSuratKeluarForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                clearErrors(addSuratKeluarForm);
-                setLoadingState(true, addSuratKeluarSubmitBtn);
-
-                try {
-                    const formData = new FormData(addSuratKeluarForm);
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 30000);
-                    const response = await fetchWithRetry(addSuratKeluarForm.action, {
-                        method: 'POST',
-                        body: formData,
-                        signal: controller.signal,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken
-                        }
-                    });
-                    clearTimeout(timeoutId);
-                    const contentType = response.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        throw new Error('Response is not JSON');
-                    }
-                    const data = await response.json();
-                    if (response.ok && data.success) {
-                        showToast(data.message, 'success', 5000);
-                        addSuratKeluarForm.reset();
-                        bootstrap.Modal.getInstance(document.getElementById('modalAddSuratKeluar')).hide();
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1000);
-                    } else {
-                        handleErrorResponse(data, addSuratKeluarForm);
-                    }
-                } catch (error) {
-                    handleErrorResponse(error, addSuratKeluarForm);
-                } finally {
-                    setLoadingState(false, addSuratKeluarSubmitBtn);
-                }
-            });
-        }
-    }
 
     /**
      * ANCHOR: Edit Surat Keluar Handlers
@@ -261,12 +206,13 @@
         const tanggalKeluarInput = document.getElementById('edit_tanggal_keluar');
         const perihalInput = document.getElementById('edit_perihal');
         const tujuanInput = document.getElementById('edit_tujuan');
+        const sifatSuratInput = document.getElementById('edit_sifat_surat');
         const pengirimBagianInput = document.getElementById('edit_pengirim_bagian_id');
         const ringkasanIsiInput = document.getElementById('edit_ringkasan_isi');
         const keteranganInput = document.getElementById('edit_keterangan');
 
         const suratKeluar = suratKeluarDataCurrentPage.data.find(surat => surat.id === suratKeluarId);
-        const { id, nomor_surat, tanggal_surat, tanggal_keluar, perihal, tujuan, pengirim_bagian_id, ringkasan_isi, keterangan } = suratKeluar;
+        const { id, nomor_surat, tanggal_surat, tanggal_keluar, perihal, tujuan, sifat_surat, pengirim_bagian_id, ringkasan_isi, keterangan } = suratKeluar;
 
         const formatDateForInput = (isoDate) => {
         if (!isoDate) return '';
@@ -279,6 +225,7 @@
         tanggalKeluarInput.value = formatDateForInput(tanggal_keluar) || '';
         perihalInput.value = perihal || '';
         tujuanInput.value = tujuan || '';
+        sifatSuratInput.value = sifat_surat || '';
         pengirimBagianInput.value = pengirim_bagian_id || '';
         ringkasanIsiInput.value = ringkasan_isi || '';
         keteranganInput.value = keterangan || '';
@@ -370,6 +317,26 @@
         document.getElementById('detail-tanggal-keluar').textContent = suratKeluar.tanggal_keluar ? 
             new Date(suratKeluar.tanggal_keluar).toLocaleDateString('id-ID') : '-';
         document.getElementById('detail-perihal').textContent = suratKeluar.perihal || '-';
+        
+        // Sifat surat dengan badge
+        const sifatSuratElement = document.getElementById('detail-sifat-surat');
+        const sifatSurat = suratKeluar.sifat_surat || 'Biasa';
+        let badgeClass = 'badge-secondary';
+        switch(sifatSurat) {
+            case 'Segera':
+                badgeClass = 'badge-warning';
+                break;
+            case 'Penting':
+                badgeClass = 'badge-danger';
+                break;
+            case 'Rahasia':
+                badgeClass = 'badge-dark';
+                break;
+            default:
+                badgeClass = 'badge-secondary';
+        }
+        sifatSuratElement.innerHTML = `<span class="badge ${badgeClass}">${sifatSurat}</span>`;
+        
         document.getElementById('detail-tujuan').textContent = suratKeluar.tujuan || '-';
         
         // Related information
@@ -466,7 +433,6 @@
         lampiranContent.innerHTML = lampiranHtml;
     }
 
-    addSuratKeluarHandlers();
     editSuratKeluarHandlers();
     deleteSuratKeluarHandlers();
 </script>

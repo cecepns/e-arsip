@@ -6,6 +6,17 @@
         <td>{{ $surat->tanggal_surat->format('d-m-Y') }}</td>
         <td>{{ $surat->tanggal_keluar ? $surat->tanggal_keluar->format('d-m-Y') : '-' }}</td>
         <td>{{ $surat->tujuan }}</td>
+        <td>
+            @php
+                $badgeClass = match($surat->sifat_surat ?? 'Biasa') {
+                    'Segera' => 'badge-warning',
+                    'Penting' => 'badge-danger',
+                    'Rahasia' => 'badge-dark',
+                    default => 'badge-secondary'
+                };
+            @endphp
+            <span class="badge {{ $badgeClass }}">{{ $surat->sifat_surat ?? 'Biasa' }}</span>
+        </td>
         <td>{{ $surat->perihal }}</td>
         <td>
             @if($surat->pengirimBagian)
@@ -61,7 +72,7 @@
     </tr>
     @empty
     <tr>
-        <td colspan="10" class="text-center">Tidak ada data surat keluar</td>
+        <td colspan="11" class="text-center">Tidak ada data surat keluar</td>
     </tr>
     @endforelse
 </tbody>
