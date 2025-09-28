@@ -7,9 +7,11 @@ use App\Models\Bagian;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use App\Traits\AjaxErrorHandler;
 
 class UserController extends Controller
 {
+    use AjaxErrorHandler;
     /**
      * Display a listing of the users.
      */
@@ -42,7 +44,7 @@ class UserController extends Controller
                 'nama' => 'required|string|max:100',
                 'email' => 'required|email|max:100|unique:users,email',
                 'phone' => 'nullable|string|max:20',
-                'password' => 'required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
+                'password' => 'required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/',
                 'role' => 'required|in:Admin,Staf',
                 'bagian_id' => 'nullable|exists:bagian,id',
                 'is_kepala_bagian' => 'nullable|boolean',
@@ -63,12 +65,18 @@ class UserController extends Controller
                 'password.required' => 'Password wajib diisi.',
                 'password.string' => 'Password harus berupa teks.',
                 'password.min' => 'Password minimal 8 karakter.',
-                'password.regex' => 'Password harus mengandung huruf besar, huruf kecil, angka, dan simbol.',
+                'password.regex' => 'Password harus mengandung huruf besar, huruf kecil, angka, dan simbol (@$!%*?&.).',
                 'role.required' => 'Role wajib dipilih.',
                 'role.in' => 'Role harus Admin atau Staf.',
                 'bagian_id.exists' => 'Bagian yang dipilih tidak valid.',
                 'is_kepala_bagian.boolean' => 'Status kepala bagian harus berupa boolean.',
             ]);
+
+            // ANCHOR: Business logic - Admin tidak bisa memiliki bagian atau menjadi kepala bagian
+            if ($validated['role'] === 'Admin') {
+                $validated['bagian_id'] = null;
+                $validated['is_kepala_bagian'] = false;
+            }
 
             // ANCHOR: Business logic - hanya satu kepala bagian per bagian
             if (!empty($validated['is_kepala_bagian']) && !empty($validated['bagian_id'])) {
@@ -85,63 +93,17 @@ class UserController extends Controller
                     ->update(['kepala_bagian_user_id' => $user->id]);
             }
 
-            // ANCHOR: Handle AJAX request
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'User berhasil ditambahkan.',
-                    'user' => $user->load('bagian'),
-                    'timestamp' => now()->format('Y-m-d H:i:s')
-                ], 201);
-            }
+            return response()->json([
+                'success' => true,
+                'message' => 'User berhasil ditambahkan.',
+                'user' => $user->load('bagian'),
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ], 201);
 
-            return redirect()->route('user.index')
-                ->with('success', 'User berhasil ditambahkan.');
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // ANCHOR: Handle validation errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validasi gagal. Periksa data yang dimasukkan.',
-                    'errors' => $e->errors(),
-                    'error_type' => 'validation'
-                ], 422);
-            }
-            throw $e;
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            // ANCHOR: Handle database errors
-            if ($request->ajax()) {
-                $errorMessage = 'Terjadi kesalahan database.';
-                
-                // Check for specific database errors
-                if (str_contains($e->getMessage(), 'Duplicate entry')) {
-                    $errorMessage = 'Data sudah ada dalam sistem.';
-                } elseif (str_contains($e->getMessage(), 'foreign key constraint')) {
-                    $errorMessage = 'Data bagian tidak valid.';
-                }
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessage,
-                    'error_type' => 'database',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            
 
         } catch (\Exception $e) {
-            // ANCHOR: Handle general errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 
@@ -178,12 +140,18 @@ class UserController extends Controller
                 'phone.max' => 'Nomor telepon maksimal 20 karakter.',
                 'password.string' => 'Password harus berupa teks.',
                 'password.min' => 'Password minimal 8 karakter.',
-                'password.regex' => 'Password harus mengandung huruf besar, huruf kecil, angka, dan simbol.',
+                'password.regex' => 'Password harus mengandung huruf besar, huruf kecil, angka, dan simbol (@$!%*?&.).',
                 'role.required' => 'Role wajib dipilih.',
                 'role.in' => 'Role harus Admin atau Staf.',
                 'bagian_id.exists' => 'Bagian yang dipilih tidak valid.',
                 'is_kepala_bagian.boolean' => 'Status kepala bagian harus berupa boolean.',
             ]);
+
+            // ANCHOR: Business logic - Admin tidak bisa memiliki bagian atau menjadi kepala bagian
+            if ($validated['role'] === 'Admin') {
+                $validated['bagian_id'] = null;
+                $validated['is_kepala_bagian'] = false;
+            }
 
             // ANCHOR: Business logic - hanya satu kepala bagian per bagian
             if (!empty($validated['is_kepala_bagian']) && !empty($validated['bagian_id'])) {

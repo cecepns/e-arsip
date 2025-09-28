@@ -14,7 +14,7 @@
 
 <div class="mb-3 d-flex justify-content-between align-items-center">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddUser">
-        <i class="fas fa-plus"></i> Tambah User
+        Tambah User
     </button>
     <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('user.index') }}">
         <input type="text" name="search" class="form-control me-2" placeholder="Cari username, nama, atau email..." value="{{ $query ?? '' }}">
@@ -85,65 +85,6 @@
 <script>
     const usersDataCurrentPage = {!! json_encode($users->items()) !!};
     
-    /**
-     * ANCHOR: Add User Handlers
-     * Handle the add user form submission
-     */
-    const addUserHandlers = () => {
-        const addUserForm = document.getElementById('addUserForm');
-        const addUserSubmitBtn = document.getElementById('addUserSubmitBtn');
-        const addUserCancelBtn = document.getElementById('addUserCancelBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        
-        if (addUserForm) {
-            addUserForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                clearErrors(addUserForm);
-                console.log('addUserSubmitBtn', addUserSubmitBtn);
-                setLoadingState(true, addUserSubmitBtn);
-
-                try {
-                    const formData = new FormData(addUserForm);
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 30000);
-                    const response = await fetchWithRetry(addUserForm.action, {
-                        method: 'POST',
-                        body: formData,
-                        signal: controller.signal,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken
-                        }
-                    });
-                    clearTimeout(timeoutId);
-                    const contentType = response.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        throw new Error('Response is not JSON');
-                    }
-                    const data = await response.json();
-                    if (response.ok && data.success) {
-                        showToast(data.message, 'success', 5000);
-                        addUserForm.reset();
-                        bootstrap.Modal.getInstance(document.getElementById('modalAddUser')).hide();
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1000);
-                    } else {
-                        handleErrorResponse(data, addUserForm);
-                    }
-                } catch (error) {
-                    handleErrorResponse(error, addUserForm);
-                } finally {
-                    setLoadingState(false, addUserSubmitBtn);
-                }
-            });
-        }
-    }
-
-
     /**
      * ANCHOR: Edit User Handlers
      * Handle the edit user form submission
@@ -446,46 +387,56 @@
     }
 
     /**
-     * ANCHOR: Handle checkbox kepala bagian
-     * Enable/disable checkbox based on bagian selection
+     * ANCHOR: Handle checkbox kepala bagian for edit form
+     * Enable/disable checkbox based on bagian selection and role
      */
-    const handleKepalaBagianCheckbox = () => {
-        const addBagianSelect = document.getElementById('add_bagian_id');
-        const addKepalaBagianCheckbox = document.getElementById('add_is_kepala_bagian');
+    const handleEditKepalaBagianCheckbox = () => {
         const editBagianSelect = document.getElementById('edit_bagian_id');
         const editKepalaBagianCheckbox = document.getElementById('edit_is_kepala_bagian');
-
-        // Handle add form
-        if (addBagianSelect && addKepalaBagianCheckbox) {
-            addBagianSelect.addEventListener('change', function() {
-                if (this.value) {
-                    addKepalaBagianCheckbox.disabled = false;
-                } else {
-                    addKepalaBagianCheckbox.disabled = true;
-                    addKepalaBagianCheckbox.checked = false;
-                }
-            });
-        }
+        const editRoleSelect = document.getElementById('edit_role');
 
         // Handle edit form
-        if (editBagianSelect && editKepalaBagianCheckbox) {
-            editBagianSelect.addEventListener('change', function() {
-                if (this.value) {
-                    editKepalaBagianCheckbox.disabled = false;
-                } else {
+        if (editBagianSelect && editKepalaBagianCheckbox && editRoleSelect) {
+            // Function to update bagian and kepala bagian based on role
+            const updateEditBagianAndKepalaBagian = () => {
+                if (editRoleSelect.value === 'Admin') {
+                    // Admin role: disable bagian and kepala bagian
+                    editBagianSelect.disabled = true;
+                    editBagianSelect.value = '';
                     editKepalaBagianCheckbox.disabled = true;
                     editKepalaBagianCheckbox.checked = false;
+                } else {
+                    // Non-admin role: enable bagian selection
+                    editBagianSelect.disabled = false;
+                    editKepalaBagianCheckbox.disabled = editBagianSelect.value === '';
+                }
+            };
+
+            // Listen for role changes
+            editRoleSelect.addEventListener('change', updateEditBagianAndKepalaBagian);
+
+            // Listen for bagian changes (only for non-admin roles)
+            editBagianSelect.addEventListener('change', function() {
+                if (editRoleSelect.value !== 'Admin') {
+                    if (this.value) {
+                        editKepalaBagianCheckbox.disabled = false;
+                    } else {
+                        editKepalaBagianCheckbox.disabled = true;
+                        editKepalaBagianCheckbox.checked = false;
+                    }
                 }
             });
+
+            // Initialize state
+            updateEditBagianAndKepalaBagian();
         }
     }
 
     // ANCHOR: Run all handlers
-    addUserHandlers();
     editUserHandlers();
     deleteUserHandlers();
     resetPasswordHandlers();
-    handleKepalaBagianCheckbox();
+    handleEditKepalaBagianCheckbox();
     
     // ANCHOR: Reset modal state when modal is hidden
     document.getElementById('modalResetPassword').addEventListener('hidden.bs.modal', function () {
