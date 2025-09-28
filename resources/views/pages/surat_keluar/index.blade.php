@@ -31,7 +31,7 @@
 <div class="alert alert-info mb-3">
     <i class="fas fa-search me-2"></i>
     Hasil pencarian untuk: <strong>"{{ $query }}"</strong>
-    - Ditemukan {{ $suratKeluar->count() }} surat keluar
+    - Ditemukan {{ $suratKeluar->total() }} surat keluar
 </div>
 @endif
 

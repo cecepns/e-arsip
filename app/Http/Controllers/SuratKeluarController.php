@@ -28,7 +28,7 @@ class SuratKeluarController extends Controller
                   ->orWhere('tujuan', 'like', "%{$query}%");
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(3);
 
         $bagian = Bagian::where('status', 'Aktif')->get();
 
