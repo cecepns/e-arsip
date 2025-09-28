@@ -74,84 +74,107 @@
 <div class="main-content" id="mainContent">
     <!-- Navbar -->
     <nav class="navbar">
-        <div class="d-flex align-items-center gap-3">
+        <!-- Left Section: Sidebar Toggle + Brand -->
+        <div class="navbar-left">
             <button class="control-btn" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
             <div class="navbar-brand">
-                <h5>Selamat datang, <span class="admin-name">{{ Auth::user()->nama }}</span></h5>
+                <h5 class="navbar-title">
+                    <span class="navbar-title-desktop">Selamat datang, <span class="admin-name">{{ Auth::user()->nama }}</span></span>
+                </h5>
             </div>
         </div>
+        
+        <!-- Right Section: Controls -->
         <div class="navbar-controls">
+            <!-- Notification Bell -->
             <div class="notification-bell control-btn" id="notificationBell">
                 <i class="fas fa-bell"></i>
                 <span class="notification-badge">5</span>
                 <div class="notification-dropdown" id="notificationDropdown">
                     <div class="notification-header">
-                        Notifikasi Terbaru
+                        <span class="notification-header-title">Notifikasi Terbaru</span>
+                        <button class="notification-close" id="notificationClose">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                    <div class="notification-item">
-                        <div class="notification-icon incoming">
-                            <i class="fas fa-inbox"></i>
+                    <div class="notification-list">
+                        <div class="notification-item">
+                            <div class="notification-icon incoming">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">Surat Masuk Baru</div>
+                                <div class="notification-desc">Undangan Rapat dari Direktur</div>
+                                <div class="notification-time">5 menit yang lalu</div>
+                            </div>
                         </div>
-                        <div class="notification-content">
-                            <div class="notification-title">Surat Masuk Baru</div>
-                            <div class="notification-desc">Undangan Rapat dari Direktur</div>
-                            <div class="notification-time">5 menit yang lalu</div>
+                        <div class="notification-item">
+                            <div class="notification-icon outgoing">
+                                <i class="fas fa-paper-plane"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">Surat Keluar Terkirim</div>
+                                <div class="notification-desc">Balasan proposal ke vendor</div>
+                                <div class="notification-time">1 jam yang lalu</div>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <div class="notification-icon disposition">
+                                <i class="fas fa-share-alt"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">Disposisi Baru</div>
+                                <div class="notification-desc">Surat disposisi ke bagian keuangan</div>
+                                <div class="notification-time">2 jam yang lalu</div>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <div class="notification-icon incoming">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">Surat Masuk Baru</div>
+                                <div class="notification-desc">Laporan bulanan dari HRD</div>
+                                <div class="notification-time">3 jam yang lalu</div>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <div class="notification-icon outgoing">
+                                <i class="fas fa-paper-plane"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">Surat Keluar Dikirim</div>
+                                <div class="notification-desc">Pengumuman libur nasional</div>
+                                <div class="notification-time">5 jam yang lalu</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="notification-item">
-                        <div class="notification-icon outgoing">
-                            <i class="fas fa-paper-plane"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-title">Surat Keluar Terkirim</div>
-                            <div class="notification-desc">Balasan proposal ke vendor</div>
-                            <div class="notification-time">1 jam yang lalu</div>
-                        </div>
-                    </div>
-                    <div class="notification-item">
-                        <div class="notification-icon disposition">
-                            <i class="fas fa-share-alt"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-title">Disposisi Baru</div>
-                            <div class="notification-desc">Surat disposisi ke bagian keuangan</div>
-                            <div class="notification-time">2 jam yang lalu</div>
-                        </div>
-                    </div>
-                    <div class="notification-item">
-                        <div class="notification-icon incoming">
-                            <i class="fas fa-inbox"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-title">Surat Masuk Baru</div>
-                            <div class="notification-desc">Laporan bulanan dari HRD</div>
-                            <div class="notification-time">3 jam yang lalu</div>
-                        </div>
-                    </div>
-                    <div class="notification-item">
-                        <div class="notification-icon outgoing">
-                            <i class="fas fa-paper-plane"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-title">Surat Keluar Dikirim</div>
-                            <div class="notification-desc">Pengumuman libur nasional</div>
-                            <div class="notification-time">5 jam yang lalu</div>
-                        </div>
+                    <div class="notification-footer">
+                        <a href="#" class="notification-view-all">Lihat Semua Notifikasi</a>
                     </div>
                 </div>
             </div>
-            <button class="control-btn" id="darkModeToggle">
+            
+            <!-- Dark Mode Toggle -->
+            <button class="control-btn" id="darkModeToggle" title="Toggle Dark Mode">
                 <i class="fas fa-moon"></i>
             </button>
+            
+            <!-- User Dropdown -->
             <div class="dropdown user-dropdown">
-                <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    {{ Auth::user()->nama }}
+                <button class="btn" type="button" data-bs-toggle="dropdown">
+                    <img 
+                        src="https://placehold.co/40x40?text={{ substr(Auth::user()->nama, 0, 1) }}" 
+                        alt="{{ Auth::user()->nama }}" 
+                        class="rounded-circle me-2" 
+                        width="32" 
+                        height="32"
+                    >
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="{{ route('profile.show') }}"><i class="fas fa-user me-2"></i> Profile</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form action="{{ route('logout') }}" method="POST" class="d-inline">
@@ -188,17 +211,34 @@
     function setupNotifications() {
         const notificationBell = document.getElementById('notificationBell');
         const notificationDropdown = document.getElementById('notificationDropdown');
+        const notificationClose = document.getElementById('notificationClose');
 
         if (!notificationBell || !notificationDropdown) return;
 
+        // Toggle notification dropdown
         notificationBell.addEventListener('click', function(e) {
             e.stopPropagation();
             notificationDropdown.classList.toggle('show');
         });
 
+        // Close notification dropdown with close button
+        if (notificationClose) {
+            notificationClose.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notificationDropdown.classList.remove('show');
+            });
+        }
+
         // Close notification dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!notificationBell.contains(e.target)) {
+                notificationDropdown.classList.remove('show');
+            }
+        });
+
+        // Close notification dropdown on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && notificationDropdown.classList.contains('show')) {
                 notificationDropdown.classList.remove('show');
             }
         });
