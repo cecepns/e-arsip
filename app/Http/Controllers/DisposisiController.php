@@ -125,6 +125,8 @@ class DisposisiController extends Controller
                 'status' => 'required|string|in:Menunggu,Dikerjakan,Selesai',
                 'isi_instruksi' => 'required|string|min:10',
                 'catatan' => 'nullable|string',
+                'tanggal_disposisi' => 'nullable|date',
+                'batas_waktu' => 'nullable|date|after_or_equal:tanggal_disposisi',
             ], [
                 'tujuan_bagian_id.required' => 'Tujuan disposisi wajib dipilih.',
                 'tujuan_bagian_id.exists' => 'Tujuan disposisi yang dipilih tidak valid.',
@@ -134,6 +136,9 @@ class DisposisiController extends Controller
                 'isi_instruksi.string' => 'Instruksi harus berupa teks.',
                 'isi_instruksi.min' => 'Instruksi minimal 10 karakter.',
                 'catatan.string' => 'Catatan harus berupa teks.',
+                'tanggal_disposisi.date' => 'Format tanggal disposisi tidak valid.',
+                'batas_waktu.date' => 'Format batas waktu tidak valid.',
+                'batas_waktu.after_or_equal' => 'Batas waktu harus sama atau setelah tanggal disposisi.',
             ]);
 
             // ANCHOR: Audit fields (updated_by) are automatically handled by Auditable trait

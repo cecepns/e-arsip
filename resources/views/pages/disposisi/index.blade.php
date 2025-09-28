@@ -10,16 +10,16 @@
 
 <div class="mb-3 d-flex justify-content-end align-items-center">
     <div class="d-flex gap-2">
-        <button class="btn btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
-            <i class="fas fa-filter"></i> Filter Lanjutan
-        </button>
+         <button class="btn btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+             Filter Lanjutan
+         </button>
         <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('disposisi.index') }}">
             <input type="text" name="search" class="form-control me-2" placeholder="Cari nomor/perihal..." value="{{ $filters['query'] ?? '' }}">
-            <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+             <button class="btn btn-outline-secondary" type="submit">Cari</button>
             @if(isset($filters['query']) && $filters['query'])
-                <a href="{{ route('disposisi.index') }}" class="btn btn-outline-danger ms-1" title="Clear search">
-                    <i class="fas fa-times"></i>
-                </a>
+                 <a href="{{ route('disposisi.index') }}" class="btn btn-outline-danger ms-1" title="Clear search">
+                     ×
+                 </a>
             @endif
         </form>
     </div>
@@ -29,9 +29,9 @@
 <div class="collapse mb-3 filter-collapse" id="filterCollapse">
     <div class="card">
         <div class="card-header">
-            <h6 class="mb-0">
-                <i class="fas fa-filter me-2"></i>Filter Lanjutan
-            </h6>
+             <h6 class="mb-0">
+                 Filter Lanjutan
+             </h6>
         </div>
         <div class="card-body">
             <form method="GET" action="{{ route('disposisi.index') }}" id="filterForm" class="filter-form">
@@ -80,12 +80,12 @@
                     
                     <!-- Action Buttons -->
                     <div class="col-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary" id="applyFilterBtn">
-                            <i class="fas fa-search"></i> Terapkan Filter
-                        </button>
-                        <a href="{{ route('disposisi.index') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times"></i> Reset Filter
-                        </a>
+                         <button type="submit" class="btn btn-primary" id="applyFilterBtn">
+                             Terapkan Filter
+                         </button>
+                         <a href="{{ route('disposisi.index') }}" class="btn btn-outline-secondary">
+                             Reset Filter
+                         </a>
                     </div>
                 </div>
             </form>
@@ -94,9 +94,8 @@
 </div>
 
 @if(isset($filters['status']) && $filters['status'] || isset($filters['bagian_id']) && $filters['bagian_id'] || isset($filters['tanggal']) && $filters['tanggal'] || isset($filters['sifat_surat']) && $filters['sifat_surat'])
-<div class="alert alert-info mb-3">
-    <i class="fas fa-filter me-2"></i>
-    <strong>Filter Aktif:</strong>
+ <div class="alert alert-info mb-3">
+     <strong>Filter Aktif:</strong>
     @if(isset($filters['status']) && $filters['status'])
         <span class="badge bg-warning me-1">Status: {{ $filters['status'] }}</span>
     @endif
@@ -142,6 +141,7 @@
     'size' => 'modal-lg',
     'title' => 'Edit Disposisi',
     'body' => view('pages.disposisi._form_modal.edit_form', compact('bagian'))->render(),
+    'footer' => view('pages.disposisi._form_modal.edit_footer')->render(),
 ])
 
 @include('partials.modal', [
@@ -312,8 +312,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('editStatus').value = disposisi.status || '';
         document.getElementById('editInstruksi').value = disposisi.isi_instruksi || '';
         document.getElementById('editCatatan').value = disposisi.catatan || '';
-        document.getElementById('editTanggalDisposisi').value = disposisi.tanggal_disposisi || '';
-        document.getElementById('editBatasWaktu').value = disposisi.batas_waktu || '';
+        
+        // Format tanggal untuk input date (YYYY-MM-DD)
+        document.getElementById('editTanggalDisposisi').value = disposisi.tanggal_disposisi ? 
+            new Date(disposisi.tanggal_disposisi).toISOString().split('T')[0] : '';
+        document.getElementById('editBatasWaktu').value = disposisi.batas_waktu ? 
+            new Date(disposisi.batas_waktu).toISOString().split('T')[0] : '';
         
         // Populate surat masuk info (read-only)
         if (disposisi.surat_masuk) {
@@ -348,9 +352,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     status: formData.get('status'),
                     isi_instruksi: formData.get('isi_instruksi'),
                     catatan: formData.get('catatan'),
+                    tanggal_disposisi: formData.get('tanggal_disposisi'),
+                    batas_waktu: formData.get('batas_waktu'),
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || 'Server error');
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     showToast(data.message || 'Disposisi berhasil diperbarui', 'success', 3000);
@@ -367,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Terjadi kesalahan saat memperbarui disposisi', 'error', 3000);
+                showToast(error.message || 'Terjadi kesalahan saat memperbarui disposisi', 'error', 3000);
             });
         });
     }
@@ -410,3 +423,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+
