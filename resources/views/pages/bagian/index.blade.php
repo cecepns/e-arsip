@@ -16,23 +16,43 @@
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddBagian">
         Tambah Bagian
     </button>
-    <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('bagian.index') }}">
-        <input type="text" name="search" class="form-control me-2" placeholder="Cari nama bagian..." value="{{ $query ?? '' }}">
-        <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
-        @if(isset($query) && $query)
-            <a href="{{ route('bagian.index') }}" class="btn btn-outline-danger ms-1" title="Clear search">
-                <i class="fas fa-times"></i>
-            </a>
-        @endif
+    <form class="d-flex" style="max-width:350px;" method="GET" action="{{ route('bagian.index') }}">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" 
+                   placeholder="Cari nama bagian atau kepala bagian..." 
+                   value="{{ $query ?? '' }}" 
+                   autocomplete="off">
+            <button class="btn btn-outline-secondary" type="submit" title="Cari">
+                <i class="fas fa-search"></i>
+            </button>
+            @if(isset($query) && $query)
+                <a href="{{ route('bagian.index') }}" class="btn btn-outline-danger" title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
+                </a>
+            @endif
+        </div>
     </form>
 </div>
 
 @if(isset($query) && $query)
-<div class="alert alert-info mb-3">
-    <i class="fas fa-search me-2"></i> 
-    Hasil pencarian untuk: <strong>"{{ $query }}"</strong> 
-    - Ditemukan {{ $bagian->total() }} bagian
-</div>
+    @if($bagian->total() > 0)
+    <div class="alert alert-info mb-3">
+        <i class="fas fa-search me-2"></i> 
+        Hasil pencarian untuk: <strong>"{{ $query }}"</strong> 
+        - Ditemukan {{ $bagian->total() }} bagian
+    </div>
+    @else
+    <div class="alert alert-warning mb-3">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-search me-2"></i>
+            <div>
+                <strong>Tidak ada hasil ditemukan</strong> untuk pencarian: <strong>"{{ $query }}"</strong>
+                <br>
+                <small class="text-muted">Coba kata kunci lain atau periksa ejaan</small>
+            </div>
+        </div>
+    </div>
+    @endif
 @endif
 
 @include('partials.table', [
@@ -44,7 +64,7 @@
 @include('partials.pagination', [
     'currentPage' => $bagian->currentPage(),
     'totalPages' => $bagian->lastPage(),
-    'baseUrl' => $bagian->url($bagian->currentPage()),
+    'baseUrl' => route('bagian.index'),
     'showInfo' => "Menampilkan {$bagian->firstItem()}-{$bagian->lastItem()} dari {$bagian->total()} bagian"
 ])
 

@@ -21,7 +21,10 @@ class BagianController extends Controller
         $bagian = Bagian::with(['kepalaBagian', 'users'])
             ->when($query, function ($q) use ($query) {
                 $q->where('nama_bagian', 'like', "%{$query}%")
-                  ->orWhere('kepala_bagian', 'like', "%{$query}%");
+                  ->orWhereHas('kepalaBagian', function ($userQuery) use ($query) {
+                      $userQuery->where('nama', 'like', "%{$query}%")
+                               ->orWhere('username', 'like', "%{$query}%");
+                  });
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
