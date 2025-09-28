@@ -75,7 +75,6 @@
     'title' => 'Konfirmasi Hapus Bagian',
     'size' => 'modal-md',
     'body' => view()->make('pages.bagian._delete_modal._body')->render(),
-    'footer' => view()->make('pages.bagian._delete_modal._footer')->render(),
 ])
 @endsection
 
@@ -88,21 +87,6 @@
     
 
 
-    /**
-     * ANCHOR: Show Delete Bagian Modal
-     * Show the delete bagian modal
-     * @param {number} bagianId - The id of the bagian to delete
-     */
-    const showDeleteBagianModal = (bagianId) => {
-        const deleteBagianName = document.getElementById('deleteBagianName');
-        const deleteBagianForm = document.getElementById('deleteBagianForm');
-
-        const bagian = window.bagianDataCurrentPage.find(bagian => bagian.id === bagianId);
-        const { id, nama_bagian } = bagian;
-
-        deleteBagianName.textContent = nama_bagian;
-        deleteBagianForm.action = `/bagian/${id}`;
-    }
 
     /**
      * ANCHOR: Show Detail Bagian Modal
@@ -307,62 +291,6 @@
         alert(`Viewing ${jenisSurat} with ID: ${suratId}`);
     }
 
-    /**
-     * ANCHOR: Delete Bagian Handlers
-     * Handle the delete bagian form submission
-     */
-    const deleteBagianHandlers = () => {
-        const deleteBagianForm = document.getElementById('deleteBagianForm');
-        const deleteBagianSubmitBtn = document.getElementById('deleteBagianSubmitBtn');
-        const deleteBagianCancelBtn = document.getElementById('deleteBagianCancelBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        
-        deleteBagianForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            clearErrors(deleteBagianForm);
-            setLoadingState(true, deleteBagianSubmitBtn);
 
-            try {
-                const formData = new FormData(deleteBagianForm);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-                const response = await fetchWithRetry(deleteBagianForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                });
-                clearTimeout(timeoutId);
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response is not JSON');
-                }
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    showToast(data.message, 'success', 5000);
-                    deleteBagianForm.reset();
-                    bootstrap.Modal.getInstance(document.getElementById('modalDeleteBagian')).hide();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    handleErrorResponse(data, deleteBagianForm);
-                }
-            } catch (error) {
-                handleErrorResponse(error, deleteBagianForm);
-            } finally {
-                setLoadingState(false, deleteBagianSubmitBtn);
-            }
-        });
-    }
-
-    // ANCHOR: Run all handlers
-    deleteBagianHandlers();
 </script>
 @endpush
