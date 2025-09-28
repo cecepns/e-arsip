@@ -759,3 +759,28 @@ body.dark-mode {
         align-items: flex-start;
     }
 }
+
+
+/* ====== PASSWORD INPUT ====== */
+.password-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input .simple-input {
+  padding-right: 45px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 2px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}

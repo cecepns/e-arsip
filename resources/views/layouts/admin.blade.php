@@ -17,11 +17,11 @@
     
     <div class="user-profile">
         <div class="user-avatar">
-            <img src="https://placehold.co/600x400?text=Admin" alt="Admin" class="rounded-circle">
+            <img src="https://placehold.co/600x400?text={{ substr(Auth::user()->nama, 0, 1) }}" alt="{{ Auth::user()->nama }}" class="rounded-circle">
         </div>
         <div class="user-info">
-            <h6>Admin</h6>
-            <p>Administrator</p>
+            <h6>{{ Auth::user()->nama }}</h6>
+            <p>{{ Auth::user()->role }}</p>
         </div>
     </div>
     
@@ -79,7 +79,7 @@
                 <i class="fas fa-bars"></i>
             </button>
             <div class="navbar-brand">
-                <h5>Selamat datang, <span class="admin-name">Admin</span></h5>
+                <h5>Selamat datang, <span class="admin-name">{{ Auth::user()->nama }}</span></h5>
             </div>
         </div>
         <div class="navbar-controls">
@@ -147,10 +147,10 @@
             </button>
             <div class="dropdown user-dropdown">
                 <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    Admin
+                    {{ Auth::user()->nama }}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
+                    <li><a class="dropdown-item" href="{{ route('profile.show') }}"><i class="fas fa-user me-2"></i> Profile</a></li>
                     <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>

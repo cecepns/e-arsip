@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DasborController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProfileController;
 
 // SECTIONProtected routes - require authentication
 Route::middleware(['auth'])->group(function () {
@@ -13,6 +14,11 @@ Route::middleware(['auth'])->group(function () {
     
     // ANCHOR: Logout [POST]
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // ANCHOR: Profile Management
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     // ANCHOR: Manajemen Bagian (Divisi)
     Route::get('/bagian', [\App\Http\Controllers\BagianController::class, 'index'])->name('bagian.index');
