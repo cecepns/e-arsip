@@ -120,6 +120,7 @@ class SuratKeluarController extends Controller
                     'tipe_surat' => 'keluar',
                     'nama_file' => $file->getClientOriginalName(),
                     'path_file' => $path,
+                    'file_size' => $file->getSize(),
                     'tipe_lampiran' => 'utama',
                 ]);
             }
@@ -132,6 +133,7 @@ class SuratKeluarController extends Controller
                         'tipe_surat' => 'keluar',
                         'nama_file' => $file->getClientOriginalName(),
                         'path_file' => $path,
+                        'file_size' => $file->getSize(),
                         'tipe_lampiran' => 'pendukung',
                     ]);
                 }
@@ -251,6 +253,7 @@ class SuratKeluarController extends Controller
                     'tipe_surat' => 'keluar',
                     'nama_file' => $file->getClientOriginalName(),
                     'path_file' => $path,
+                    'file_size' => $file->getSize(),
                     'tipe_lampiran' => 'utama',
                 ]);
             }
@@ -263,6 +266,7 @@ class SuratKeluarController extends Controller
                         'tipe_surat' => 'keluar',
                         'nama_file' => $file->getClientOriginalName(),
                         'path_file' => $path,
+                        'file_size' => $file->getSize(),
                         'tipe_lampiran' => 'pendukung',
                     ]);
                 }

@@ -214,17 +214,50 @@
     }
 
     /**
+     * ANCHOR: Format Date for Display
+     * Format date consistently across the application
+     * @param {string} dateString - The date string to format
+     * @returns {string} Formatted date string
+     */
+    const formatDateForDisplay = (dateString) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    /**
+     * ANCHOR: Format DateTime for Display
+     * Format datetime consistently across the application
+     * @param {string} dateString - The datetime string to format
+     * @returns {string} Formatted datetime string
+     */
+    const formatDateTimeForDisplay = (dateString) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    /**
      * ANCHOR: Populate Detail Modal
      * Populate the detail modal with surat keluar data
      * @param {Object} suratKeluar - The surat keluar data
      */
     const populateDetailModal = (suratKeluar) => {
+        // Store current surat keluar ID for action buttons
+        window.currentDetailSuratKeluarId = suratKeluar.id;
+        
         // Basic information
         document.getElementById('detail-nomor-surat').textContent = suratKeluar.nomor_surat || '-';
-        document.getElementById('detail-tanggal-surat').textContent = suratKeluar.tanggal_surat ? 
-            new Date(suratKeluar.tanggal_surat).toLocaleDateString('id-ID') : '-';
-        document.getElementById('detail-tanggal-keluar').textContent = suratKeluar.tanggal_keluar ? 
-            new Date(suratKeluar.tanggal_keluar).toLocaleDateString('id-ID') : '-';
+        document.getElementById('detail-tanggal-surat').textContent = formatDateForDisplay(suratKeluar.tanggal_surat);
+        document.getElementById('detail-tanggal-keluar').textContent = formatDateForDisplay(suratKeluar.tanggal_keluar);
         document.getElementById('detail-perihal').textContent = suratKeluar.perihal || '-';
         
         // Sifat surat dengan badge
@@ -251,12 +284,16 @@
         // Related information
         document.getElementById('detail-bagian-pengirim').textContent = 
             suratKeluar.pengirim_bagian?.nama_bagian || '-';
+        
+        // Audit information
         document.getElementById('detail-user').textContent = 
             suratKeluar.user?.username || '-';
-        
-        // Timestamps
-        document.getElementById('detail-created-at').textContent = suratKeluar.created_at ? 
-            new Date(suratKeluar.created_at).toLocaleString('id-ID') : '-';
+        document.getElementById('detail-created-at').textContent = 
+            formatDateTimeForDisplay(suratKeluar.created_at);
+        document.getElementById('detail-updated-by').textContent = 
+            suratKeluar.updater?.username || '-';
+        document.getElementById('detail-updated-at').textContent = 
+            formatDateTimeForDisplay(suratKeluar.updated_at);
 
         // Ringkasan isi
         const ringkasanSection = document.getElementById('detail-ringkasan-section');
@@ -283,6 +320,73 @@
     }
 
     /**
+     * ANCHOR: Edit from Detail Modal
+     * Open edit modal from detail modal
+     */
+    const editFromDetail = () => {
+        if (window.currentDetailSuratKeluarId) {
+            // Close detail modal
+            bootstrap.Modal.getInstance(document.getElementById('modalDetailSuratKeluar')).hide();
+            
+            // Open edit modal after a short delay
+            setTimeout(() => {
+                showEditSuratKeluarModal(window.currentDetailSuratKeluarId);
+                bootstrap.Modal.getInstance(document.getElementById('modalEditSuratKeluar')).show();
+            }, 300);
+        }
+    };
+
+    /**
+     * ANCHOR: Delete from Detail Modal
+     * Open delete modal from detail modal
+     */
+    const deleteFromDetail = () => {
+        if (window.currentDetailSuratKeluarId) {
+            // Close detail modal
+            bootstrap.Modal.getInstance(document.getElementById('modalDetailSuratKeluar')).hide();
+            
+            // Open delete modal after a short delay
+            setTimeout(() => {
+                showDeleteSuratKeluarModal(window.currentDetailSuratKeluarId);
+                bootstrap.Modal.getInstance(document.getElementById('modalDeleteSuratKeluar')).show();
+            }, 300);
+        }
+    };
+
+    /**
+     * ANCHOR: Get File Icon Class
+     * Get appropriate icon class based on file extension
+     * @param {string} fileName - The file name
+     * @returns {string} Icon class string
+     */
+    const getFileIconClass = (fileName) => {
+        const ext = fileName.toLowerCase().split('.').pop();
+        switch(ext) {
+            case 'pdf': return 'fa-file-pdf text-danger';
+            case 'doc': case 'docx': return 'fa-file-word text-primary';
+            case 'xls': case 'xlsx': return 'fa-file-excel text-success';
+            case 'zip': case 'rar': return 'fa-file-archive text-warning';
+            case 'jpg': case 'jpeg': case 'png': case 'gif': return 'fa-file-image text-info';
+            case 'txt': return 'fa-file-alt text-secondary';
+            default: return 'fa-file text-muted';
+        }
+    };
+
+    /**
+     * ANCHOR: Format File Size
+     * Format file size in human readable format
+     * @param {number} bytes - File size in bytes
+     * @returns {string} Formatted file size
+     */
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    /**
      * ANCHOR: Populate Lampiran Detail
      * Populate the lampiran section with attachment data
      * @param {Array} lampiran - Array of lampiran data
@@ -303,9 +407,10 @@
         let lampiranHtml = '<div class="row">';
         
         lampiran.forEach((file, index) => {
-            const isPdf = file.nama_file.toLowerCase().endsWith('.pdf');
-            const iconClass = isPdf ? 'fa-file-pdf text-danger' : 'fa-file-alt text-primary';
+            const iconClass = getFileIconClass(file.nama_file);
             const downloadUrl = `/storage/${file.path_file}`;
+            const fileSize = file.file_size ? formatFileSize(file.file_size) : 'Unknown';
+            const badgeClass = file.tipe_lampiran === 'utama' ? 'badge-primary' : 'badge-secondary';
             
             lampiranHtml += `
                 <div class="col-md-6 mb-3">
@@ -319,8 +424,14 @@
                                     <h6 class="card-title mb-1 text-truncate" title="${file.nama_file}">
                                         ${file.nama_file}
                                     </h6>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge ${badgeClass}">
+                                            ${file.tipe_lampiran === 'utama' ? 'Lampiran Utama' : 'Dokumen Pendukung'}
+                                        </span>
+                                        <small class="text-muted">${fileSize}</small>
+                                    </div>
                                     <small class="text-muted">
-                                        ${file.tipe_lampiran === 'utama' ? 'Lampiran Utama' : 'Dokumen Pendukung'}
+                                        ${file.created_at ? formatDateTimeForDisplay(file.created_at) : '-'}
                                     </small>
                                 </div>
                                 <div class="ms-2">

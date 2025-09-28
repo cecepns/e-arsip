@@ -46,6 +46,14 @@
                     <span class="fw-semibold text-dark">Dibuat Pada:</span>
                     <span id="detail-created-at" class="text-muted">-</span>
                 </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Diperbarui Oleh:</span>
+                    <span id="detail-updated-by" class="text-secondary">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Diperbarui Pada:</span>
+                    <span id="detail-updated-at" class="text-muted">-</span>
+                </p>
             </div>
         </div>
     </div>

@@ -16,6 +16,7 @@ class Lampiran extends Model
         'tipe_surat',
         'nama_file',
         'path_file',
+        'file_size',
         'tipe_lampiran',
     ];
 
