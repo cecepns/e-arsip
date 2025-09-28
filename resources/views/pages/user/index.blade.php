@@ -81,61 +81,6 @@
     const usersDataCurrentPage = {!! json_encode($users->items()) !!};
     
     /**
-     * ANCHOR: Edit User Handlers
-     * Handle the edit user form submission
-     */
-    const editUserHandlers = () => {
-        const editUserForm = document.getElementById('editUserForm');
-        const editUserSubmitBtn = document.getElementById('editUserSubmitBtn');
-        const editUserCancelBtn = document.getElementById('editUserCancelBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        
-        editUserForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            clearErrors(editUserForm);
-            setLoadingState(true, editUserSubmitBtn);
-
-            try {
-                const formData = new FormData(editUserForm);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-                const response = await fetchWithRetry(editUserForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                });
-                clearTimeout(timeoutId);
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response is not JSON');
-                }
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    showToast(data.message, 'success', 5000);
-                    editUserForm.reset();
-                    bootstrap.Modal.getInstance(document.getElementById('modalEditUser')).hide();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    handleErrorResponse(data, editUserForm);
-                }
-            } catch (error) {
-                handleErrorResponse(error, editUserForm);
-            } finally {
-                setLoadingState(false, editUserSubmitBtn);
-            }
-        });
-    }
-
-    /**
      * ANCHOR: Reset Password Handlers
      * Handle the reset password form submission
      */
@@ -191,41 +136,6 @@
                 setLoadingState(false, resetPasswordSubmitBtn);
             }
         });
-    }
-
-    /**
-     * ANCHOR: Show Edit User Modal
-     * Show the edit user modal
-     * @param {number} id - The id of the user to edit
-     */
-    const showEditUserModal = (userId) => {
-        const editUserForm = document.getElementById('editUserForm');
-        const idInput = document.getElementById('edit_user_id');
-        const usernameInput = document.getElementById('edit_username');
-        const namaInput = document.getElementById('edit_nama');
-        const emailInput = document.getElementById('edit_email');
-        const phoneInput = document.getElementById('edit_phone');
-        const passwordInput = document.getElementById('edit_password');
-        const roleInput = document.getElementById('edit_role');
-        const bagianInput = document.getElementById('edit_bagian_id');
-        const isKepalaBagianInput = document.getElementById('edit_is_kepala_bagian');
-        const user = usersDataCurrentPage.find(user => user.id === userId);
-        const { id, username, nama, email, phone, password, role, bagian_id } = user;
-        console.log('user', user);
-
-        idInput.value = id;
-        usernameInput.value = username || '';
-        namaInput.value = nama || '';
-        emailInput.value = email || '';
-        phoneInput.value = phone || '';
-        passwordInput.value = '';
-        roleInput.value = role || '';
-        bagianInput.value = bagian_id || '';
-        
-        // Check if user is kepala bagian
-        isKepalaBagianInput.checked = user.bagian && user.bagian.kepala_bagian_user_id == id;
-
-        editUserForm.action = `/user/${id}`;
     }
 
     /**
@@ -310,56 +220,8 @@
         }
     }
 
-    /**
-     * ANCHOR: Handle checkbox kepala bagian for edit form
-     * Enable/disable checkbox based on bagian selection and role
-     */
-    const handleEditKepalaBagianCheckbox = () => {
-        const editBagianSelect = document.getElementById('edit_bagian_id');
-        const editKepalaBagianCheckbox = document.getElementById('edit_is_kepala_bagian');
-        const editRoleSelect = document.getElementById('edit_role');
-
-        // Handle edit form
-        if (editBagianSelect && editKepalaBagianCheckbox && editRoleSelect) {
-            // Function to update bagian and kepala bagian based on role
-            const updateEditBagianAndKepalaBagian = () => {
-                if (editRoleSelect.value === 'Admin') {
-                    // Admin role: disable bagian and kepala bagian
-                    editBagianSelect.disabled = true;
-                    editBagianSelect.value = '';
-                    editKepalaBagianCheckbox.disabled = true;
-                    editKepalaBagianCheckbox.checked = false;
-                } else {
-                    // Non-admin role: enable bagian selection
-                    editBagianSelect.disabled = false;
-                    editKepalaBagianCheckbox.disabled = editBagianSelect.value === '';
-                }
-            };
-
-            // Listen for role changes
-            editRoleSelect.addEventListener('change', updateEditBagianAndKepalaBagian);
-
-            // Listen for bagian changes (only for non-admin roles)
-            editBagianSelect.addEventListener('change', function() {
-                if (editRoleSelect.value !== 'Admin') {
-                    if (this.value) {
-                        editKepalaBagianCheckbox.disabled = false;
-                    } else {
-                        editKepalaBagianCheckbox.disabled = true;
-                        editKepalaBagianCheckbox.checked = false;
-                    }
-                }
-            });
-
-            // Initialize state
-            updateEditBagianAndKepalaBagian();
-        }
-    }
-
     // ANCHOR: Run all handlers
-    editUserHandlers();
     resetPasswordHandlers();
-    handleEditKepalaBagianCheckbox();
     
     // ANCHOR: Reset modal state when modal is hidden
     document.getElementById('modalResetPassword').addEventListener('hidden.bs.modal', function () {
