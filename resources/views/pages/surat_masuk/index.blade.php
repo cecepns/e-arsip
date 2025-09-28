@@ -216,6 +216,8 @@
     const populateDetailModal = (suratMasuk) => {
         // Store current surat masuk ID for action buttons
         window.currentDetailSuratMasukId = suratMasuk.id;
+        // ANCHOR: Store complete surat masuk data for disposisi access
+        window.currentDetailSuratMasuk = suratMasuk;
         
         // Basic information
         document.getElementById('detail-nomor-surat').textContent = suratMasuk.nomor_surat || '-';
@@ -231,11 +233,9 @@
         document.getElementById('detail-bagian-tujuan').textContent = 
             suratMasuk.tujuan_bagian?.nama_bagian || '-';
         document.getElementById('detail-user').textContent = 
-            suratMasuk.user?.username || '-';
+            suratMasuk.user?.nama || '-';
         
         // Audit information
-        document.getElementById('detail-created-by').textContent = 
-            suratMasuk.creator?.nama || '-';
         document.getElementById('detail-updated-by').textContent = 
             suratMasuk.updater?.nama || '-';
         
@@ -286,7 +286,7 @@
             return;
         }
 
-        let disposisiHtml = '<div class="row">';
+        let disposisiHtml = '';
         
         disposisi.forEach((disp, index) => {
             const statusBadgeClass = 
@@ -294,38 +294,69 @@
                 disp.status === 'Dikerjakan' ? 'bg-info' :
                 disp.status === 'Selesai' ? 'bg-success' : 'bg-secondary';
             
+            // Get kepala bagian information
+            const kepalaBagianTujuan = disp.tujuan_bagian?.kepala_bagian?.nama || '-';
+            // ANCHOR: Kepala Bagian Pengirim diambil dari bagian yang dituju di surat masuk
+            const kepalaBagianPengirim = window.currentDetailSuratMasuk?.tujuan_bagian?.kepala_bagian?.nama || '-';
+            
             disposisiHtml += `
-                <div class="col-md-6 mb-3">
+                <div class="mb-4">
                     <div class="card border">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="card-title mb-0">Disposisi ${index + 1}</h6>
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-primary">
+                                    <i class="fas fa-share-alt me-2"></i>Disposisi ${index + 1}
+                                </h6>
                                 <span class="badge ${statusBadgeClass}">${disp.status}</span>
                             </div>
-                            <div class="mb-2">
-                                <small class="text-muted">Tujuan:</small>
-                                <p class="mb-1 fw-semibold">${disp.tujuan_bagian?.nama_bagian || '-'}</p>
-                            </div>
-                            <div class="mb-2">
-                                <small class="text-muted">Instruksi:</small>
-                                <p class="mb-1">${disp.instruksi || '-'}</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Dibuat Oleh:</span>
+                                            <span class="text-secondary">${disp.user?.nama || '-'}</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Disposisi Dari:</span>
+                                            <span class="text-secondary">${kepalaBagianPengirim} (${window.currentDetailSuratMasuk?.tujuan_bagian?.nama_bagian || '-'})</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Dibuat Pada:</span>
+                                            <span class="text-muted">${disp.created_at ? new Date(disp.created_at).toLocaleString('id-ID') : '-'}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Disposisi Kepada:</span>
+                                            <span class="text-secondary">${kepalaBagianTujuan} (${disp.tujuan_bagian?.nama_bagian || '-'})</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Instruksi:</span>
+                                            <span class="text-dark">${disp.isi_instruksi || '-'}</span>
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             ${disp.catatan ? `
-                                <div class="mb-2">
-                                    <small class="text-muted">Catatan:</small>
-                                    <p class="mb-1">${disp.catatan}</p>
+                                <div class="mt-3 pt-3 border-top">
+                                    <p class="mb-2">
+                                        <span class="fw-semibold text-dark">Catatan:</span>
+                                    </p>
+                                    <div class="bg-light p-3 rounded">
+                                        <p class="mb-0 text-dark">${disp.catatan}</p>
+                                    </div>
                                 </div>
                             ` : ''}
-                            <div class="text-muted">
-                                <small>Dibuat: ${disp.created_at ? new Date(disp.created_at).toLocaleString('id-ID') : '-'}</small>
-                            </div>
                         </div>
                     </div>
                 </div>
             `;
         });
         
-        disposisiHtml += '</div>';
         disposisiContent.innerHTML = disposisiHtml;
         disposisiSection.style.display = 'block';
     }

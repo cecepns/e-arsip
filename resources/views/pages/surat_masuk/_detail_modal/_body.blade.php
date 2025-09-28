@@ -1,144 +1,103 @@
-<div class="row">
-    <div class="col-md-6">
-        <div class="mb-3">
-            <h6 class="fw-semibold text-primary mb-3">Informasi Surat</h6>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Nomor Surat:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-nomor-surat">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Tanggal Surat:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-tanggal-surat">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Tanggal Terima:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-tanggal-terima">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Perihal:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-perihal">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Pengirim:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-pengirim">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Sifat Surat:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-sifat-surat">-</p>
-                </div>
+{{-- SECTION: Informasi Surat Masuk --}}
+<div class="mb-4">
+    <h5 class="mb-3 text-primary">
+        <i class="fas fa-file-import me-2"></i>Informasi Surat Masuk
+    </h5>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Nomor Surat:</span>
+                    <span id="detail-nomor-surat" class="text-primary">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Tanggal Surat:</span>
+                    <span id="detail-tanggal-surat">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Tanggal Terima:</span>
+                    <span id="detail-tanggal-terima">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Perihal:</span>
+                    <span id="detail-perihal" class="text-dark">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Pengirim:</span>
+                    <span id="detail-pengirim" class="text-dark">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Sifat Surat:</span>
+                    <span id="detail-sifat-surat">-</span>
+                </p>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="mb-3">
-            <h6 class="fw-semibold text-primary mb-3">Informasi Sistem</h6>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Bagian Tujuan:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-bagian-tujuan">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">User:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-user">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Dibuat Oleh:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-created-by">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Diupdate Oleh:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-updated-by">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Dibuat:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-created-at">-</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-4">
-                    <p class="mb-2"><span class="fw-semibold">Diupdate:</span></p>
-                </div>
-                <div class="col-sm-8">
-                    <p class="mb-2" id="detail-updated-at">-</p>
-                </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Bagian Tujuan:</span>
+                    <span id="detail-bagian-tujuan" class="text-info">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Dibuat Oleh:</span>
+                    <span id="detail-user" class="text-secondary">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Dibuat Pada:</span>
+                    <span id="detail-created-at" class="text-muted">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Diperbarui Oleh:</span>
+                    <span id="detail-updated-by" class="text-secondary">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark">Diperbarui Pada:</span>
+                    <span id="detail-updated-at" class="text-muted">-</span>
+                </p>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="mb-3" id="detail-ringkasan-section" style="display: none;">
-            <h6 class="fw-semibold text-primary mb-3">Ringkasan Isi</h6>
-            <div class="border rounded p-3 bg-light">
-                <p class="mb-0" id="detail-ringkasan-isi">-</p>
-            </div>
+{{-- SECTION: Ringkasan Isi --}}
+<div class="mb-4" id="detail-ringkasan-section" style="display: none;">
+    <h5 class="mb-3 text-primary">
+        <i class="fas fa-align-left me-2"></i>Ringkasan Isi
+    </h5>
+    <div class="bg-light p-3 rounded">
+        <p id="detail-ringkasan-isi" class="mb-0 text-dark">-</p>
+    </div>
+</div>
+
+{{-- SECTION: Keterangan --}}
+<div class="mb-4" id="detail-keterangan-section" style="display: none;">
+    <h5 class="mb-3 text-primary">
+        <i class="fas fa-sticky-note me-2"></i>Keterangan
+    </h5>
+    <div class="bg-light p-3 rounded">
+        <p id="detail-keterangan" class="mb-0 text-dark">-</p>
+    </div>
+</div>
+
+{{-- SECTION: Lampiran --}}
+<div class="mb-4" id="detail-lampiran-section">
+    <h5 class="mb-3 text-primary">
+        <i class="fas fa-paperclip me-2"></i>Lampiran
+    </h5>
+    <div id="detail-lampiran-content">
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+            <p>Memuat lampiran...</p>
         </div>
-        
-        <div class="mb-3" id="detail-keterangan-section" style="display: none;">
-            <h6 class="fw-semibold text-primary mb-3">Keterangan</h6>
-            <div class="border rounded p-3 bg-light">
-                <p class="mb-0" id="detail-keterangan">-</p>
-            </div>
-        </div>
-        
-        <div class="mb-3" id="detail-disposisi-section" style="display: none;">
-            <h6 class="fw-semibold text-primary mb-3">Disposisi</h6>
-            <div id="detail-disposisi-content">
-                <!-- Disposisi content will be populated by JavaScript -->
-            </div>
-        </div>
-        
-        <div class="mb-3">
-            <h6 class="fw-semibold text-primary mb-3">Lampiran</h6>
-            <div id="detail-lampiran-content">
-                <div class="text-center text-muted py-4">
-                    <i class="fas fa-paperclip fa-2x mb-2"></i>
-                    <p>Klik tombol lihat untuk memuat lampiran</p>
-                </div>
-            </div>
-        </div>
+    </div>
+</div>
+
+{{-- SECTION: Disposisi --}}
+<div class="mb-4" id="detail-disposisi-section" style="display: none;">
+    <h5 class="mb-3 text-primary">
+        <i class="fas fa-share-alt me-2"></i>Disposisi
+    </h5>
+    <div id="detail-disposisi-content">
+        <!-- Disposisi content will be populated by JavaScript -->
     </div>
 </div>

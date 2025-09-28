@@ -213,7 +213,15 @@ class SuratMasukController extends Controller
     public function show(Request $request, string $id)
     {
         try {
-            $suratMasuk = SuratMasuk::with(['tujuanBagian', 'user', 'lampiran', 'creator', 'updater', 'disposisi.tujuanBagian'])->findOrFail($id);
+            $suratMasuk = SuratMasuk::with([
+                'tujuanBagian.kepalaBagian', 
+                'user', 
+                'lampiran', 
+                'creator', 
+                'updater', 
+                'disposisi.tujuanBagian.kepalaBagian',
+                'disposisi.user.bagian.kepalaBagian'
+            ])->findOrFail($id);
 
             // ANCHOR: Cek hak akses untuk staf
             $user = Auth::user();
