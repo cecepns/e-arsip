@@ -20,8 +20,8 @@ class UserController extends Controller
         $users = User::with('bagian')
             ->when($query, function ($q) use ($query) {
                 $q->where('username', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%")
-                  ->orWhere('phone', 'like', "%{$query}%");
+                  ->orWhere('nama', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%");
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
