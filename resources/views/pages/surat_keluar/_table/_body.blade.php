@@ -2,7 +2,7 @@
     @forelse($suratKeluar as $index => $surat)
     <tr>
         <td class="text-center">{{ $index + 1 }}</td>
-        <td>{{ $surat->nomor_surat }}</td>
+        <td class="fw-bold text-primary">{{ $surat->nomor_surat }}</td>
         <td>{{ $surat->tanggal_surat->format('d-m-Y') }}</td>
         <td>{{ $surat->tanggal_keluar ? $surat->tanggal_keluar->format('d-m-Y') : '-' }}</td>
         <td>{{ $surat->tujuan }}</td>

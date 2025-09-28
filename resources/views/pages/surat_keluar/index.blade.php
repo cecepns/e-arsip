@@ -10,7 +10,7 @@
 
 <div class="mb-3 d-flex justify-content-between align-items-center">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddSuratKeluar">
-        <i class="fas fa-plus"></i> Tambah Surat Keluar
+        Tambah Surat Keluar
     </button>
     <div class="d-flex gap-2">
         <button class="btn btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
