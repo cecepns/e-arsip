@@ -1,9 +1,5 @@
 @extends('layouts.admin')
 
-@push('head')
-<link href="{{ asset('css/user.css') }}" rel="stylesheet">
-@endpush
-
 @section('admin-content')
 <div class="page-header">
     @include('partials.page-title', [
@@ -142,7 +138,6 @@
     'title' => 'Konfirmasi Hapus Surat Keluar',
     'size' => 'modal-md',
     'body' => view()->make('pages.surat_keluar._delete_modal._body')->render(),
-    'footer' => view()->make('pages.surat_keluar._delete_modal._footer')->render(),
 ])
 
 @include('partials.modal', [
@@ -156,7 +151,7 @@
 
 @push('scripts')
 <script>
-    const suratKeluarDataCurrentPage = {!! json_encode($suratKeluar) !!};
+    const suratKeluarDataCurrentPage = {!! json_encode($suratKeluar->items()) !!};
 
 
     /**
@@ -213,59 +208,6 @@
         });
     }
 
-    /**
-     * ANCHOR: Delete Surat Keluar Handlers
-     * Handle the delete surat keluar form submission
-     */
-    const deleteSuratKeluarHandlers = () => {
-        const deleteSuratKeluarForm = document.getElementById('deleteSuratKeluarForm');
-        const deleteSuratKeluarSubmitBtn = document.getElementById('deleteSuratKeluarSubmitBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        
-        deleteSuratKeluarForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            clearErrors(deleteSuratKeluarForm);
-            setLoadingState(true, deleteSuratKeluarSubmitBtn);
-
-            try {
-                const formData = new FormData(deleteSuratKeluarForm);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-                const response = await fetchWithRetry(deleteSuratKeluarForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                });
-                clearTimeout(timeoutId);
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response is not JSON');
-                }
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    showToast(data.message, 'success', 5000);
-                    deleteSuratKeluarForm.reset();
-                    bootstrap.Modal.getInstance(document.getElementById('modalDeleteSuratKeluar')).hide();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    handleErrorResponse(data, deleteSuratKeluarForm);
-                }
-            } catch (error) {
-                handleErrorResponse(error, deleteSuratKeluarForm);
-            } finally {
-                setLoadingState(false, deleteSuratKeluarSubmitBtn);
-            }
-        });
-    }
 
     /**
      * ANCHOR: Show Edit Surat Keluar Modal
@@ -285,7 +227,7 @@
         const ringkasanIsiInput = document.getElementById('edit_ringkasan_isi');
         const keteranganInput = document.getElementById('edit_keterangan');
 
-        const suratKeluar = suratKeluarDataCurrentPage.data.find(surat => surat.id === suratKeluarId);
+        const suratKeluar = suratKeluarDataCurrentPage.find(surat => surat.id === suratKeluarId);
         const { id, nomor_surat, tanggal_surat, tanggal_keluar, perihal, tujuan, sifat_surat, pengirim_bagian_id, ringkasan_isi, keterangan } = suratKeluar;
 
         const formatDateForInput = (isoDate) => {
@@ -307,21 +249,6 @@
         editSuratKeluarForm.action = `/surat-keluar/${id}`;
     }
 
-    /**
-     * ANCHOR: Show Delete Surat Keluar Modal
-     * Show the delete surat keluar modal
-     * @param {number} suratKeluarId - The id of the surat keluar to delete
-     */
-    const showDeleteSuratKeluarModal = (suratKeluarId) => {
-        const deleteSuratKeluarName = document.getElementById('deleteSuratKeluarName');
-        const deleteSuratKeluarForm = document.getElementById('deleteSuratKeluarForm');
-
-        const suratKeluar = suratKeluarDataCurrentPage.data.find(surat => surat.id === suratKeluarId);
-        const { id, nomor_surat } = suratKeluar;
-
-        deleteSuratKeluarName.textContent = nomor_surat;
-        deleteSuratKeluarForm.action = `/surat-keluar/${id}`;
-    }
 
     /**
      * ANCHOR: Show Detail Surat Keluar Modal
@@ -528,6 +455,5 @@
     simpleFilterHandlers();
 
     editSuratKeluarHandlers();
-    deleteSuratKeluarHandlers();
 </script>
 @endpush
