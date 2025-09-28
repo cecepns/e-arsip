@@ -53,6 +53,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/surat-keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'destroy'])->name('surat_keluar.destroy');
 
     // ANCHOR: Manajemen Disposisi
+    Route::get('/disposisi', [\App\Http\Controllers\DisposisiController::class, 'index'])->name('disposisi.index');
     Route::get('/disposisi/{id}', [\App\Http\Controllers\DisposisiController::class, 'show'])->name('disposisi.show');
     Route::put('/disposisi/{id}', [\App\Http\Controllers\DisposisiController::class, 'update'])->name('disposisi.update');
     Route::delete('/disposisi/{id}', [\App\Http\Controllers\DisposisiController::class, 'destroy'])->name('disposisi.destroy');

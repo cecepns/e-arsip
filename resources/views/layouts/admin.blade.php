@@ -57,7 +57,7 @@
             </a>
         </div>
         <div class="nav-item">
-            <a href="#" class="nav-link">
+            <a href="{{ route('disposisi.index') }}" class="nav-link{{ request()->routeIs('disposisi.*') ? ' active' : '' }}">
                 <i class="fas fa-share-alt"></i>
                 <span>Disposisi</span>
             </a>
