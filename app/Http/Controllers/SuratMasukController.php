@@ -307,6 +307,7 @@ class SuratMasukController extends Controller
     {
         try {
             $suratMasuk = SuratMasuk::findOrFail($id);
+            $nomorSurat = $suratMasuk->nomor_surat;
             
             // ANCHOR: Cek hak akses untuk staf
             if (auth()->user()->role === 'staf' && $suratMasuk->tujuan_bagian_id !== auth()->user()->bagian_id) {
@@ -329,13 +330,13 @@ class SuratMasukController extends Controller
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Surat masuk berhasil dihapus.',
+                    'message' => "Surat masuk '{$nomorSurat}' berhasil dihapus.",
                     'timestamp' => now()->format('Y-m-d H:i:s')
                 ], 200);
             }
 
             return redirect()->route('surat_masuk.index')
-                ->with('success', 'Surat masuk berhasil dihapus.');
+                ->with('success', "Surat masuk '{$nomorSurat}' berhasil dihapus.");
 
         } catch (\Exception $e) {
             return $this->handleAjaxError($request, $e);
