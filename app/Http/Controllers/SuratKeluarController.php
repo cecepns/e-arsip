@@ -20,6 +20,9 @@ class SuratKeluarController extends Controller
     public function index(Request $request): View
     {
         $query = $request->get('search');
+        $sifatSurat = $request->get('sifat_surat');
+        $bagianId = $request->get('bagian_id');
+        $tanggal = $request->get('tanggal');
         
         $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user', 'creator', 'updater'])
             ->when($query, function ($q) use ($query) {
@@ -27,12 +30,29 @@ class SuratKeluarController extends Controller
                   ->orWhere('perihal', 'like', "%{$query}%")
                   ->orWhere('tujuan', 'like', "%{$query}%");
             })
+            ->when($sifatSurat, function ($q) use ($sifatSurat) {
+                $q->where('sifat_surat', $sifatSurat);
+            })
+            ->when($bagianId, function ($q) use ($bagianId) {
+                $q->where('pengirim_bagian_id', $bagianId);
+            })
+            ->when($tanggal, function ($q) use ($tanggal) {
+                $q->whereDate('tanggal_surat', $tanggal);
+            })
             ->orderBy('created_at', 'desc')
-            ->paginate(3);
+            ->paginate(10);
 
         $bagian = Bagian::where('status', 'Aktif')->get();
 
-        return view('pages.surat_keluar.index', compact('suratKeluar', 'query', 'bagian'));
+        // Collect filter values for form
+        $filters = [
+            'query' => $query,
+            'sifat_surat' => $sifatSurat,
+            'bagian_id' => $bagianId,
+            'tanggal' => $tanggal,
+        ];
+
+        return view('pages.surat_keluar.index', compact('suratKeluar', 'bagian', 'filters'));
     }
 
     /**

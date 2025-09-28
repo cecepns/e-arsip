@@ -16,22 +16,96 @@
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddSuratKeluar">
         <i class="fas fa-plus"></i> Tambah Surat Keluar
     </button>
-    <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('surat_keluar.index') }}">
-        <input type="text" name="search" class="form-control me-2" placeholder="Cari nomor/perihal..." value="{{ $query ?? '' }}">
-        <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
-        @if(isset($query) && $query)
-            <a href="{{ route('surat_keluar.index') }}" class="btn btn-outline-danger ms-1" title="Clear search">
-                <i class="fas fa-times"></i>
-            </a>
-        @endif
-    </form>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+            <i class="fas fa-filter"></i> Filter Lanjutan
+        </button>
+        <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('surat_keluar.index') }}">
+            <input type="text" name="search" class="form-control me-2" placeholder="Cari nomor/perihal..." value="{{ $filters['query'] ?? '' }}">
+            <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+            @if(isset($filters['query']) && $filters['query'])
+                <a href="{{ route('surat_keluar.index') }}" class="btn btn-outline-danger ms-1" title="Clear search">
+                    <i class="fas fa-times"></i>
+                </a>
+            @endif
+        </form>
+    </div>
 </div>
 
-@if(isset($query) && $query)
+<!-- Advanced Filter Collapse -->
+<div class="collapse mb-3 filter-collapse" id="filterCollapse">
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">
+                <i class="fas fa-filter me-2"></i>Filter Lanjutan
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ route('surat_keluar.index') }}" id="filterForm" class="filter-form">
+                <div class="row g-3">
+                    <!-- Sifat Surat -->
+                    <div class="col-md-4">
+                        <label for="sifat_surat" class="form-label">Sifat Surat</label>
+                        <select name="sifat_surat" class="form-select" id="sifat_surat">
+                            <option value="">Semua Sifat</option>
+                            <option value="Biasa" {{ ($filters['sifat_surat'] ?? '') == 'Biasa' ? 'selected' : '' }}>Biasa</option>
+                            <option value="Segera" {{ ($filters['sifat_surat'] ?? '') == 'Segera' ? 'selected' : '' }}>Segera</option>
+                            <option value="Penting" {{ ($filters['sifat_surat'] ?? '') == 'Penting' ? 'selected' : '' }}>Penting</option>
+                            <option value="Rahasia" {{ ($filters['sifat_surat'] ?? '') == 'Rahasia' ? 'selected' : '' }}>Rahasia</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Bagian Pengirim -->
+                    <div class="col-md-4">
+                        <label for="bagian_id" class="form-label">Bagian Pengirim</label>
+                        <select name="bagian_id" class="form-select" id="bagian_id">
+                            <option value="">Semua Bagian</option>
+                            @foreach($bagian as $b)
+                                <option value="{{ $b->id }}" {{ ($filters['bagian_id'] ?? '') == $b->id ? 'selected' : '' }}>
+                                    {{ $b->nama_bagian }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <!-- Tanggal -->
+                    <div class="col-md-4">
+                        <label for="tanggal" class="form-label">Tanggal Surat</label>
+                        <input type="date" name="tanggal" class="form-control" id="tanggal" value="{{ $filters['tanggal'] ?? '' }}">
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" id="applyFilterBtn">
+                            <i class="fas fa-search"></i> Terapkan Filter
+                        </button>
+                        <a href="{{ route('surat_keluar.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Reset Filter
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if(isset($filters['sifat_surat']) && $filters['sifat_surat'] || isset($filters['bagian_id']) && $filters['bagian_id'] || isset($filters['tanggal']) && $filters['tanggal'])
 <div class="alert alert-info mb-3">
-    <i class="fas fa-search me-2"></i>
-    Hasil pencarian untuk: <strong>"{{ $query }}"</strong>
-    - Ditemukan {{ $suratKeluar->total() }} surat keluar
+    <i class="fas fa-filter me-2"></i>
+    <strong>Filter Aktif:</strong>
+    @if(isset($filters['sifat_surat']) && $filters['sifat_surat'])
+        <span class="badge bg-warning me-1">Sifat: {{ $filters['sifat_surat'] }}</span>
+    @endif
+    @if(isset($filters['bagian_id']) && $filters['bagian_id'])
+        @php
+            $selectedBagian = $bagian->where('id', $filters['bagian_id'])->first();
+        @endphp
+        <span class="badge bg-info me-1">Bagian: {{ $selectedBagian->nama_bagian ?? 'Unknown' }}</span>
+    @endif
+    @if(isset($filters['tanggal']) && $filters['tanggal'])
+        <span class="badge bg-success me-1">Tanggal: {{ $filters['tanggal'] }}</span>
+    @endif
+    <span class="ms-2">Ditemukan {{ $suratKeluar->total() }} surat keluar</span>
 </div>
 @endif
 
@@ -432,6 +506,26 @@
         lampiranHtml += '</div>';
         lampiranContent.innerHTML = lampiranHtml;
     }
+
+    /**
+     * ANCHOR: Simple Filter Handlers
+     * Handle simple filter functionality - manual submit only
+     */
+    const simpleFilterHandlers = () => {
+        const filterForm = document.getElementById('filterForm');
+        const applyFilterBtn = document.getElementById('applyFilterBtn');
+        
+        // Add loading state to filter button
+        filterForm.addEventListener('submit', function() {
+            applyFilterBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menerapkan...';
+            applyFilterBtn.disabled = true;
+        });
+        
+        console.log('Filter form ready - manual submit only');
+    }
+
+    // Initialize simple filter handlers
+    simpleFilterHandlers();
 
     editSuratKeluarHandlers();
     deleteSuratKeluarHandlers();
