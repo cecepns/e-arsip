@@ -19,10 +19,9 @@ class SuratMasukController extends Controller
     public function index(Request $request): View
     {
         $query = $request->get('search');
-        $filterBagian = $request->get('filter_bagian');
-        $filterSifat = $request->get('filter_sifat');
-        $filterTanggalMulai = $request->get('filter_tanggal_mulai');
-        $filterTanggalAkhir = $request->get('filter_tanggal_akhir');
+        $sifatSurat = $request->get('sifat_surat');
+        $bagianId = $request->get('bagian_id');
+        $tanggal = $request->get('tanggal');
         
         $suratMasuk = SuratMasuk::with(['tujuanBagian', 'user', 'creator', 'updater', 'disposisi'])
             ->when($query, function ($q) use ($query) {
@@ -30,17 +29,14 @@ class SuratMasukController extends Controller
                   ->orWhere('perihal', 'like', "%{$query}%")
                   ->orWhere('pengirim', 'like', "%{$query}%");
             })
-            ->when($filterBagian, function ($q) use ($filterBagian) {
-                $q->where('tujuan_bagian_id', $filterBagian);
+            ->when($sifatSurat, function ($q) use ($sifatSurat) {
+                $q->where('sifat_surat', $sifatSurat);
             })
-            ->when($filterSifat, function ($q) use ($filterSifat) {
-                $q->where('sifat_surat', $filterSifat);
+            ->when($bagianId, function ($q) use ($bagianId) {
+                $q->where('tujuan_bagian_id', $bagianId);
             })
-            ->when($filterTanggalMulai, function ($q) use ($filterTanggalMulai) {
-                $q->where('tanggal_surat', '>=', $filterTanggalMulai);
-            })
-            ->when($filterTanggalAkhir, function ($q) use ($filterTanggalAkhir) {
-                $q->where('tanggal_surat', '<=', $filterTanggalAkhir);
+            ->when($tanggal, function ($q) use ($tanggal) {
+                $q->whereDate('tanggal_surat', $tanggal);
             })
             ->when(auth()->user()->role === 'staf', function ($q) {
                 // ANCHOR: Staf hanya bisa melihat surat yang ditujukan ke bagiannya
@@ -51,7 +47,15 @@ class SuratMasukController extends Controller
 
         $bagian = Bagian::where('status', 'Aktif')->get();
 
-        return view('pages.surat_masuk.index', compact('suratMasuk', 'query', 'bagian'));
+        // Collect filter values for form
+        $filters = [
+            'query' => $query,
+            'sifat_surat' => $sifatSurat,
+            'bagian_id' => $bagianId,
+            'tanggal' => $tanggal,
+        ];
+
+        return view('pages.surat_masuk.index', compact('suratMasuk', 'bagian', 'filters'));
     }
 
     /**
