@@ -280,7 +280,7 @@ class SuratMasukController extends Controller
                 'disposisi' => 'nullable|array',
                 'disposisi.*.tujuan_bagian_id' => 'required_with:disposisi|exists:bagian,id|different:tujuan_bagian_id',
                 'disposisi.*.status' => 'required_with:disposisi|string|in:Menunggu,Dikerjakan,Selesai',
-                'disposisi.*.instruksi' => 'required_with:disposisi|string|min:10',
+                'disposisi.*.instruksi' => 'required_with:disposisi|string',
                 'disposisi.*.catatan' => 'nullable|string',
             ], [
                 'nomor_surat.required' => 'Nomor surat wajib diisi.',
@@ -308,6 +308,15 @@ class SuratMasukController extends Controller
                 'lampiran_pendukung.*.file' => 'Dokumen pendukung harus berupa file.',
                 'lampiran_pendukung.*.mimes' => 'Dokumen pendukung harus berupa ZIP, RAR, DOCX, atau XLSX.',
                 'lampiran_pendukung.*.max' => 'Dokumen pendukung maksimal 20MB per file.',
+                'disposisi.array' => 'Data disposisi harus berupa array.',
+                'disposisi.*.tujuan_bagian_id.required_with' => 'Tujuan disposisi wajib dipilih.',
+                'disposisi.*.tujuan_bagian_id.exists' => 'Tujuan disposisi yang dipilih tidak valid.',
+                'disposisi.*.tujuan_bagian_id.different' => 'Tujuan disposisi harus berbeda dengan bagian tujuan surat.',
+                'disposisi.*.status.required_with' => 'Status disposisi wajib dipilih.',
+                'disposisi.*.status.in' => 'Status harus Menunggu, Dikerjakan, atau Selesai.',
+                'disposisi.*.instruksi.required_with' => 'Instruksi disposisi wajib diisi.',
+                'disposisi.*.instruksi.string' => 'Instruksi harus berupa teks.',
+                'disposisi.*.catatan.string' => 'Catatan harus berupa teks.',
             ]);
 
             // ANCHOR: Audit fields (updated_by) are automatically handled by Auditable trait
