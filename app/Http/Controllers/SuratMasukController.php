@@ -78,11 +78,11 @@ class SuratMasukController extends Controller
                 'tujuan_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'required|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
-            'disposisi' => 'nullable|array',
-            'disposisi.*.tujuan_bagian_id' => 'required_with:disposisi|exists:bagian,id|different:tujuan_bagian_id',
-            'disposisi.*.status' => 'required_with:disposisi|string|in:Menunggu,Dikerjakan,Selesai',
-            'disposisi.*.instruksi' => 'required_with:disposisi|string|min:10',
-            'disposisi.*.catatan' => 'nullable|string',
+                'disposisi' => 'nullable|array',
+                'disposisi.*.tujuan_bagian_id' => 'required_with:disposisi|exists:bagian,id|different:tujuan_bagian_id',
+                'disposisi.*.status' => 'required_with:disposisi|string|in:Menunggu,Dikerjakan,Selesai',
+                'disposisi.*.instruksi' => 'required_with:disposisi|string',
+                'disposisi.*.catatan' => 'nullable|string',
             ], [
                 'nomor_surat.required' => 'Nomor surat wajib diisi.',
                 'nomor_surat.string' => 'Nomor surat harus berupa teks.',
@@ -119,7 +119,6 @@ class SuratMasukController extends Controller
                 'disposisi.*.status.in' => 'Status harus Menunggu, Dikerjakan, atau Selesai.',
                 'disposisi.*.instruksi.required_with' => 'Instruksi disposisi wajib diisi.',
                 'disposisi.*.instruksi.string' => 'Instruksi harus berupa teks.',
-                'disposisi.*.instruksi.min' => 'Instruksi minimal 10 karakter.',
                 'disposisi.*.catatan.string' => 'Catatan harus berupa teks.',
             ]);
 
