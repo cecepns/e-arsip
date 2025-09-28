@@ -28,7 +28,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/user/{id}', [UserController::class, 'update'])->name('user.update');
     Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('user.destroy');
     Route::get('/user/{id}', [UserController::class, 'show'])->name('user.show');
-    Route::post('/user/{id}/reset-password', [UserController::class, 'resetPassword'])->name('user.reset-password');
 
     // ANCHOR: Manajemen Surat Masuk
     Route::get('/surat-masuk', [\App\Http\Controllers\SuratMasukController::class, 'index'])->name('surat_masuk.index');

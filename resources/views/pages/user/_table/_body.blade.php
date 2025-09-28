@@ -35,12 +35,6 @@
                         onclick="showEditUserModal({{ $user->id }})">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="action-btn reset-btn" title="Reset Password" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#modalResetPassword"
-                        onclick="showResetPasswordModal({{ $user->id }})">
-                    <i class="fas fa-key"></i>
-                </button>
                 <button class="action-btn delete-btn" title="Hapus" 
                         data-bs-toggle="modal" 
                         data-bs-target="#modalDeleteUser"

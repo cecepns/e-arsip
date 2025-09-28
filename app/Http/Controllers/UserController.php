@@ -98,9 +98,7 @@ class UserController extends Controller
                 'message' => 'User berhasil ditambahkan.',
                 'user' => $user->load('bagian'),
                 'timestamp' => now()->format('Y-m-d H:i:s')
-            ], 201);
-
-            
+            ], 201);            
 
         } catch (\Exception $e) {
             return $this->handleAjaxError($request, $e);
@@ -185,62 +183,15 @@ class UserController extends Controller
             }
 
             // ANCHOR: Handle AJAX request
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "User '{$user->username}' berhasil diperbarui.",
-                    'user' => $user->load('bagian'),
-                    'timestamp' => now()->format('Y-m-d H:i:s')
-                ], 200);
-            }
-
-            return redirect()->route('user.index')
-                ->with('success', "User '{$user->username}' berhasil diperbarui.");
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // ANCHOR: Handle validation errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validasi gagal. Periksa data yang dimasukkan.',
-                    'errors' => $e->errors(),
-                    'error_type' => 'validation'
-                ], 422);
-            }
-            throw $e;
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            // ANCHOR: Handle database errors
-            if ($request->ajax()) {
-                $errorMessage = 'Terjadi kesalahan database.';
-                
-                // Check for specific database errors
-                if (str_contains($e->getMessage(), 'Duplicate entry')) {
-                    $errorMessage = 'Data sudah ada dalam sistem.';
-                } elseif (str_contains($e->getMessage(), 'foreign key constraint')) {
-                    $errorMessage = 'Data bagian tidak valid.';
-                }
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessage,
-                    'error_type' => 'database',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
-
+            return response()->json([
+                'success' => true,
+                'message' => "User '{$user->username}' berhasil diperbarui.",
+                'user' => $user->load('bagian'),
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ], 200);
+    
         } catch (\Exception $e) {
-            // ANCHOR: Handle general errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
+            return $this->handleAjaxError($request, $e);
         }
     }
 
@@ -298,53 +249,6 @@ class UserController extends Controller
                     'error_type' => 'database',
                     'debug' => config('app.debug') ? $e->getMessage() : null
                 ], 500);
-            }
-            throw $e;
-
-        } catch (\Exception $e) {
-            // ANCHOR: Handle general errors
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'error_type' => 'general',
-                    'debug' => config('app.debug') ? $e->getMessage() : null
-                ], 500);
-            }
-            throw $e;
-        }
-    }
-
-    /**
-     * Reset user password.
-     */
-    public function resetPassword(Request $request, string $id)
-    {
-        try {
-            $user = User::findOrFail($id);
-            $newPassword = $user->resetPassword();
-
-            // ANCHOR: Handle AJAX request
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "Password untuk user '{$user->username}' berhasil direset.",
-                    'new_password' => $newPassword,
-                    'timestamp' => now()->format('Y-m-d H:i:s')
-                ], 200);
-            }
-
-            return redirect()->route('user.index')
-                ->with('success', "Password untuk user '{$user->username}' berhasil direset. Password baru: {$newPassword}");
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // ANCHOR: Handle user not found
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User tidak ditemukan.',
-                    'error_type' => 'not_found'
-                ], 404);
             }
             throw $e;
 
