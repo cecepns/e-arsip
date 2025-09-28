@@ -40,9 +40,9 @@ class SuratMasukController extends Controller
             ->when($tanggal, function ($q) use ($tanggal) {
                 $q->whereDate('tanggal_surat', $tanggal);
             })
-            ->when(auth()->user()->role === 'staf', function ($q) {
+            ->when(Auth::user() && Auth::user()->role === 'staf', function ($q) {
                 // ANCHOR: Staf hanya bisa melihat surat yang ditujukan ke bagiannya
-                $q->where('tujuan_bagian_id', auth()->user()->bagian_id);
+                $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -79,9 +79,9 @@ class SuratMasukController extends Controller
                 'lampiran_pdf' => 'required|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
                 'buat_disposisi' => 'nullable|boolean',
-                'disposisi_tujuan_bagian_id' => 'required_if:buat_disposisi,1|exists:bagian,id',
-                'disposisi_prioritas' => 'required_if:buat_disposisi,1|string|in:Normal,Tinggi,Sangat Tinggi',
-                'disposisi_instruksi' => 'required_if:buat_disposisi,1|string',
+                'disposisi_tujuan_bagian_id' => 'required_if:buat_disposisi,true|required_if:buat_disposisi,1|exists:bagian,id|nullable|different:tujuan_bagian_id',
+                'disposisi_status' => 'required_if:buat_disposisi,true|required_if:buat_disposisi,1|string|in:Menunggu,Dikerjakan,Selesai|nullable',
+                'disposisi_instruksi' => 'required_if:buat_disposisi,true|required_if:buat_disposisi,1|string|nullable|min:10',
                 'disposisi_catatan' => 'nullable|string',
             ], [
                 'nomor_surat.required' => 'Nomor surat wajib diisi.',
@@ -112,10 +112,13 @@ class SuratMasukController extends Controller
                 'lampiran_pendukung.*.max' => 'Dokumen pendukung maksimal 20MB per file.',
                 'disposisi_tujuan_bagian_id.required_if' => 'Tujuan disposisi wajib dipilih jika membuat disposisi.',
                 'disposisi_tujuan_bagian_id.exists' => 'Tujuan disposisi yang dipilih tidak valid.',
-                'disposisi_prioritas.required_if' => 'Prioritas disposisi wajib dipilih jika membuat disposisi.',
-                'disposisi_prioritas.in' => 'Prioritas harus Normal, Tinggi, atau Sangat Tinggi.',
+                'disposisi_tujuan_bagian_id.different' => 'Tujuan disposisi harus berbeda dengan bagian tujuan surat.',
+                'disposisi_status.required_if' => 'Status disposisi wajib dipilih jika membuat disposisi.',
+                'disposisi_status.in' => 'Status harus Menunggu, Dikerjakan, atau Selesai.',
                 'disposisi_instruksi.required_if' => 'Instruksi disposisi wajib diisi jika membuat disposisi.',
                 'disposisi_instruksi.string' => 'Instruksi harus berupa teks.',
+                'disposisi_instruksi.min' => 'Instruksi minimal 10 karakter.',
+                'disposisi_catatan.string' => 'Catatan harus berupa teks.',
             ]);
 
             $validated['user_id'] = Auth::id();
@@ -123,16 +126,26 @@ class SuratMasukController extends Controller
             $suratMasuk = SuratMasuk::create($validated);
 
             // ANCHOR: Create disposisi if requested
-            if ($request->has('buat_disposisi') && $request->buat_disposisi) {
-                $disposisi = Disposisi::create([
-                    'surat_masuk_id' => $suratMasuk->id,
-                    'tujuan_bagian_id' => $validated['disposisi_tujuan_bagian_id'],
-                    'prioritas' => $validated['disposisi_prioritas'],
-                    'instruksi' => $validated['disposisi_instruksi'],
-                    'catatan' => $validated['disposisi_catatan'] ?? null,
-                    'status' => 'Belum Dikerjakan',
-                    'user_id' => Auth::id(),
-                ]);
+            if ($request->has('buat_disposisi') && 
+                ($request->buat_disposisi === true || 
+                 $request->buat_disposisi === '1' || 
+                 $request->buat_disposisi === 1)) {
+                
+                // ANCHOR: Check if disposisi already exists for this surat and bagian
+                $existingDisposisi = Disposisi::where('surat_masuk_id', $suratMasuk->id)
+                    ->where('tujuan_bagian_id', $validated['disposisi_tujuan_bagian_id'])
+                    ->first();
+                
+                if (!$existingDisposisi) {
+                    Disposisi::create([
+                        'surat_masuk_id' => $suratMasuk->id,
+                        'tujuan_bagian_id' => $validated['disposisi_tujuan_bagian_id'],
+                        'isi_instruksi' => $validated['disposisi_instruksi'],
+                        'catatan' => $validated['disposisi_catatan'] ?? null,
+                        'status' => $validated['disposisi_status'] ?? 'Menunggu',
+                        'user_id' => Auth::id(),
+                    ]);
+                }
             }
 
             // ANCHOR: Process PDF attachment upload
@@ -199,9 +212,10 @@ class SuratMasukController extends Controller
     {
         try {
             $suratMasuk = SuratMasuk::with(['tujuanBagian', 'user', 'lampiran', 'creator', 'updater', 'disposisi.tujuanBagian'])->findOrFail($id);
-            
+
             // ANCHOR: Cek hak akses untuk staf
-            if (auth()->user()->role === 'staf' && $suratMasuk->tujuan_bagian_id !== auth()->user()->bagian_id) {
+            $user = Auth::user();
+            if ($user && $user->role === 'staf' && $suratMasuk->tujuan_bagian_id !== $user->bagian_id) {
                 if ($request->ajax()) {
                     return response()->json([
                         'success' => false,
@@ -238,7 +252,8 @@ class SuratMasukController extends Controller
             $suratMasuk = SuratMasuk::findOrFail($id);
             
             // ANCHOR: Cek hak akses untuk staf
-            if (auth()->user()->role === 'staf' && $suratMasuk->tujuan_bagian_id !== auth()->user()->bagian_id) {
+            $user = Auth::user();
+            if ($user && $user->role === 'staf' && $suratMasuk->tujuan_bagian_id !== $user->bagian_id) {
                 if ($request->ajax()) {
                     return response()->json([
                         'success' => false,
@@ -310,7 +325,8 @@ class SuratMasukController extends Controller
             $nomorSurat = $suratMasuk->nomor_surat;
             
             // ANCHOR: Cek hak akses untuk staf
-            if (auth()->user()->role === 'staf' && $suratMasuk->tujuan_bagian_id !== auth()->user()->bagian_id) {
+            $user = Auth::user();
+            if ($user && $user->role === 'staf' && $suratMasuk->tujuan_bagian_id !== $user->bagian_id) {
                 if ($request->ajax()) {
                     return response()->json([
                         'success' => false,

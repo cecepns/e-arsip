@@ -8,6 +8,7 @@
         <th>Ringkasan Isi</th>
         <th>Pengirim</th>
         <th>Bagian Tujuan</th>
+        <th>Status Disposisi</th>
         <th>Dibuat Oleh</th>
         <th>Diupdate Oleh</th>
         <th class="text-center">Aksi</th>

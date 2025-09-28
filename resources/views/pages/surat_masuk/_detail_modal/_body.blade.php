@@ -124,6 +124,13 @@
             </div>
         </div>
         
+        <div class="mb-3" id="detail-disposisi-section" style="display: none;">
+            <h6 class="fw-semibold text-primary mb-3">Disposisi</h6>
+            <div id="detail-disposisi-content">
+                <!-- Disposisi content will be populated by JavaScript -->
+            </div>
+        </div>
+        
         <div class="mb-3">
             <h6 class="fw-semibold text-primary mb-3">Lampiran</h6>
             <div id="detail-lampiran-content">

@@ -10,7 +10,7 @@
 
 <div class="mb-3 d-flex justify-content-between align-items-center">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddSuratMasuk">
-        <i class="fas fa-plus"></i> Tambah Surat Masuk
+        Tambah Surat Masuk
     </button>
     <div class="d-flex gap-2">
         <button class="btn btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
@@ -153,70 +153,6 @@
 <script>
     const suratMasukDataCurrentPage = {!! json_encode($suratMasuk) !!};
 
-    /**
-     * ANCHOR: Add Surat Masuk Handlers
-     * Handle the add surat masuk form submission
-     */
-    const addSuratMasukHandlers = () => {
-        const addSuratMasukForm = document.getElementById('addSuratMasukForm');
-        const addSuratMasukSubmitBtn = document.getElementById('addSuratMasukSubmitBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        
-        if (addSuratMasukForm) {
-            addSuratMasukForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                clearErrors(addSuratMasukForm);
-                setLoadingState(true, addSuratMasukSubmitBtn);
-
-                try {
-                    const formData = new FormData(addSuratMasukForm);
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 30000);
-                    const response = await fetchWithRetry(addSuratMasukForm.action, {
-                        method: 'POST',
-                        body: formData,
-                        signal: controller.signal,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken
-                        }
-                    });
-                    clearTimeout(timeoutId);
-                    const contentType = response.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        throw new Error('Response is not JSON');
-                    }
-                    const data = await response.json();
-                    if (response.ok && data.success) {
-                        showToast(data.message, 'success', 5000);
-                        addSuratMasukForm.reset();
-                        // Hide disposisi fields after successful submission
-                        const disposisiFields = document.getElementById('add_disposisi_fields');
-                        if (disposisiFields) {
-                            disposisiFields.style.display = 'none';
-                        }
-                        const disposisiCheckbox = document.getElementById('add_buat_disposisi');
-                        if (disposisiCheckbox) {
-                            disposisiCheckbox.checked = false;
-                        }
-                        bootstrap.Modal.getInstance(document.getElementById('modalAddSuratMasuk')).hide();
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1000);
-                    } else {
-                        handleErrorResponse(data, addSuratMasukForm);
-                    }
-                } catch (error) {
-                    handleErrorResponse(error, addSuratMasukForm);
-                } finally {
-                    setLoadingState(false, addSuratMasukSubmitBtn);
-                }
-            });
-        }
-    }
 
     /**
      * ANCHOR: Edit Surat Masuk Handlers
@@ -273,68 +209,6 @@
     }
 
 
-    /**
-     * ANCHOR: Toggle Disposisi Fields
-     * Toggle the visibility of disposisi fields based on checkbox
-     */
-    const toggleDisposisiFields = () => {
-        const checkbox = document.getElementById('add_buat_disposisi');
-        const fields = document.getElementById('add_disposisi_fields');
-        
-        if (checkbox && fields) {
-            if (checkbox.checked) {
-                fields.style.display = 'block';
-            } else {
-                fields.style.display = 'none';
-            }
-        }
-    }
-
-    /**
-     * ANCHOR: Reset Add Surat Masuk Form on Modal Close
-     * Reset form and clear errors when modal is closed
-     */
-    const resetAddSuratMasukFormOnModalClose = () => {
-        const modalAddSuratMasuk = document.getElementById('modalAddSuratMasuk');
-        const addSuratMasukForm = document.getElementById('addSuratMasukForm');
-        
-        if (modalAddSuratMasuk && addSuratMasukForm) {
-            modalAddSuratMasuk.addEventListener('hidden.bs.modal', function() {
-                // Reset form
-                addSuratMasukForm.reset();
-                
-                // Clear validation errors
-                clearErrors(addSuratMasukForm);
-                
-                // Reset loading state if any
-                const addSuratMasukSubmitBtn = document.getElementById('addSuratMasukSubmitBtn');
-                setLoadingState(false, addSuratMasukSubmitBtn);
-                
-                // Hide disposisi fields
-                const disposisiFields = document.getElementById('add_disposisi_fields');
-                if (disposisiFields) {
-                    disposisiFields.style.display = 'none';
-                }
-                
-                // Uncheck disposisi checkbox
-                const disposisiCheckbox = document.getElementById('add_buat_disposisi');
-                if (disposisiCheckbox) {
-                    disposisiCheckbox.checked = false;
-                }
-            });
-        }
-    }
-
-    // Add event listener for disposisi checkbox
-    document.addEventListener('DOMContentLoaded', function() {
-        const disposisiCheckbox = document.getElementById('add_buat_disposisi');
-        if (disposisiCheckbox) {
-            disposisiCheckbox.addEventListener('change', toggleDisposisiFields);
-        }
-        
-        // Initialize form reset functionality
-        resetAddSuratMasukFormOnModalClose();
-    });
 
     /**
      * ANCHOR: Show Edit Surat Masuk Modal
@@ -491,6 +365,67 @@
 
         // Lampiran
         populateLampiranDetail(suratMasuk.lampiran || []);
+        
+        // Disposisi
+        populateDisposisiDetail(suratMasuk.disposisi || []);
+    }
+
+    /**
+     * ANCHOR: Populate Disposisi Detail
+     * Populate the disposisi section with disposisi data
+     * @param {Array} disposisi - Array of disposisi data
+     */
+    const populateDisposisiDetail = (disposisi) => {
+        const disposisiContent = document.getElementById('detail-disposisi-content');
+        const disposisiSection = document.getElementById('detail-disposisi-section');
+        
+        if (disposisi.length === 0) {
+            disposisiSection.style.display = 'none';
+            return;
+        }
+
+        let disposisiHtml = '<div class="row">';
+        
+        disposisi.forEach((disp, index) => {
+            const statusBadgeClass = 
+                disp.status === 'Menunggu' ? 'bg-warning' :
+                disp.status === 'Dikerjakan' ? 'bg-info' :
+                disp.status === 'Selesai' ? 'bg-success' : 'bg-secondary';
+            
+            disposisiHtml += `
+                <div class="col-md-6 mb-3">
+                    <div class="card border">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">Disposisi ${index + 1}</h6>
+                                <span class="badge ${statusBadgeClass}">${disp.status}</span>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Tujuan:</small>
+                                <p class="mb-1 fw-semibold">${disp.tujuan_bagian?.nama_bagian || '-'}</p>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Instruksi:</small>
+                                <p class="mb-1">${disp.instruksi || '-'}</p>
+                            </div>
+                            ${disp.catatan ? `
+                                <div class="mb-2">
+                                    <small class="text-muted">Catatan:</small>
+                                    <p class="mb-1">${disp.catatan}</p>
+                                </div>
+                            ` : ''}
+                            <div class="text-muted">
+                                <small>Dibuat: ${disp.created_at ? new Date(disp.created_at).toLocaleString('id-ID') : '-'}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        disposisiHtml += '</div>';
+        disposisiContent.innerHTML = disposisiHtml;
+        disposisiSection.style.display = 'block';
     }
 
     /**
@@ -604,7 +539,6 @@
         console.log('Filter form ready - manual submit only');
     }
 
-    addSuratMasukHandlers();
     editSuratMasukHandlers();
     
     // Initialize simple filter handlers
