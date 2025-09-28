@@ -18,7 +18,7 @@ class BagianController extends Controller
     {
         $query = $request->get('search');
         
-        $bagian = Bagian::with(['kepalaBagian', 'users', 'suratMasuk', 'suratKeluar'])
+        $bagian = Bagian::with(['kepalaBagian', 'users'])
             ->when($query, function ($q) use ($query) {
                 $q->where('nama_bagian', 'like', "%{$query}%")
                   ->orWhere('kepala_bagian', 'like', "%{$query}%");

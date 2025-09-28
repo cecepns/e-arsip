@@ -90,7 +90,7 @@
 
     /**
      * ANCHOR: Show Detail Bagian Modal
-     * Show the detail bagian modal and populate with real data
+     * Show the detail bagian modal and populate with cached data
      * @param {number} bagianId - The id of the bagian to show the details of
      */
     const showDetailBagianModal = async (bagianId) => {
@@ -100,23 +100,29 @@
             const modalBody = modalBagianDetail.querySelector('.modal-body');
             modalBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
 
-            // Fetch detailed data from server
-            const response = await fetch(`/bagian/${bagianId}`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
+            // Find bagian data from cached data first
+            const bagian = window.bagianDataCurrentPage.find(item => item.id == bagianId);
+            
+            if (bagian) {
+                // Use cached data - no need for XHR request
+                populateDetailModal(bagian);
+            } else {
+                // Fallback: Fetch from server if not found in current page
+                const response = await fetch(`/bagian/${bagianId}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch bagian details');
                 }
-            });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch bagian details');
+                const data = await response.json();
+                populateDetailModal(data.bagian);
             }
-
-            const data = await response.json();
-            const bagian = data.bagian;
-
-            populateDetailModal(bagian);
 
         } catch (error) {
             console.error('Error fetching bagian details:', error);
