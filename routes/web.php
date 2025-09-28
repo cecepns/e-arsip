@@ -20,6 +20,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/bagian/{id}', [\App\Http\Controllers\BagianController::class, 'update'])->name('bagian.update');
     Route::delete('/bagian/{id}', [\App\Http\Controllers\BagianController::class, 'destroy'])->name('bagian.destroy');
     Route::get('/bagian/{id}', [\App\Http\Controllers\BagianController::class, 'show'])->name('bagian.show');
+    Route::get('/bagian/{id}/surat', [\App\Http\Controllers\BagianController::class, 'getSurat'])->name('bagian.surat');
 
     // ANCHOR: Manajemen User
     Route::get('/user', [UserController::class, 'index'])->name('user.index');

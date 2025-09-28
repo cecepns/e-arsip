@@ -146,7 +146,7 @@ class BagianController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            $bagian = Bagian::with(['users', 'suratMasuk', 'suratKeluar'])->findOrFail($id);
+            $bagian = Bagian::with(['kepalaBagian', 'users', 'suratMasuk', 'suratKeluar'])->findOrFail($id);
             
             if ($request->ajax()) {
                 return response()->json([
@@ -157,6 +157,90 @@ class BagianController extends Controller
             }
             
             return response()->json($bagian);
+            
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bagian tidak ditemukan.',
+                    'error_type' => 'not_found'
+                ], 404);
+            }
+            throw $e;
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                    'error_type' => 'general',
+                    'debug' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * ANCHOR: Get surat data for specific bagian.
+     */
+    public function getSurat(Request $request, $id)
+    {
+        try {
+            $bagian = Bagian::findOrFail($id);
+            
+            // Get surat masuk and surat keluar for this bagian
+            $suratMasuk = \App\Models\SuratMasuk::where('tujuan_bagian_id', $id)
+                ->select('id', 'nomor_surat', 'tanggal_surat', 'perihal', 'tujuan_bagian_id')
+                ->orderBy('tanggal_surat', 'desc')
+                ->limit(10)
+                ->get();
+                
+            $suratKeluar = \App\Models\SuratKeluar::where('pengirim_bagian_id', $id)
+                ->select('id', 'nomor_surat', 'tanggal_surat', 'perihal', 'pengirim_bagian_id')
+                ->orderBy('tanggal_surat', 'desc')
+                ->limit(10)
+                ->get();
+
+            // Combine and format data
+            $suratData = collect();
+            
+            // Add surat masuk
+            foreach ($suratMasuk as $surat) {
+                $suratData->push([
+                    'id' => $surat->id,
+                    'nomor_surat' => $surat->nomor_surat,
+                    'tanggal_surat' => $surat->tanggal_surat,
+                    'perihal' => $surat->perihal,
+                    'tujuan_bagian_id' => $surat->tujuan_bagian_id,
+                    'jenis' => 'masuk'
+                ]);
+            }
+            
+            // Add surat keluar
+            foreach ($suratKeluar as $surat) {
+                $suratData->push([
+                    'id' => $surat->id,
+                    'nomor_surat' => $surat->nomor_surat,
+                    'tanggal_surat' => $surat->tanggal_surat,
+                    'perihal' => $surat->perihal,
+                    'pengirim_bagian_id' => $surat->pengirim_bagian_id,
+                    'jenis' => 'keluar'
+                ]);
+            }
+            
+            // Sort by date descending
+            $suratData = $suratData->sortByDesc('tanggal_surat')->values();
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'surat' => $suratData,
+                    'timestamp' => now()->format('Y-m-d H:i:s')
+                ], 200);
+            }
+            
+            return response()->json($suratData);
             
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             if ($request->ajax()) {
