@@ -18,8 +18,18 @@ class Disposisi extends Model
         'sifat',
         'catatan',
         'status',
+        'tanggal_disposisi',
+        'batas_waktu',
         'user_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'tanggal_disposisi' => 'date',
+            'batas_waktu' => 'date',
+        ];
+    }
 
     /**
      * Get the surat masuk that owns the disposisi.

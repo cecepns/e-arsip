@@ -83,6 +83,8 @@ class SuratMasukController extends Controller
                 'disposisi.*.status' => 'required_with:disposisi|string|in:Menunggu,Dikerjakan,Selesai',
                 'disposisi.*.instruksi' => 'required_with:disposisi|string',
                 'disposisi.*.catatan' => 'nullable|string',
+                'disposisi.*.tanggal_disposisi' => 'nullable|date',
+                'disposisi.*.batas_waktu' => 'nullable|date|after_or_equal:disposisi.*.tanggal_disposisi',
             ], [
                 'nomor_surat.required' => 'Nomor surat wajib diisi.',
                 'nomor_surat.string' => 'Nomor surat harus berupa teks.',
@@ -120,6 +122,9 @@ class SuratMasukController extends Controller
                 'disposisi.*.instruksi.required_with' => 'Instruksi disposisi wajib diisi.',
                 'disposisi.*.instruksi.string' => 'Instruksi harus berupa teks.',
                 'disposisi.*.catatan.string' => 'Catatan harus berupa teks.',
+                'disposisi.*.tanggal_disposisi.date' => 'Format tanggal disposisi tidak valid.',
+                'disposisi.*.batas_waktu.date' => 'Format batas waktu tidak valid.',
+                'disposisi.*.batas_waktu.after_or_equal' => 'Batas waktu harus sama atau setelah tanggal disposisi.',
             ]);
 
             $validated['user_id'] = Auth::id();
@@ -144,6 +149,8 @@ class SuratMasukController extends Controller
                             'isi_instruksi' => $disposisiData['instruksi'],
                             'catatan' => $disposisiData['catatan'] ?? null,
                             'status' => $disposisiData['status'] ?? 'Menunggu',
+                            'tanggal_disposisi' => $disposisiData['tanggal_disposisi'] ?? null,
+                            'batas_waktu' => $disposisiData['batas_waktu'] ?? null,
                             'user_id' => Auth::id(),
                         ]);
                     }
@@ -290,6 +297,8 @@ class SuratMasukController extends Controller
                 'disposisi.*.status' => 'required_with:disposisi|string|in:Menunggu,Dikerjakan,Selesai',
                 'disposisi.*.instruksi' => 'required_with:disposisi|string',
                 'disposisi.*.catatan' => 'nullable|string',
+                'disposisi.*.tanggal_disposisi' => 'nullable|date',
+                'disposisi.*.batas_waktu' => 'nullable|date|after_or_equal:disposisi.*.tanggal_disposisi',
             ], [
                 'nomor_surat.required' => 'Nomor surat wajib diisi.',
                 'nomor_surat.string' => 'Nomor surat harus berupa teks.',
@@ -325,6 +334,9 @@ class SuratMasukController extends Controller
                 'disposisi.*.instruksi.required_with' => 'Instruksi disposisi wajib diisi.',
                 'disposisi.*.instruksi.string' => 'Instruksi harus berupa teks.',
                 'disposisi.*.catatan.string' => 'Catatan harus berupa teks.',
+                'disposisi.*.tanggal_disposisi.date' => 'Format tanggal disposisi tidak valid.',
+                'disposisi.*.batas_waktu.date' => 'Format batas waktu tidak valid.',
+                'disposisi.*.batas_waktu.after_or_equal' => 'Batas waktu harus sama atau setelah tanggal disposisi.',
             ]);
 
             // ANCHOR: Audit fields (updated_by) are automatically handled by Auditable trait
@@ -380,6 +392,8 @@ class SuratMasukController extends Controller
                                 'isi_instruksi' => $disposisiData['instruksi'],
                                 'catatan' => $disposisiData['catatan'] ?? null,
                                 'status' => $disposisiData['status'] ?? 'Menunggu',
+                                'tanggal_disposisi' => $disposisiData['tanggal_disposisi'] ?? null,
+                                'batas_waktu' => $disposisiData['batas_waktu'] ?? null,
                                 'user_id' => Auth::id(),
                             ]
                         );

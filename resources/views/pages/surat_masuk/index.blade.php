@@ -338,6 +338,14 @@
                                             <span class="fw-semibold text-dark">Instruksi:</span>
                                             <span class="text-dark">${disp.isi_instruksi || '-'}</span>
                                         </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Tanggal Disposisi:</span>
+                                            <span class="text-secondary">${disp.tanggal_disposisi ? new Date(disp.tanggal_disposisi).toLocaleDateString('id-ID') : '-'}</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Batas Waktu:</span>
+                                            <span class="text-secondary">${disp.batas_waktu ? new Date(disp.batas_waktu).toLocaleDateString('id-ID') : '-'}</span>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -673,6 +681,22 @@
                                 <textarea name="disposisi[${disposisiIndex}][catatan]" class="form-control disposisi-catatan" rows="2" placeholder="Catatan tambahan (opsional)"></textarea>
                                 <div class="invalid-feedback"></div>
                             </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Tanggal Disposisi</label>
+                                        <input type="date" name="disposisi[${disposisiIndex}][tanggal_disposisi]" class="form-control disposisi-tanggal-disposisi" placeholder="Tanggal disposisi">
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Batas Waktu</label>
+                                        <input type="date" name="disposisi[${disposisiIndex}][batas_waktu]" class="form-control disposisi-batas-waktu" placeholder="Batas waktu">
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -741,11 +765,15 @@
                 const statusSelect = item.querySelector('.disposisi-status');
                 const instruksiTextarea = item.querySelector('.disposisi-instruksi');
                 const catatanTextarea = item.querySelector('.disposisi-catatan');
+                const tanggalDisposisiInput = item.querySelector('.disposisi-tanggal-disposisi');
+                const batasWaktuInput = item.querySelector('.disposisi-batas-waktu');
                 
                 if (tujuanSelect) tujuanSelect.name = `disposisi[${index}][tujuan_bagian_id]`;
                 if (statusSelect) statusSelect.name = `disposisi[${index}][status]`;
                 if (instruksiTextarea) instruksiTextarea.name = `disposisi[${index}][instruksi]`;
                 if (catatanTextarea) catatanTextarea.name = `disposisi[${index}][catatan]`;
+                if (tanggalDisposisiInput) tanggalDisposisiInput.name = `disposisi[${index}][tanggal_disposisi]`;
+                if (batasWaktuInput) batasWaktuInput.name = `disposisi[${index}][batas_waktu]`;
             });
         }
 
@@ -768,6 +796,8 @@
                     const statusSelect = disposisiItem.querySelector('.disposisi-status');
                     const instruksiTextarea = disposisiItem.querySelector('.disposisi-instruksi');
                     const catatanTextarea = disposisiItem.querySelector('.disposisi-catatan');
+                    const tanggalDisposisiInput = disposisiItem.querySelector('.disposisi-tanggal-disposisi');
+                    const batasWaktuInput = disposisiItem.querySelector('.disposisi-batas-waktu');
                     
                     if (tujuanSelect && disposisi.tujuan_bagian_id) {
                         tujuanSelect.value = disposisi.tujuan_bagian_id;
@@ -780,6 +810,15 @@
                     }
                     if (catatanTextarea && disposisi.catatan) {
                         catatanTextarea.value = disposisi.catatan;
+                    }
+                    // Format tanggal to 'YYYY-MM-DD' for input[type="date"]
+                    if (tanggalDisposisiInput && disposisi.tanggal_disposisi) {
+                        const tanggal = new Date(disposisi.tanggal_disposisi);
+                        tanggalDisposisiInput.value = !isNaN(tanggal) ? tanggal.toISOString().slice(0, 10) : '';
+                    }
+                    if (batasWaktuInput && disposisi.batas_waktu) {
+                        const batas = new Date(disposisi.batas_waktu);
+                        batasWaktuInput.value = !isNaN(batas) ? batas.toISOString().slice(0, 10) : '';
                     }
                 }
             });
