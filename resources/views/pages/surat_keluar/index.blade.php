@@ -154,100 +154,8 @@
     const suratKeluarDataCurrentPage = {!! json_encode($suratKeluar->items()) !!};
 
 
-    /**
-     * ANCHOR: Edit Surat Keluar Handlers
-     * Handle the edit surat keluar form submission
-     */
-    const editSuratKeluarHandlers = () => {
-        const editSuratKeluarForm = document.getElementById('editSuratKeluarForm');
-        const editSuratKeluarSubmitBtn = document.getElementById('editSuratKeluarSubmitBtn');
-        const csrfToken = (
-            document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-            document.querySelector('input[name="_token"]')?.value
-        );
-        
-        editSuratKeluarForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            clearErrors(editSuratKeluarForm);
-            setLoadingState(true, editSuratKeluarSubmitBtn);
-
-            try {
-                const formData = new FormData(editSuratKeluarForm);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-                const response = await fetchWithRetry(editSuratKeluarForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                });
-                clearTimeout(timeoutId);
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response is not JSON');
-                }
-                const data = await response.json();
-                if (response.ok && data.success) {
-                    showToast(data.message, 'success', 5000);
-                    editSuratKeluarForm.reset();
-                    bootstrap.Modal.getInstance(document.getElementById('modalEditSuratKeluar')).hide();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    handleErrorResponse(data, editSuratKeluarForm);
-                }
-            } catch (error) {
-                handleErrorResponse(error, editSuratKeluarForm);
-            } finally {
-                setLoadingState(false, editSuratKeluarSubmitBtn);
-            }
-        });
-    }
 
 
-    /**
-     * ANCHOR: Show Edit Surat Keluar Modal
-     * Show the edit surat keluar modal
-     * @param {number} suratKeluarId - The id of the surat keluar to edit
-     */
-    const showEditSuratKeluarModal = (suratKeluarId) => {
-        const editSuratKeluarForm = document.getElementById('editSuratKeluarForm');
-        const idInput = document.getElementById('edit_surat_keluar_id');
-        const nomorSuratInput = document.getElementById('edit_nomor_surat');
-        const tanggalSuratInput = document.getElementById('edit_tanggal_surat');
-        const tanggalKeluarInput = document.getElementById('edit_tanggal_keluar');
-        const perihalInput = document.getElementById('edit_perihal');
-        const tujuanInput = document.getElementById('edit_tujuan');
-        const sifatSuratInput = document.getElementById('edit_sifat_surat');
-        const pengirimBagianInput = document.getElementById('edit_pengirim_bagian_id');
-        const ringkasanIsiInput = document.getElementById('edit_ringkasan_isi');
-        const keteranganInput = document.getElementById('edit_keterangan');
-
-        const suratKeluar = suratKeluarDataCurrentPage.find(surat => surat.id === suratKeluarId);
-        const { id, nomor_surat, tanggal_surat, tanggal_keluar, perihal, tujuan, sifat_surat, pengirim_bagian_id, ringkasan_isi, keterangan } = suratKeluar;
-
-        const formatDateForInput = (isoDate) => {
-        if (!isoDate) return '';
-        return new Date(isoDate).toISOString().split('T')[0];
-    };
-
-        idInput.value = id;
-        nomorSuratInput.value = nomor_surat || '';
-        tanggalSuratInput.value = formatDateForInput(tanggal_surat) || '';
-        tanggalKeluarInput.value = formatDateForInput(tanggal_keluar) || '';
-        perihalInput.value = perihal || '';
-        tujuanInput.value = tujuan || '';
-        sifatSuratInput.value = sifat_surat || '';
-        pengirimBagianInput.value = pengirim_bagian_id || '';
-        ringkasanIsiInput.value = ringkasan_isi || '';
-        keteranganInput.value = keterangan || '';
-
-        editSuratKeluarForm.action = `/surat-keluar/${id}`;
-    }
 
 
     /**
@@ -453,7 +361,5 @@
 
     // Initialize simple filter handlers
     simpleFilterHandlers();
-
-    editSuratKeluarHandlers();
 </script>
 @endpush
