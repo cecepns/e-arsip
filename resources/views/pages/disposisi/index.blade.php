@@ -178,13 +178,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ANCHOR: Auto-submit filter on change
-    const filterSelects = document.querySelectorAll('#filterForm select');
-    filterSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            filterForm.submit();
-        });
-    });
 
     /**
      * ANCHOR: Show Detail Disposisi Modal

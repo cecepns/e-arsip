@@ -22,6 +22,8 @@ class Disposisi extends Model
         'tanggal_disposisi',
         'batas_waktu',
         'user_id',
+        'created_by',
+        'updated_by',
     ];
 
     protected function casts(): array

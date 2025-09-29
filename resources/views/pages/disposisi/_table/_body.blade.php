@@ -2,9 +2,9 @@
     @forelse($disposisi as $index => $item)
     <tr>
         <td class="text-center">{{ $disposisi->firstItem() + $index }}</td>
-        <td class="fw-bold text-primary">{{ $item->suratMasuk->nomor_surat ?? '-' }}</td>
-        <td>{{ $item->suratMasuk->tanggal_surat ? $item->suratMasuk->tanggal_surat->format('d-m-Y') : '-' }}</td>
-        <td>{{ $item->suratMasuk->perihal ?? '-' }}</td>
+        <td class="fw-bold text-primary">{{ $item->suratMasuk ? $item->suratMasuk->nomor_surat : '-' }}</td>
+        <td>{{ $item->suratMasuk && $item->suratMasuk->tanggal_surat ? $item->suratMasuk->tanggal_surat->format('d-m-Y') : '-' }}</td>
+        <td>{{ $item->suratMasuk ? $item->suratMasuk->perihal : '-' }}</td>
         <td>
             @if($item->suratMasuk && $item->suratMasuk->tujuanBagian)
                 <div class="d-flex flex-column">
@@ -85,7 +85,7 @@
                     <i class="fas fa-edit"></i>
                 </button>
                 <button class="action-btn delete-btn" title="Hapus" 
-                        onclick="deleteDisposisi({{ $item->id }}, '{{ $item->suratMasuk->nomor_surat ?? 'N/A' }}')">
+                        onclick="deleteDisposisi({{ $item->id }}, '{{ $item->suratMasuk ? $item->suratMasuk->nomor_surat : 'N/A' }}')">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
