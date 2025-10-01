@@ -63,6 +63,12 @@
             </a>
         </div>
         <div class="nav-item">
+            <a href="{{ route('laporan.index') }}" class="nav-link{{ request()->routeIs('laporan.*') ? ' active' : '' }}">
+                <i class="fas fa-chart-bar"></i>
+                <span>Laporan</span>
+            </a>
+        </div>
+        <div class="nav-item">
             <a href="{{ route('settings.index') }}" class="nav-link{{ request()->routeIs('settings.*') ? ' active' : '' }}">
                 <i class="fas fa-cog"></i>
                 <span>Pengaturan</span>

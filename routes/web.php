@@ -58,6 +58,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/disposisi/{id}', [\App\Http\Controllers\DisposisiController::class, 'update'])->name('disposisi.update');
     Route::delete('/disposisi/{id}', [\App\Http\Controllers\DisposisiController::class, 'destroy'])->name('disposisi.destroy');
 
+    // ANCHOR: Laporan
+    Route::get('/laporan', [\App\Http\Controllers\LaporanController::class, 'index'])->name('laporan.index');
+
     // ANCHOR: Pengaturan Instansi (Admin Only)
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');

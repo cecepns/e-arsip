@@ -153,11 +153,6 @@
 <script>
     const suratKeluarDataCurrentPage = {!! json_encode($suratKeluar->items()) !!};
 
-
-
-
-
-
     /**
      * ANCHOR: Show Detail Surat Keluar Modal
      * Show the detail surat keluar modal

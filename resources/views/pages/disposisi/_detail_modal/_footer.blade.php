@@ -1,3 +1,3 @@
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
     Tutup
 </button>
