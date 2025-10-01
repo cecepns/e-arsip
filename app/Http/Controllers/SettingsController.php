@@ -27,7 +27,7 @@ class SettingsController extends Controller
     }
 
     /**
-     * Update institutional settings.
+     * ANCHOR: Update institutional settings.
      */
     public function update(Request $request)
     {
@@ -47,8 +47,10 @@ class SettingsController extends Controller
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ], [
                 'nama_instansi.required' => 'Nama instansi wajib diisi.',
+                'nama_instansi.string' => 'Nama instansi harus berupa teks.',
                 'nama_instansi.max' => 'Nama instansi maksimal 255 karakter.',
-                'alamat.required' => 'Alamat wajib diisi.',
+                'alamat.required' => 'Alamat instansi wajib diisi.',
+                'alamat.string' => 'Alamat harus berupa teks.',
                 'alamat.max' => 'Alamat maksimal 500 karakter.',
                 'logo.image' => 'Logo harus berupa file gambar.',
                 'logo.mimes' => 'Logo harus berupa file JPEG, PNG, JPG, atau GIF.',
@@ -56,12 +58,13 @@ class SettingsController extends Controller
             ]);
 
             $pengaturan = Pengaturan::getInstance();
+            $oldLogoPath = $pengaturan->logo;
 
             // Handle logo upload
             if ($request->hasFile('logo')) {
                 // Delete old logo if exists
-                if ($pengaturan->logo && Storage::disk('public')->exists($pengaturan->logo)) {
-                    Storage::disk('public')->delete($pengaturan->logo);
+                if ($oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
+                    Storage::disk('public')->delete($oldLogoPath);
                 }
 
                 // Store new logo
@@ -74,18 +77,27 @@ class SettingsController extends Controller
 
             $pengaturan->update($validated);
 
-            return response()->json([
+            // Prepare response data
+            $responseData = [
                 'success' => true,
-                'message' => 'Pengaturan berhasil diperbarui.',
+                'message' => 'Pengaturan instansi berhasil diperbarui.',
+                'pengaturan' => [
+                    'nama_instansi' => $pengaturan->nama_instansi,
+                    'alamat' => $pengaturan->alamat,
+                    'logo' => $pengaturan->logo,
+                ],
                 'timestamp' => now()->format('Y-m-d H:i:s')
-            ]);
+            ];
+
+            // Add logo URL if logo exists
+            if ($pengaturan->logo) {
+                $responseData['logo_url'] = Storage::url($pengaturan->logo);
+            }
+
+            return response()->json($responseData, 200);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error_type' => 'general',
-                'message' => 'Terjadi kesalahan saat memperbarui pengaturan.'
-            ], 500);
+            return $this->handleAjaxError($request, $e);
         }
     }
 }
