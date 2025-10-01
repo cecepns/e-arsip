@@ -45,6 +45,7 @@ class SettingsController extends Controller
                 'nama_instansi' => 'required|string|max:255',
                 'alamat' => 'required|string|max:500',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'hapus_logo' => 'nullable|boolean',
             ], [
                 'nama_instansi.required' => 'Nama instansi wajib diisi.',
                 'nama_instansi.string' => 'Nama instansi harus berupa teks.',
@@ -55,23 +56,28 @@ class SettingsController extends Controller
                 'logo.image' => 'Logo harus berupa file gambar.',
                 'logo.mimes' => 'Logo harus berupa file JPEG, PNG, JPG, atau GIF.',
                 'logo.max' => 'Ukuran logo maksimal 2MB.',
+                'hapus_logo.boolean' => 'Hapus logo harus berupa boolean.',
             ]);
 
             $pengaturan = Pengaturan::getInstance();
             $oldLogoPath = $pengaturan->logo;
 
-            // Handle logo upload
-            if ($request->hasFile('logo')) {
-                // Delete old logo if exists
-                if ($oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
-                    Storage::disk('public')->delete($oldLogoPath);
-                }
+            // ANCHOR: Handle logo upload and deletion logic
+            $hapusLogo = $request->boolean('hapus_logo');
+            $hasNewLogo = $request->hasFile('logo');
 
+            // Delete old logo if needed (either uploading new or explicit delete)
+            if (($hasNewLogo || $hapusLogo) && $oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
+                Storage::disk('public')->delete($oldLogoPath);
+            }
+
+            if ($hasNewLogo) {
                 // Store new logo
-                $logoPath = $request->file('logo')->store('logos', 'public');
-                $validated['logo'] = $logoPath;
+                $validated['logo'] = $request->file('logo')->store('logos', 'public');
+            } elseif ($hapusLogo) {
+                $validated['logo'] = null;
             } else {
-                // Keep existing logo if no new file uploaded
+                // Keep existing logo if no new file uploaded and not deleting
                 unset($validated['logo']);
             }
 

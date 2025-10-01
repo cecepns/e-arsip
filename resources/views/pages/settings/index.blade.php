@@ -17,17 +17,18 @@
         <form id="settingsForm" action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
+            <input type="hidden" id="hapus_logo" name="hapus_logo" value="0">
             <div class="row">
                 <!-- ANCHOR: Logo Section -->
                 <div class="col-md-4">
                     <div class="logo-section">
-                        <label class="form-label fw-bold">Logo Instansi</label>
+                        <label class="form-label fw-bold mb-4">Logo Instansi</label>
                         <div class="logo-upload-area">
-                            <div class="logo-preview mb-2" id="logoPreview">
+                            <div class="logo-preview mb-3 d-flex justify-content-center" id="logoPreview">
                                 @if($pengaturan->logo)
-                                    <img src="{{ Storage::url($pengaturan->logo) }}" alt="Logo Instansi" class="current-logo w-100">
+                                    <img src="{{ Storage::url($pengaturan->logo) }}" style="max-width: 250px;" alt="Logo Instansi" class="current-logo w-100">
                                 @else
-                                    <div class="p-5 text-center border rounded-3">
+                                    <div class="p-5 text-center border rounded-3" style="max-width: 250px;">
                                         Belum ada logo
                                     </div>
                                 @endif
@@ -85,12 +86,9 @@
             <!-- ANCHOR: Form Actions -->
             <div class="row mt-4">
                 <div class="col-12">
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-secondary" id="resetForm">
-                            Reset
-                        </button>
+                    <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary" id="saveSettings">
-                            Simpan Pengaturan
+                            Simpan
                         </button>
                     </div>
                 </div>
@@ -109,17 +107,20 @@
         'logo' => $pengaturan->logo
     ]) !!};
 
+    
     /**
      * ANCHOR: Remove Logo Handler
      * Remove logo preview and reset input
      */
     const removeLogo = () => {
+        const hapusLogoInput = document.getElementById('hapus_logo');
         const logoInput = document.getElementById('logo');
         const logoPreview = document.getElementById('logoPreview');
         
+        hapusLogoInput.value = '1';
         logoInput.value = '';
         logoPreview.innerHTML = `
-            <div class="p-5 text-center border rounded-3">
+            <div class="p-5 text-center border rounded-3" style="max-width: 250px;">
                 Belum ada logo
             </div>
         `;
@@ -135,6 +136,7 @@
      * Handle logo file input change and show preview
      */
     const handleLogoPreview = () => {
+        const hapusLogoInput = document.getElementById('hapus_logo');
         const logoInput = document.getElementById('logo');
         const logoPreview = document.getElementById('logoPreview');
         
@@ -146,6 +148,7 @@
             const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
             if (!validTypes.includes(file.type)) {
                 showToast('Format file tidak valid. Gunakan JPEG, PNG, JPG, atau GIF.', 'warning');
+                hapusLogoInput.value = '0';
                 logoInput.value = '';
                 return;
             }
@@ -154,14 +157,15 @@
             const maxSize = 2 * 1024 * 1024;
             if (file.size > maxSize) {
                 showToast('Ukuran file terlalu besar. Maksimal 2MB.', 'warning');
+                hapusLogoInput.value = '0';
                 logoInput.value = '';
                 return;
             }
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                logoPreview.innerHTML = `<img src="${e.target.result}" alt="Logo Preview" class="current-logo w-100">`;
-                
+                logoPreview.innerHTML = `<img src="${e.target.result}" style="max-width: 250px;" alt="Logo Preview" class="current-logo w-100">`;
+                hapusLogoInput.value = '0';
                 // Show remove button if not exists
                 if (!document.getElementById('removeLogo')) {
                     const removeBtn = document.createElement('button');
@@ -186,29 +190,6 @@
     }
 
     /**
-     * ANCHOR: Reset Form Handler
-     * Reset form to original cached values
-     */
-    const handleResetForm = () => {
-        const resetBtn = document.getElementById('resetForm');
-        const settingsForm = document.getElementById('settingsForm');
-        
-        resetBtn.addEventListener('click', function() {
-            if (confirm('Apakah Anda yakin ingin mereset form? Semua perubahan yang belum disimpan akan hilang.')) {
-                settingsForm.reset();
-                removeLogo();
-                
-                // Reset to original cached values
-                document.getElementById('nama_instansi').value = window.pengaturanData.nama_instansi || '';
-                document.getElementById('alamat').value = window.pengaturanData.alamat || '';
-                
-                // Clear validation states
-                clearErrors(settingsForm);
-            }
-        });
-    }
-
-    /**
      * ANCHOR: Settings Form Submission Handler
      * Handle form submission with retry and timeout
      */
@@ -230,19 +211,7 @@
             setLoadingState(true, saveBtn);
 
             try {
-                // Prepare form data
                 const formData = new FormData(settingsForm);
-                
-                // Debug: Log form data
-                console.log('Form Data:', {
-                    nama_instansi: formData.get('nama_instansi'),
-                    alamat: formData.get('alamat'),
-                    logo: formData.get('logo'),
-                    _method: formData.get('_method'),
-                    _token: formData.get('_token'),
-                });
-                
-                // Fetch with retry and timeout
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000);
                 
@@ -273,7 +242,7 @@
                     // Update logo preview if new logo was uploaded
                     if (data.logo_url) {
                         const logoPreview = document.getElementById('logoPreview');
-                        logoPreview.innerHTML = `<img src="${data.logo_url}" alt="Logo Instansi" class="current-logo w-100">`;
+                        logoPreview.innerHTML = `<img src="${data.logo_url}" style="max-width: 250px;" alt="Logo Instansi" class="current-logo w-100">`;
                         
                         // Update cached data
                         window.pengaturanData.logo = data.logo_url;
@@ -282,11 +251,6 @@
                     // Update cached data
                     window.pengaturanData.nama_instansi = formData.get('nama_instansi');
                     window.pengaturanData.alamat = formData.get('alamat');
-
-                    // Optional: Reload after delay to refresh header logo
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
                 } else {
                     // Handle error response
                     handleErrorResponse(data, settingsForm);
@@ -304,7 +268,6 @@
     // ANCHOR: Initialize all handlers when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
         handleLogoPreview();
-        handleResetForm();
         handleSettingsFormSubmit();
     });
 </script>
