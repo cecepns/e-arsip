@@ -44,6 +44,8 @@ class SettingsController extends Controller
             $validated = $request->validate([
                 'nama_instansi' => 'required|string|max:255',
                 'alamat' => 'required|string|max:500',
+                'no_telp' => 'nullable|string|max:20',
+                'email' => 'nullable|email|max:100',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'hapus_logo' => 'nullable|boolean',
             ], [
@@ -53,6 +55,10 @@ class SettingsController extends Controller
                 'alamat.required' => 'Alamat instansi wajib diisi.',
                 'alamat.string' => 'Alamat harus berupa teks.',
                 'alamat.max' => 'Alamat maksimal 500 karakter.',
+                'no_telp.string' => 'Nomor telepon harus berupa teks.',
+                'no_telp.max' => 'Nomor telepon maksimal 20 karakter.',
+                'email.email' => 'Email harus berupa alamat email yang valid.',
+                'email.max' => 'Email maksimal 100 karakter.',
                 'logo.image' => 'Logo harus berupa file gambar.',
                 'logo.mimes' => 'Logo harus berupa file JPEG, PNG, JPG, atau GIF.',
                 'logo.max' => 'Ukuran logo maksimal 2MB.',
@@ -90,6 +96,8 @@ class SettingsController extends Controller
                 'pengaturan' => [
                     'nama_instansi' => $pengaturan->nama_instansi,
                     'alamat' => $pengaturan->alamat,
+                    'no_telp' => $pengaturan->no_telp,
+                    'email' => $pengaturan->email,
                     'logo' => $pengaturan->logo,
                 ],
                 'timestamp' => now()->format('Y-m-d H:i:s')

@@ -20,6 +20,8 @@ class PengaturanSeeder extends Seeder
             [
                 'nama_instansi' => 'Pemerintah Kabupaten/Kota',
                 'alamat' => 'Jl. Raya Pemerintahan No. 1, Kota Administratif, Provinsi',
+                'no_telp' => '08123456789',
+                'email' => 'info@pemkab.go.id',
                 'logo' => '', // Empty initially, can be uploaded later
                 'nama_pejabat' => 'Dr. Ahmad Wijaya, S.H., M.H.',
                 'jabatan_pejabat' => 'Kepala Dinas',

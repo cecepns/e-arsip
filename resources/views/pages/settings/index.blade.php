@@ -79,6 +79,34 @@
                                         required>{{ old('alamat', $pengaturan->alamat) }}</textarea>
                             <div class="invalid-feedback"></div>
                         </div>
+
+                        <div class="mb-3">
+                            <label for="no_telp" class="form-label fw-bold">
+                                Nomor Telepon
+                            </label>
+                            <input type="text" 
+                                    class="form-control" 
+                                    id="no_telp" 
+                                    name="no_telp" 
+                                    value="{{ old('no_telp', $pengaturan->no_telp) }}"
+                                    placeholder="Masukkan nomor telepon instansi"
+                                    maxlength="20">
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-bold">
+                                Email Instansi
+                            </label>
+                            <input type="email" 
+                                    class="form-control" 
+                                    id="email" 
+                                    name="email" 
+                                    value="{{ old('email', $pengaturan->email) }}"
+                                    placeholder="Masukkan alamat email instansi"
+                                    maxlength="100">
+                            <div class="invalid-feedback"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -104,6 +132,8 @@
     window.pengaturanData = {!! json_encode([
         'nama_instansi' => $pengaturan->nama_instansi,
         'alamat' => $pengaturan->alamat,
+        'no_telp' => $pengaturan->no_telp,
+        'email' => $pengaturan->email,
         'logo' => $pengaturan->logo
     ]) !!};
 
@@ -251,6 +281,8 @@
                     // Update cached data
                     window.pengaturanData.nama_instansi = formData.get('nama_instansi');
                     window.pengaturanData.alamat = formData.get('alamat');
+                    window.pengaturanData.no_telp = formData.get('no_telp');
+                    window.pengaturanData.email = formData.get('email');
                 } else {
                     // Handle error response
                     handleErrorResponse(data, settingsForm);

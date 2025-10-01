@@ -14,6 +14,8 @@ class Pengaturan extends Model
     protected $fillable = [
         'nama_instansi',
         'alamat',
+        'no_telp',
+        'email',
         'logo',
         'nama_pejabat',
         'jabatan_pejabat',
@@ -27,6 +29,8 @@ class Pengaturan extends Model
         return static::first() ?? static::create([
             'nama_instansi' => 'Nama Instansi',
             'alamat' => '',
+            'no_telp' => '',
+            'email' => '',
             'logo' => '',
             'nama_pejabat' => '',
             'jabatan_pejabat' => '',
