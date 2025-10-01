@@ -17,7 +17,7 @@
     
     <div class="user-profile">
         <div class="user-avatar">
-            <img src="https://placehold.co/600x400?text={{ substr(Auth::user()->nama, 0, 1) }}" alt="{{ Auth::user()->nama }}" class="rounded-circle">
+            <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->nama }}" class="rounded-circle">
         </div>
         <div class="user-info">
             <h6>{{ Auth::user()->nama }}</h6>
@@ -166,11 +166,12 @@
             <div class="dropdown user-dropdown">
                 <button class="btn" type="button" data-bs-toggle="dropdown">
                     <img 
-                        src="https://placehold.co/40x40?text={{ substr(Auth::user()->nama, 0, 1) }}" 
+                        src="{{ Auth::user()->avatar_url }}" 
                         alt="{{ Auth::user()->nama }}" 
                         class="rounded-circle me-2" 
                         width="32" 
                         height="32"
+                        style="object-fit: cover;"
                     >
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">

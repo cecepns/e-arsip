@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'role',
         'bagian_id',
+        'foto',
     ];
 
     /**
@@ -113,5 +114,31 @@ class User extends Authenticatable
     private function generateRandomPassword(): string
     {
         return \Illuminate\Support\Str::random(12);
+    }
+
+    /**
+     * Get the profile photo URL.
+     */
+    public function getFotoUrlAttribute(): ?string
+    {
+        if (!$this->foto) {
+            return null;
+        }
+        
+        return \Illuminate\Support\Facades\Storage::url($this->foto);
+    }
+
+    /**
+     * Get the profile photo URL or default avatar.
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->foto) {
+            return $this->foto_url;
+        }
+        
+        // Generate default avatar with user's initial
+        $initial = strtoupper(substr($this->nama, 0, 1));
+        return "https://placehold.co/150x150?text={$initial}";
     }
 }

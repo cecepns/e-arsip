@@ -8,6 +8,7 @@ use App\Traits\AjaxErrorHandler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
@@ -28,7 +29,7 @@ class ProfileController extends Controller
 
     /**
      * ANCHOR: Update Profile Information
-     * Update user's profile information (nama, email, phone)
+     * Update user's profile information (nama, email, phone, foto)
      */
     public function updateProfile(Request $request)
     {
@@ -39,6 +40,8 @@ class ProfileController extends Controller
                 'nama' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
                 'phone' => ['nullable', 'string', 'max:20'],
+                'foto' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+                'hapus_foto' => ['nullable', 'boolean'],
             ], [
                 'nama.required' => 'Nama lengkap wajib diisi.',
                 'nama.string' => 'Nama lengkap harus berupa teks.',
@@ -49,19 +52,53 @@ class ProfileController extends Controller
                 'email.unique' => 'Email sudah digunakan oleh user lain.',
                 'phone.string' => 'Nomor telepon harus berupa teks.',
                 'phone.max' => 'Nomor telepon maksimal 20 karakter.',
+                'foto.image' => 'Foto harus berupa file gambar.',
+                'foto.mimes' => 'Foto harus berupa file JPEG, PNG, JPG, atau GIF.',
+                'foto.max' => 'Ukuran foto maksimal 2MB.',
+                'hapus_foto.boolean' => 'Hapus foto harus berupa boolean.',
             ]);
+
+            $oldFotoPath = $user->foto;
+
+            // ANCHOR: Handle foto upload and deletion logic
+            $hapusFoto = $request->boolean('hapus_foto');
+            $hasNewFoto = $request->hasFile('foto');
+
+            // Delete old foto if needed (either uploading new or explicit delete)
+            if (($hasNewFoto || $hapusFoto) && $oldFotoPath && Storage::disk('public')->exists($oldFotoPath)) {
+                Storage::disk('public')->delete($oldFotoPath);
+            }
+
+            if ($hasNewFoto) {
+                // Store new foto
+                $validated['foto'] = $request->file('foto')->store('profile-photos', 'public');
+            } elseif ($hapusFoto) {
+                $validated['foto'] = null;
+            } else {
+                // Keep existing foto if no new file uploaded and not deleting
+                unset($validated['foto']);
+            }
 
             $user->update([
                 'nama' => $validated['nama'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
+                'foto' => array_key_exists('foto', $validated) ? $validated['foto'] : $user->foto,
             ]);
 
-            return response()->json([
+            // Prepare response data
+            $responseData = [
                 'success' => true,
                 'message' => 'Profile berhasil diperbarui.',
                 'timestamp' => now()->format('Y-m-d H:i:s')
-            ]);
+            ];
+
+            // Add foto URL if foto exists
+            if ($user->fresh()->foto) {
+                $responseData['foto_url'] = Storage::url($user->fresh()->foto);
+            }
+
+            return response()->json($responseData);
 
         } catch (\Exception $e) {
             return $this->handleAjaxError($request, $e);

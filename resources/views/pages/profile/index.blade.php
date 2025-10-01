@@ -8,18 +8,41 @@
     ])
 </div>
 
-<div class="row">
+<div class="row">    
     <!-- Profile Information Card -->
     <div class="col-lg-8">
         <div class="card mb-4">
-            <div class="card-header">
+            <div class="card-header py-3">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-user me-2"></i>
                     Informasi Profile
                 </h5>
             </div>
+            <div class="card-body text-center">
+                <div class="profile-photo-container mb-3 mt-3">
+                    <img 
+                        id="profilePhotoPreview" 
+                        src="{{ $user->avatar_url }}" 
+                        alt="{{ $user->nama }}" 
+                        class="rounded-circle profile-photo"
+                        style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #dee2e6;"
+                    >
+                </div>
+                
+                <div class="mb-3">
+                    <button type="button" id="btnUploadFoto" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('foto').click()">
+                        <i class="fas fa-upload me-1"></i> Upload Foto
+                    </button>
+                    <button type="button" id="btnHapusFoto" class="btn btn-outline-danger btn-sm ms-2" onclick="removePhoto()">
+                        <i class="fas fa-trash me-1"></i> Hapus Foto
+                    </button>
+                </div>
+                
+                <div class="form-text">
+                    Format: JPEG, PNG, JPG, GIF. Maksimal 2MB
+                </div>
+            </div>
             <div class="card-body">
-                <form id="profileForm" action="{{ route('profile.update') }}" method="POST">
+                <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     
@@ -71,9 +94,13 @@
                     </div>
                     @endif
                     
+                    <!-- Hidden fields for photo -->
+                    <input type="file" name="foto" id="foto" style="display: none;" accept="image/jpeg,image/png,image/jpg,image/gif">
+                    <input type="hidden" id="hapus_foto" name="hapus_foto" value="0">
+                    
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary" id="profileSubmitBtn">
-                            Simpan Perubahan
+                            Simpan
                         </button>
                     </div>
                 </form>
@@ -84,9 +111,8 @@
     <!-- Password Change Card -->
     <div class="col-lg-4">
         <div class="card mb-4">
-            <div class="card-header">
+            <div class="card-header py-3">
                 <h5 class="card-title mb-0">
-                    <i class="fas fa-lock me-2"></i>
                     Ubah Password
                 </h5>
             </div>
@@ -170,34 +196,6 @@
                 </form>
             </div>
         </div>
-        
-        <!-- Account Information Card -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Informasi Akun
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label text-muted">Tanggal Terdaftar</label>
-                    <p class="mb-0">{{ $user->created_at->format('d F Y, H:i') }}</p>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label text-muted">Terakhir Diperbarui</label>
-                    <p class="mb-0">{{ $user->updated_at->format('d F Y, H:i') }}</p>
-                </div>
-                
-                <div class="mb-0">
-                    <label class="form-label text-muted">Status Akun</label>
-                    <p class="mb-0">
-                        <span class="badge bg-success">Aktif</span>
-                    </p>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 @endsection
@@ -226,6 +224,51 @@
         }
     }
 
+    function updatePhotoButtons() {
+        const hasFotoDB = {{ $user->foto ? 'true' : 'false' }};
+        const fotoInput = document.getElementById('foto');
+        const hasFotoInput = fotoInput && fotoInput.files.length > 0;
+        const hapusFoto = document.getElementById('hapus_foto').value === '1';
+        const btnUpload = document.getElementById('btnUploadFoto');
+        const btnHapus = document.getElementById('btnHapusFoto');
+        // Kondisi profile kosong: tidak ada di DB dan input kosong
+        if ((!hasFotoDB && !hasFotoInput) || hapusFoto) {
+            btnUpload.style.display = '';
+            btnHapus.style.display = 'none';
+        } else {
+            btnUpload.style.display = 'none';
+            btnHapus.style.display = '';
+        }
+    }
+
+    /**
+     * ANCHOR: Preview Profile Photo
+     * Preview the selected photo before upload (manual save)
+     */
+    const previewProfilePhoto = (input) => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profilePhotoPreview').src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+            document.getElementById('hapus_foto').value = '0';
+            updatePhotoButtons();
+        }
+    }
+
+    /**
+     * ANCHOR: Remove Photo
+     * Remove the current profile photo (mark for deletion, not immediate)
+     */
+    const removePhoto = () => {
+        document.getElementById('hapus_foto').value = '1';
+        const initial = '{{ strtoupper(substr($user->nama, 0, 1)) }}';
+        document.getElementById('profilePhotoPreview').src = `https://placehold.co/150x150?text=${initial}`;
+        document.getElementById('foto').value = '';
+        updatePhotoButtons();
+    }
+
     /**
      * ANCHOR: Profile Form Handler
      * Handle the profile form submission
@@ -247,7 +290,7 @@
                 const formData = new FormData(profileForm);
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000);
-                const response = await fetchWithRetry(profileForm.action, {
+                const response = await fetch(profileForm.action, {
                     method: 'POST',
                     body: formData,
                     signal: controller.signal,
@@ -264,6 +307,10 @@
                 const data = await response.json();
                 if (response.ok && data.success) {
                     showToast(data.message, 'success', 5000);
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 } else {
                     handleErrorResponse(data, profileForm);
                 }
@@ -329,6 +376,15 @@
     document.addEventListener('DOMContentLoaded', function() {
         profileFormHandler();
         passwordFormHandler();
+        
+        // Initialize photo upload handler
+        const fotoInput = document.getElementById('foto');
+        if (fotoInput) {
+            fotoInput.addEventListener('change', function() {
+                previewProfilePhoto(this);
+            });
+        }
+        updatePhotoButtons(); // Initial call to set button visibility
     });
 </script>
 @endpush
