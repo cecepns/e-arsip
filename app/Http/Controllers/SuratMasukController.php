@@ -40,8 +40,7 @@ class SuratMasukController extends Controller
             ->when($tanggal, function ($q) use ($tanggal) {
                 $q->whereDate('tanggal_surat', $tanggal);
             })
-            ->when(Auth::user() && Auth::user()->role === 'staf', function ($q) {
-                // ANCHOR: Staf hanya bisa melihat surat yang ditujukan ke bagiannya
+            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
                 $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
             })
             ->orderBy('created_at', 'desc')
@@ -66,6 +65,12 @@ class SuratMasukController extends Controller
     public function store(Request $request)
     {
         try {
+            // ANCHOR: Set tujuan_bagian_id untuk Staff otomatis
+            $user = Auth::user();
+            if ($user && $user->role === 'Staf') {
+                $request->merge(['tujuan_bagian_id' => $user->bagian_id]);
+            }
+
             $validated = $request->validate([
                 'nomor_surat' => 'required|string|max:100|unique:surat_masuk,nomor_surat',
                 'tanggal_surat' => 'required|date',
@@ -232,7 +237,7 @@ class SuratMasukController extends Controller
 
             // ANCHOR: Cek hak akses untuk staf
             $user = Auth::user();
-            if ($user && $user->role === 'staf' && $suratMasuk->tujuan_bagian_id !== $user->bagian_id) {
+            if ($user && $user->role === 'Staf' && $suratMasuk->tujuan_bagian_id !== $user->bagian_id) {
                 if ($request->ajax()) {
                     return response()->json([
                         'success' => false,
@@ -270,7 +275,7 @@ class SuratMasukController extends Controller
             
             // ANCHOR: Cek hak akses untuk staf
             $user = Auth::user();
-            if ($user && $user->role === 'staf' && $suratMasuk->tujuan_bagian_id !== $user->bagian_id) {
+            if ($user && $user->role === 'Staf' && $suratMasuk->tujuan_bagian_id !== $user->bagian_id) {
                 if ($request->ajax()) {
                     return response()->json([
                         'success' => false,
@@ -278,6 +283,11 @@ class SuratMasukController extends Controller
                     ], 403);
                 }
                 abort(403, 'Anda tidak memiliki akses untuk mengedit surat ini.');
+            }
+
+            // ANCHOR: Set tujuan_bagian_id untuk Staff otomatis
+            if ($user && $user->role === 'Staf') {
+                $request->merge(['tujuan_bagian_id' => $user->bagian_id]);
             }
 
             $validated = $request->validate([
@@ -437,7 +447,7 @@ class SuratMasukController extends Controller
             
             // ANCHOR: Cek hak akses untuk staf
             $user = Auth::user();
-            if ($user && $user->role === 'staf' && $suratMasuk->tujuan_bagian_id !== $user->bagian_id) {
+            if ($user && $user->role === 'Staf' && $suratMasuk->tujuan_bagian_id !== $user->bagian_id) {
                 if ($request->ajax()) {
                     return response()->json([
                         'success' => false,

@@ -50,6 +50,7 @@
                     <div class="invalid-feedback"></div>
                 </div>
                 
+                @if(Auth::user()->role === 'Admin')
                 <div class="mb-3">
                     <label for="edit_tujuan_bagian_id" class="form-label">Bagian Tujuan</label>
                     <select name="tujuan_bagian_id" class="form-select" id="edit_tujuan_bagian_id" required>
@@ -60,6 +61,18 @@
                     </select>
                     <div class="invalid-feedback"></div>
                 </div>
+                @else
+                {{-- Hidden input untuk Staff - auto-set ke bagian mereka --}}
+                <input type="hidden" name="tujuan_bagian_id" value="{{ Auth::user()->bagian_id }}">
+                <div class="mb-3">
+                    <label class="form-label">Bagian Tujuan</label>
+                    <div class="form-control-plaintext bg-light p-2 rounded">
+                        <i class="fas fa-building me-2"></i>
+                        <span id="edit_bagian_display">{{ Auth::user()->bagian->nama_bagian ?? 'Bagian tidak ditemukan' }}</span>
+                    </div>
+                    <div class="form-text">Surat akan otomatis ditujukan ke bagian Anda</div>
+                </div>
+                @endif
             </div>
             
             <div class="col-md-6">

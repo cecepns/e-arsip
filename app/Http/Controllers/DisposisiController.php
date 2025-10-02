@@ -55,7 +55,7 @@ class DisposisiController extends Controller
                     $subQ->where('sifat_surat', $sifatSurat);
                 });
             })
-            ->when(Auth::user() && Auth::user()->role === 'staf', function ($q) {
+            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
                 // ANCHOR: Staf hanya bisa melihat disposisi yang ditujukan ke bagiannya
                 $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
             })

@@ -481,11 +481,12 @@
         const pengirimInput = document.getElementById('edit_pengirim');
         const sifatSuratInput = document.getElementById('edit_sifat_surat');
         const tujuanBagianInput = document.getElementById('edit_tujuan_bagian_id');
+        const editBagianDisplay = document.getElementById('edit_bagian_display');
         const ringkasanIsiInput = document.getElementById('edit_ringkasan_isi');
         const keteranganInput = document.getElementById('edit_keterangan');
 
         const suratMasuk = suratMasukDataCurrentPage.data.find(surat => surat.id === suratMasukId);
-        const { id, nomor_surat, tanggal_surat, tanggal_terima, perihal, pengirim, sifat_surat, tujuan_bagian_id, ringkasan_isi, keterangan } = suratMasuk;
+        const { id, nomor_surat, tanggal_surat, tanggal_terima, perihal, pengirim, sifat_surat, tujuan_bagian_id, ringkasan_isi, keterangan, tujuan_bagian } = suratMasuk;
 
         const formatDateForInput = (isoDate) => {
             if (!isoDate) return '';
@@ -499,7 +500,13 @@
         perihalInput.value = perihal || '';
         pengirimInput.value = pengirim || '';
         sifatSuratInput.value = sifat_surat || '';
-        tujuanBagianInput.value = tujuan_bagian_id || '';
+        
+        if (tujuanBagianInput) {
+            tujuanBagianInput.value = tujuan_bagian_id || '';
+        } else if (editBagianDisplay) {
+            editBagianDisplay.textContent = tujuan_bagian?.nama_bagian || 'Bagian tidak ditemukan';
+        }
+        
         ringkasanIsiInput.value = ringkasan_isi || '';
         keteranganInput.value = keterangan || '';
 

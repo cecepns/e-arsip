@@ -72,7 +72,7 @@ class LaporanController extends Controller
             ->when($bagianId, function ($q) use ($bagianId) {
                 $q->where('tujuan_bagian_id', $bagianId);
             })
-            ->when(Auth::user() && Auth::user()->role === 'staf', function ($q) {
+            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
                 // ANCHOR: Staf hanya bisa melihat surat yang ditujukan ke bagiannya
                 $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
             })
@@ -130,7 +130,7 @@ class LaporanController extends Controller
             ->when($bagianId, function ($q) use ($bagianId) {
                 $q->where('tujuan_bagian_id', $bagianId);
             })
-            ->when(Auth::user() && Auth::user()->role === 'staf', function ($q) {
+            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
                 // ANCHOR: Staf hanya bisa melihat disposisi yang ditujukan ke bagiannya
                 $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
             })
