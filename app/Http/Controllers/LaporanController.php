@@ -302,7 +302,20 @@ class LaporanController extends Controller
 
         // Add absolute logo path for PDF
         if ($pengaturan->logo) {
-            $pengaturan->logo_url = Storage::path($pengaturan->logo);
+            $logoPath = public_path('storage/' . $pengaturan->logo);
+            if (file_exists($logoPath)) {
+                $logoData = base64_encode(file_get_contents($logoPath));
+                $logoExtension = pathinfo($logoPath, PATHINFO_EXTENSION);
+                $pengaturan->logo_url = 'data:image/' . $logoExtension . ';base64,' . $logoData;
+            } else {
+                // Fallback to storage path
+                $logoPath = Storage::path($pengaturan->logo);
+                if (file_exists($logoPath)) {
+                    $logoData = base64_encode(file_get_contents($logoPath));
+                    $logoExtension = pathinfo($logoPath, PATHINFO_EXTENSION);
+                    $pengaturan->logo_url = 'data:image/' . $logoExtension . ';base64,' . $logoData;
+                }
+            }
         }
 
         // Generate PDF
@@ -321,7 +334,15 @@ class LaporanController extends Controller
         $pdf->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,
-            'defaultFont' => 'Times New Roman'
+            'isPhpEnabled' => true,
+            'defaultFont' => 'Times New Roman',
+            'debugKeepTemp' => false,
+            'debugCss' => false,
+            'debugLayout' => false,
+            'debugLayoutLines' => false,
+            'debugLayoutBlocks' => false,
+            'debugLayoutInline' => false,
+            'debugLayoutPaddingBox' => false
         ]);
 
         // Return PDF download

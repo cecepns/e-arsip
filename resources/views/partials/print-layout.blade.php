@@ -25,9 +25,18 @@
             .kop-surat {
                 margin: 0;
                 padding: 20px;
-                width: 100vw;
-                margin-left: calc(-50vw + 50%);
-                margin-right: calc(-50vw + 50%);
+                width: 100%;
+                overflow: hidden;
+            }
+            
+            .logo-container {
+                width: 100px;
+                height: 100px;
+                text-align: center;
+            }
+            
+            .instansi-info {
+                padding-top: 5px;
             }
             
             .no-print {
@@ -58,44 +67,32 @@
         }
         
         .kop-surat {
-            display: flex;
-            align-items: center;
             margin: 0;
             margin-bottom: 30px;
             padding: 20px;
             padding-bottom: 15px;
             border-bottom: 1px solid #ccc;
-            width: 100vw;
-            margin-left: calc(-50vw + 50%);
-            margin-right: calc(-50vw + 50%);
+            width: 100%;
             min-height: 90px;
             background-color: #fff;
             box-sizing: border-box;
+            overflow: hidden;
         }
         
         .logo-container {
-            margin-right: 30px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100px;
+            height: 100px;
+            text-align: center;
         }
         
         .logo-container img {
             height: 100px;
             width: auto;
             max-width: 100px;
-            object-fit: contain;
         }
         
         .instansi-info {
-            flex-grow: 1;
-            text-align: left;
             padding-top: 5px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-height: 80px;
         }
         
         .instansi-nama {
@@ -299,33 +296,41 @@
 
     <!-- ANCHOR: Kop Surat Full Width -->
     <div class="kop-surat">
-        <div class="logo-container">
-            @if($pengaturan->logo)
-                @if(isset($pengaturan->logo_url))
-                    <img src="{{ $pengaturan->logo_url }}" alt="Logo Instansi">
-                @else
-                    <img src="{{ Storage::url($pengaturan->logo) }}" alt="Logo Instansi">
-                @endif
-            @else
-                <!-- Placeholder untuk logo jika tidak ada -->
-                <div style="width: 80px; height: 80px; background-color: #f0f0f0; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">
-                    LOGO
-                </div>
-            @endif
-        </div>
-        <div class="instansi-info">
-            <div class="instansi-nama">{{ $pengaturan->nama_instansi }}</div>
-            <div class="instansi-alamat">{{ $pengaturan->alamat }}</div>
-            <div class="instansi-kontak">
-                @if($pengaturan->no_telp)
-                    Telp: {{ $pengaturan->no_telp }}
-                @endif
-                @if($pengaturan->email)
-                    @if($pengaturan->no_telp) | @endif
-                    Email: {{ $pengaturan->email }}
-                @endif
-            </div>
-        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="width: 100px; vertical-align: middle; text-align: center;">
+                    <div class="logo-container">
+                        @if($pengaturan->logo)
+                            @if(isset($pengaturan->logo_url))
+                                <img src="{{ $pengaturan->logo_url }}" alt="Logo Instansi">
+                            @else
+                                <img src="{{ Storage::url($pengaturan->logo) }}" alt="Logo Instansi">
+                            @endif
+                        @else
+                            <!-- Placeholder untuk logo jika tidak ada -->
+                            <div style="width: 80px; height: 80px; background-color: #f0f0f0; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">
+                                LOGO
+                            </div>
+                        @endif
+                    </div>
+                </td>
+                <td style="vertical-align: middle; padding-left: 20px;">
+                    <div class="instansi-info">
+                        <div class="instansi-nama">{{ $pengaturan->nama_instansi }}</div>
+                        <div class="instansi-alamat">{{ $pengaturan->alamat }}</div>
+                        <div class="instansi-kontak">
+                            @if($pengaturan->no_telp)
+                                Telp: {{ $pengaturan->no_telp }}
+                            @endif
+                            @if($pengaturan->email)
+                                @if($pengaturan->no_telp) | @endif
+                                Email: {{ $pengaturan->email }}
+                            @endif
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <!-- ANCHOR: Content Container -->
