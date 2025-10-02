@@ -10,7 +10,9 @@ use App\Models\Pengaturan;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Traits\AjaxErrorHandler;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
 {
@@ -221,6 +223,108 @@ class LaporanController extends Controller
             'jenisData', 
             'periodeLaporan', 
             'filters'
-        ));
+        ) + ['showPrintActions' => true]);
+    }
+
+    /**
+     * ANCHOR: Export PDF Report
+     * Generate PDF export for reports
+     */
+    public function exportPdf(Request $request)
+    {
+        $tanggalMulai = $request->get('tanggal_mulai');
+        $tanggalAkhir = $request->get('tanggal_akhir');
+        $bagianId = $request->get('bagian_id');
+        $jenis = $request->get('jenis', 'surat_masuk');
+        
+        $data = null;
+        $selectedBagian = null;
+        
+        // Get data based on jenis
+        switch ($jenis) {
+            case 'surat_masuk':
+                $data = $this->getSuratMasukData($tanggalMulai, $tanggalAkhir, $bagianId);
+                break;
+            case 'surat_keluar':
+                $data = $this->getSuratKeluarData($tanggalMulai, $tanggalAkhir, $bagianId);
+                break;
+            case 'disposisi':
+                $data = $this->getDisposisiData($tanggalMulai, $tanggalAkhir, $bagianId);
+                break;
+        }
+
+        // Get selected bagian if specified
+        if ($bagianId) {
+            $selectedBagian = Bagian::find($bagianId);
+        }
+
+        // Get settings data
+        $pengaturan = Pengaturan::getInstance();
+
+        // Prepare labels and period
+        $jenisLabels = [
+            'surat_masuk' => 'Laporan Surat Masuk',
+            'surat_keluar' => 'Laporan Surat Keluar',
+            'disposisi' => 'Laporan Disposisi'
+        ];
+
+        $jenisDataLabels = [
+            'surat_masuk' => 'surat masuk',
+            'surat_keluar' => 'surat keluar',
+            'disposisi' => 'disposisi'
+        ];
+
+        $jenisLaporan = $jenisLabels[$jenis] ?? 'Laporan';
+        $jenisData = $jenisDataLabels[$jenis] ?? 'data';
+
+        // Format period
+        $periodeLaporan = 'Periode: ';
+        if ($tanggalMulai && $tanggalAkhir) {
+            $periodeLaporan .= \Carbon\Carbon::parse($tanggalMulai)->format('d F Y') . ' - ' . \Carbon\Carbon::parse($tanggalAkhir)->format('d F Y');
+        } elseif ($tanggalMulai) {
+            $periodeLaporan .= 'Mulai ' . \Carbon\Carbon::parse($tanggalMulai)->format('d F Y');
+        } elseif ($tanggalAkhir) {
+            $periodeLaporan .= 'Sampai ' . \Carbon\Carbon::parse($tanggalAkhir)->format('d F Y');
+        } else {
+            $periodeLaporan .= 'Semua Periode';
+        }
+
+        // Collect filter values
+        $filters = [
+            'tanggal_mulai' => $tanggalMulai,
+            'tanggal_akhir' => $tanggalAkhir,
+            'bagian_id' => $bagianId,
+            'jenis' => $jenis,
+        ];
+
+        // Generate filename
+        $filename = strtolower(str_replace(' ', '_', $jenisLaporan)) . '_' . date('Y-m-d_H-i-s') . '.pdf';
+
+        // Add absolute logo path for PDF
+        if ($pengaturan->logo) {
+            $pengaturan->logo_url = Storage::path($pengaturan->logo);
+        }
+
+        // Generate PDF
+        $pdf = Pdf::loadView("pages.laporan.print.{$jenis}", compact(
+            'data', 
+            'pengaturan', 
+            'selectedBagian', 
+            'jenisLaporan', 
+            'jenisData', 
+            'periodeLaporan', 
+            'filters'
+        ) + ['showPrintActions' => false]);
+
+        // Set PDF options
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'defaultFont' => 'Times New Roman'
+        ]);
+
+        // Return PDF download
+        return $pdf->download($filename);
     }
 }

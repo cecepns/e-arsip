@@ -286,6 +286,7 @@
 </head>
 <body>
     <!-- ANCHOR: Print Actions -->
+    @if(isset($showPrintActions) && $showPrintActions)
     <div class="print-actions no-print">
         <button onclick="window.print()" class="btn btn-primary">
             <i class="fas fa-print"></i> Cetak
@@ -294,12 +295,17 @@
             <i class="fas fa-times"></i> Tutup
         </button>
     </div>
+    @endif
 
     <!-- ANCHOR: Kop Surat Full Width -->
     <div class="kop-surat">
         <div class="logo-container">
             @if($pengaturan->logo)
-                <img src="{{ Storage::url($pengaturan->logo) }}" alt="Logo Instansi">
+                @if(isset($pengaturan->logo_url))
+                    <img src="{{ $pengaturan->logo_url }}" alt="Logo Instansi">
+                @else
+                    <img src="{{ Storage::url($pengaturan->logo) }}" alt="Logo Instansi">
+                @endif
             @else
                 <!-- Placeholder untuk logo jika tidak ada -->
                 <div style="width: 80px; height: 80px; background-color: #f0f0f0; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">

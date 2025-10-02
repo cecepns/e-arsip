@@ -208,8 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnEksporPDF = document.getElementById('btnEksporPDF');
     if (btnEksporPDF) {
         btnEksporPDF.addEventListener('click', function() {
-            // TODO: Implement PDF export functionality
-            alert('Fitur ekspor PDF akan diimplementasikan');
+            handleExportPdf();
         });
     }
 
@@ -747,6 +746,57 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error opening print window:', error);
             alert('Terjadi kesalahan saat membuka halaman cetak.');
+        }
+    }
+
+    // ANCHOR: Handle Export PDF Function
+    function handleExportPdf() {
+        try {
+            // Show loading state
+            const btnEksporPDF = document.getElementById('btnEksporPDF');
+            const originalText = btnEksporPDF.innerHTML;
+            btnEksporPDF.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengekspor PDF...';
+            btnEksporPDF.disabled = true;
+
+            // Get current filter values
+            const formData = new FormData(document.getElementById('filterForm'));
+            const params = new URLSearchParams();
+            
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    params.append(key, value);
+                }
+            }
+            
+            // Create download link
+            const exportUrl = '{{ route("laporan.export-pdf") }}?' + params.toString();
+            
+            // Create temporary link element
+            const link = document.createElement('a');
+            link.href = exportUrl;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            
+            // Trigger download
+            link.click();
+            
+            // Clean up
+            document.body.removeChild(link);
+            
+            // Reset button state after delay
+            setTimeout(function() {
+                btnEksporPDF.innerHTML = originalText;
+                btnEksporPDF.disabled = false;
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+            alert('Terjadi kesalahan saat mengekspor PDF.');
+            
+            // Reset button state on error
+            const btnEksporPDF = document.getElementById('btnEksporPDF');
+            btnEksporPDF.innerHTML = '<i class="fas fa-file-pdf"></i> Ekspor PDF';
+            btnEksporPDF.disabled = false;
         }
     }
 });
