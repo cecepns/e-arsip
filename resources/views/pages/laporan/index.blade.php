@@ -200,8 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnCetak = document.getElementById('btnCetak');
     if (btnCetak) {
         btnCetak.addEventListener('click', function() {
-            // TODO: Implement print functionality
-            alert('Fitur cetak akan diimplementasikan');
+            handlePrintReport();
         });
     }
 
@@ -713,6 +712,42 @@ document.addEventListener('DOMContentLoaded', function() {
         
         disposisiContent.innerHTML = disposisiHtml;
         disposisiSection.style.display = 'block';
+    }
+
+    // ANCHOR: Handle Print Report Function
+    function handlePrintReport() {
+        try {
+            // Get current filter values
+            const formData = new FormData(document.getElementById('filterForm'));
+            const params = new URLSearchParams();
+            
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    params.append(key, value);
+                }
+            }
+            
+            // Open print page in new window
+            const printUrl = '{{ route("laporan.print") }}?' + params.toString();
+            const printWindow = window.open(printUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+            
+            if (printWindow) {
+                printWindow.focus();
+                
+                // Auto print when page loads
+                printWindow.onload = function() {
+                    setTimeout(function() {
+                        printWindow.print();
+                    }, 500);
+                };
+            } else {
+                // Fallback if popup blocked
+                alert('Popup diblokir. Silakan izinkan popup untuk fitur cetak.');
+            }
+        } catch (error) {
+            console.error('Error opening print window:', error);
+            alert('Terjadi kesalahan saat membuka halaman cetak.');
+        }
     }
 });
 </script>

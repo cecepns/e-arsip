@@ -60,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
 
     // ANCHOR: Laporan
     Route::get('/laporan', [\App\Http\Controllers\LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/print', [\App\Http\Controllers\LaporanController::class, 'print'])->name('laporan.print');
 
     // ANCHOR: Pengaturan Instansi (Admin Only)
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');

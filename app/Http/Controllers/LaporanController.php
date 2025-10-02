@@ -6,6 +6,7 @@ use App\Models\SuratMasuk;
 use App\Models\SuratKeluar;
 use App\Models\Disposisi;
 use App\Models\Bagian;
+use App\Models\Pengaturan;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -139,5 +140,87 @@ class LaporanController extends Controller
             ->get();
 
         return $query;
+    }
+
+    /**
+     * ANCHOR: Print Report
+     * Generate print view for reports
+     */
+    public function print(Request $request): View
+    {
+        $tanggalMulai = $request->get('tanggal_mulai');
+        $tanggalAkhir = $request->get('tanggal_akhir');
+        $bagianId = $request->get('bagian_id');
+        $jenis = $request->get('jenis', 'surat_masuk');
+        
+        $data = null;
+        $selectedBagian = null;
+        
+        // Get data based on jenis
+        switch ($jenis) {
+            case 'surat_masuk':
+                $data = $this->getSuratMasukData($tanggalMulai, $tanggalAkhir, $bagianId);
+                break;
+            case 'surat_keluar':
+                $data = $this->getSuratKeluarData($tanggalMulai, $tanggalAkhir, $bagianId);
+                break;
+            case 'disposisi':
+                $data = $this->getDisposisiData($tanggalMulai, $tanggalAkhir, $bagianId);
+                break;
+        }
+
+        // Get selected bagian if specified
+        if ($bagianId) {
+            $selectedBagian = Bagian::find($bagianId);
+        }
+
+        // Get settings data
+        $pengaturan = Pengaturan::getInstance();
+
+        // Prepare labels and period
+        $jenisLabels = [
+            'surat_masuk' => 'Laporan Surat Masuk',
+            'surat_keluar' => 'Laporan Surat Keluar',
+            'disposisi' => 'Laporan Disposisi'
+        ];
+
+        $jenisDataLabels = [
+            'surat_masuk' => 'surat masuk',
+            'surat_keluar' => 'surat keluar',
+            'disposisi' => 'disposisi'
+        ];
+
+        $jenisLaporan = $jenisLabels[$jenis] ?? 'Laporan';
+        $jenisData = $jenisDataLabels[$jenis] ?? 'data';
+
+        // Format period
+        $periodeLaporan = 'Periode: ';
+        if ($tanggalMulai && $tanggalAkhir) {
+            $periodeLaporan .= \Carbon\Carbon::parse($tanggalMulai)->format('d F Y') . ' - ' . \Carbon\Carbon::parse($tanggalAkhir)->format('d F Y');
+        } elseif ($tanggalMulai) {
+            $periodeLaporan .= 'Mulai ' . \Carbon\Carbon::parse($tanggalMulai)->format('d F Y');
+        } elseif ($tanggalAkhir) {
+            $periodeLaporan .= 'Sampai ' . \Carbon\Carbon::parse($tanggalAkhir)->format('d F Y');
+        } else {
+            $periodeLaporan .= 'Semua Periode';
+        }
+
+        // Collect filter values
+        $filters = [
+            'tanggal_mulai' => $tanggalMulai,
+            'tanggal_akhir' => $tanggalAkhir,
+            'bagian_id' => $bagianId,
+            'jenis' => $jenis,
+        ];
+
+        return view("pages.laporan.print.{$jenis}", compact(
+            'data', 
+            'pengaturan', 
+            'selectedBagian', 
+            'jenisLaporan', 
+            'jenisData', 
+            'periodeLaporan', 
+            'filters'
+        ));
     }
 }
