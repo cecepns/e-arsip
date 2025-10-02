@@ -6,6 +6,7 @@ use App\Models\Bagian;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 use App\Traits\AjaxErrorHandler;
 
 class BagianController extends Controller
@@ -16,6 +17,11 @@ class BagianController extends Controller
      */
     public function index(Request $request): View
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            abort(403, 'Unauthorized access. Admin role required.');
+        }
+
         $query = $request->get('search');
         
         $bagian = Bagian::with(['kepalaBagian', 'users'])
@@ -42,6 +48,15 @@ class BagianController extends Controller
      */
     public function store(Request $request)
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            return response()->json([
+                'success' => false,
+                'error_type' => 'general',
+                'message' => 'Unauthorized access. Admin role required.'
+            ], 403);
+        }
+
         try {
             $validated = $request->validate([
                 'nama_bagian' => 'required|string|max:100|unique:bagian,nama_bagian',
@@ -83,6 +98,15 @@ class BagianController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            return response()->json([
+                'success' => false,
+                'error_type' => 'general',
+                'message' => 'Unauthorized access. Admin role required.'
+            ], 403);
+        }
+
         try {
             $bagian = Bagian::findOrFail($id);
 
@@ -126,6 +150,15 @@ class BagianController extends Controller
      */
     public function destroy(Request $request, $id)
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            return response()->json([
+                'success' => false,
+                'error_type' => 'general',
+                'message' => 'Unauthorized access. Admin role required.'
+            ], 403);
+        }
+
         try {
             $bagian = Bagian::findOrFail($id);
             $namaBagian = $bagian->nama_bagian;
@@ -148,6 +181,18 @@ class BagianController extends Controller
      */
     public function show(Request $request, $id)
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error_type' => 'general',
+                    'message' => 'Unauthorized access. Admin role required.'
+                ], 403);
+            }
+            abort(403, 'Unauthorized access. Admin role required.');
+        }
+
         try {
             $bagian = Bagian::with(['kepalaBagian', 'users', 'suratMasuk', 'suratKeluar'])->findOrFail($id);
             
@@ -189,6 +234,18 @@ class BagianController extends Controller
      */
     public function getSurat(Request $request, $id)
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error_type' => 'general',
+                    'message' => 'Unauthorized access. Admin role required.'
+                ], 403);
+            }
+            abort(403, 'Unauthorized access. Admin role required.');
+        }
+
         try {
             $bagian = Bagian::findOrFail($id);
             

@@ -26,54 +26,75 @@
     </div>
     
     <div class="sidebar-nav">
+        <!-- Dashboard - Available for all roles -->
         <div class="nav-item">
             <a href="{{ route('dasbor.index') }}" class="nav-link{{ request()->routeIs('dasbor.index') ? ' active' : '' }}">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
         </div>
+        
+        <!-- Surat Masuk - Available for all roles -->
         <div class="nav-item">
             <a href="{{ route('surat_masuk.index') }}" class="nav-link{{ request()->routeIs('surat_masuk.index') ? ' active' : '' }}">
                 <i class="fas fa-inbox"></i>
                 <span>Surat Masuk</span>
             </a>
         </div>
+        
+        <!-- Surat Keluar - Available for all roles -->
         <div class="nav-item">
             <a href="{{ route('surat_keluar.index') }}" class="nav-link{{ request()->routeIs('surat_keluar.index') ? ' active' : '' }}">
                 <i class="fas fa-paper-plane"></i>
                 <span>Surat Keluar</span>
             </a>
         </div>
+        
+        <!-- Data Bagian - Admin only -->
+        @if(Auth::user()->role === 'Admin')
         <div class="nav-item">
             <a href="{{ route('bagian.index') }}" class="nav-link{{ request()->routeIs('bagian.index') ? ' active' : '' }}">
                 <i class="fas fa-building"></i>
                 <span>Data Bagian</span>
             </a>
         </div>
+        @endif
+        
+        <!-- Data User - Admin only -->
+        @if(Auth::user()->role === 'Admin')
         <div class="nav-item">
             <a href="{{ route('user.index') }}" class="nav-link{{ request()->routeIs('user.index') ? ' active' : '' }}">
                 <i class="fas fa-users"></i>
                 <span>Data User</span>
             </a>
         </div>
+        @endif
+        
+        <!-- Disposisi - Available for all roles -->
         <div class="nav-item">
             <a href="{{ route('disposisi.index') }}" class="nav-link{{ request()->routeIs('disposisi.*') ? ' active' : '' }}">
                 <i class="fas fa-share-alt"></i>
                 <span>Disposisi</span>
             </a>
         </div>
+        
+        <!-- Laporan - Available for all roles -->
         <div class="nav-item">
             <a href="{{ route('laporan.index') }}" class="nav-link{{ request()->routeIs('laporan.*') ? ' active' : '' }}">
                 <i class="fas fa-chart-bar"></i>
                 <span>Laporan</span>
             </a>
         </div>
+        
+        <!-- Pengaturan - Admin only -->
+        @if(Auth::user()->role === 'Admin')
         <div class="nav-item">
             <a href="{{ route('settings.index') }}" class="nav-link{{ request()->routeIs('settings.*') ? ' active' : '' }}">
                 <i class="fas fa-cog"></i>
                 <span>Pengaturan</span>
             </a>
         </div>
+        @endif
     </div>
 </nav>
 

@@ -7,6 +7,7 @@ use App\Models\Bagian;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 use App\Traits\AjaxErrorHandler;
 
 class UserController extends Controller
@@ -17,6 +18,11 @@ class UserController extends Controller
      */
     public function index(Request $request): View
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            abort(403, 'Unauthorized access. Admin role required.');
+        }
+
         $query = $request->get('search');
         
         $users = User::with('bagian')
@@ -36,8 +42,17 @@ class UserController extends Controller
     /**
      * Store a newly created user in storage.
      */
-    public function store(Request $request)
+public function store(Request $request)
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            return response()->json([
+                'success' => false,
+                'error_type' => 'general',
+                'message' => 'Unauthorized access. Admin role required.'
+            ], 403);
+        }
+
         try {
             $validated = $request->validate([
                 'username' => 'required|string|max:50|unique:users,username',
@@ -110,6 +125,15 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            return response()->json([
+                'success' => false,
+                'error_type' => 'general',
+                'message' => 'Unauthorized access. Admin role required.'
+            ], 403);
+        }
+
         try {
             $user = User::findOrFail($id);
 
@@ -200,12 +224,21 @@ class UserController extends Controller
      */
     public function destroy(Request $request, string $id)
     {
+        // ANCHOR: Check if user is admin
+        if (Auth::user()->role !== 'Admin') {
+            return response()->json([
+                'success' => false,
+                'error_type' => 'general',
+                'message' => 'Unauthorized access. Admin role required.'
+            ], 403);
+        }
+
         try {
             $user = User::findOrFail($id);
             $username = $user->username;
             
             // ANCHOR: Prevent self-deletion
-            if ($user->id === auth()->id()) {
+            if ($user->id === Auth::id()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak dapat menghapus akun sendiri.',
