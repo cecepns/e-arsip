@@ -58,61 +58,33 @@
     </div>
 
     <div class="row">
-        {{-- ANCHOR: Statistics Chart Content "Surat per Bagian" --}}
+        {{-- ANCHOR: Statistics Chart Content "Surat per Bagian" - Only for Admin --}}
+        @if($isAdmin)
         <div class="col-lg-6">
             <div class="chart-left">
                 <h4 class="section-title">Statistik Surat per Bagian</h4>
                 <div class="dept-list">
+                    @forelse($bagianStats as $bagian)
                     <div class="dept-item">
                         <div class="dept-info">
-                            <div class="dept-icon bg-success">
-                                <i class="fas fa-users"></i>
+                            <div class="dept-icon {{ $bagian['bg_class'] }}">
+                                <i class="{{ $bagian['icon'] }}"></i>
                             </div>
-                            <span class="dept-name">Sumber Daya Manusia</span>
+                            <span class="dept-name">{{ $bagian['nama_bagian'] }}</span>
                         </div>
-                        <span class="dept-count">45</span>
+                        <span class="dept-count">{{ $bagian['total_surat'] }}</span>
                     </div>
-                    <div class="dept-item">
-                        <div class="dept-info">
-                            <div class="dept-icon bg-primary">
-                                <i class="fas fa-calculator"></i>
-                            </div>
-                            <span class="dept-name">Keuangan</span>
-                        </div>
-                        <span class="dept-count">38</span>
+                    @empty
+                    <div class="text-center py-4">
+                        <p class="text-muted">Belum ada data bagian</p>
                     </div>
-                    <div class="dept-item">
-                        <div class="dept-info">
-                            <div class="dept-icon bg-warning">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <span class="dept-name">Pengadaan</span>
-                        </div>
-                        <span class="dept-count">32</span>
-                    </div>
-                    <div class="dept-item">
-                        <div class="dept-info">
-                            <div class="dept-icon bg-danger">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <span class="dept-name">Sekretariat</span>
-                        </div>
-                        <span class="dept-count">28</span>
-                    </div>
-                    <div class="dept-item">
-                        <div class="dept-info">
-                            <div class="dept-icon bg-success">
-                                <i class="fas fa-laptop-code"></i>
-                            </div>
-                            <span class="dept-name">Teknologi Informasi</span>
-                        </div>
-                        <span class="dept-count">25</span>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
+        @endif
         {{-- ANCHOR: Statistics Chart Content "Distribusi Jenis Surat" --}}
-        <div class="col-lg-6">
+        <div class="{{ $isAdmin ? 'col-lg-6' : 'col-lg-12' }}">
             <div class="chart-right">
                 <h4 class="section-title">Distribusi Jenis Surat</h4>
                 <div class="chart-container">
@@ -148,24 +120,11 @@
                 Aktivitas Surat Terbaru
             </h3>
         </div>
-        <div class="activity-controls">
-            <div class="show-entries">
-                <label>Tampilkan:</label>
-                <select class="entries-select" id="entriesSelect">
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                </select>
-            </div>
+        <div class="activity-controls"> 
             <div class="search-box">
                 <input type="text" class="search-input" placeholder="Cari arsip..." id="searchInput">
                 <i class="fas fa-search search-icon"></i>
             </div>
-            <button class="export-btn">
-                <i class="fas fa-download"></i>
-                Export
-            </button>
         </div>
     </div>
 
@@ -189,12 +148,12 @@
 @endsection
 
 {{-- ANCHOR: Detail Modal --}}
-@include('partials.modal', [
+{{-- @include('partials.modal', [
     'id' => 'detailModal',
     'title' => 'Modal 1',
     'body' => 'Show a second modal and hide this one with the button below.',
     'footer' => '<button class="btn btn-primary" data-bs-target="#exampleModalToggle2" data-bs-toggle="modal" data-bs-dismiss="modal">Open second modal</button>'
-])
+]) --}}
 {{-- !ANCHOR: Detail Modal --}}
 
 @push('scripts')
@@ -207,6 +166,8 @@
         data: {!! json_encode($chartData['data']) !!},
         colors: {!! json_encode($chartData['colors']) !!}
     };
+    const bagianStats = {!! json_encode($bagianStats) !!};
+    const isAdmin = {!! json_encode($isAdmin) !!};
     let originalTableData = [];
 
     // DOM Content Loaded Event
@@ -368,11 +329,12 @@
 
     // Update Department Counts
     function updateDepartmentCounts() {
-        const deptData = [45, 38, 32, 28, 25];
+        if (!isAdmin || !bagianStats) return;
+        
         const deptCounts = document.querySelectorAll('.dept-count');
         deptCounts.forEach((count, index) => {
-            if (deptData[index] !== undefined) {
-                count.textContent = deptData[index];
+            if (bagianStats[index] !== undefined) {
+                count.textContent = bagianStats[index].total_surat;
             }
         });
     }

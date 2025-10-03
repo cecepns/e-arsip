@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SuratMasuk;
 use App\Models\SuratKeluar;
 use App\Models\Disposisi;
+use App\Models\Bagian;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -18,7 +19,7 @@ class DasborController extends Controller
     {
         // ANCHOR: Get current user and check if admin
         $user = Auth::user();
-        $isAdmin = $user->role === 'admin';
+        $isAdmin = $user->role === 'Admin';
         
         // ANCHOR: Get current month statistics
         $currentMonth = Carbon::now()->startOfMonth();
@@ -98,7 +99,10 @@ class DasborController extends Controller
         // ANCHOR: Get chart data for distribution
         $chartData = $this->getChartData($user, $isAdmin);
 
-        return view('pages.dasbor.dasbor', compact('statistics', 'recentActivity', 'chartData'));
+        // ANCHOR: Get bagian statistics (only for admin)
+        $bagianStats = $isAdmin ? $this->getBagianStats() : [];
+
+        return view('pages.dasbor.dasbor', compact('statistics', 'recentActivity', 'chartData', 'bagianStats', 'isAdmin'));
     }
 
     /**
@@ -211,6 +215,66 @@ class DasborController extends Controller
                 '#ffca28', // Disposisi - Soft Yellow
             ]
         ];
+    }
+
+    /**
+     * Get statistics per bagian for admin users
+     */
+    private function getBagianStats()
+    {
+        // ANCHOR: Get all bagian with their statistics
+        $bagianStats = Bagian::withCount([
+            'suratMasuk',
+            'suratKeluar', 
+            'disposisi'
+        ])->get()->map(function ($bagian) {
+            // ANCHOR: Calculate total surat for this bagian
+            $totalSurat = $bagian->surat_masuk_count + $bagian->surat_keluar_count + $bagian->disposisi_count;
+            
+            // ANCHOR: Define icon and color based on bagian name
+            $iconConfig = $this->getBagianIconConfig($bagian->nama_bagian);
+            
+            return [
+                'id' => $bagian->id,
+                'nama_bagian' => $bagian->nama_bagian,
+                'total_surat' => $totalSurat,
+                'surat_masuk_count' => $bagian->surat_masuk_count,
+                'surat_keluar_count' => $bagian->surat_keluar_count,
+                'disposisi_count' => $bagian->disposisi_count,
+                'icon' => $iconConfig['icon'],
+                'bg_class' => $iconConfig['bg_class'],
+            ];
+        })->sortByDesc('total_surat')->take(5)->values();
+
+        return $bagianStats;
+    }
+
+    /**
+     * Get icon configuration for bagian based on name
+     */
+    private function getBagianIconConfig($namaBagian)
+    {
+        $namaBagian = strtolower($namaBagian);
+        
+        // ANCHOR: Define icon and background class based on bagian name
+        if (str_contains($namaBagian, 'sdm') || str_contains($namaBagian, 'hrd') || str_contains($namaBagian, 'manusia')) {
+            return ['icon' => 'fas fa-users', 'bg_class' => 'bg-success'];
+        } elseif (str_contains($namaBagian, 'keuangan') || str_contains($namaBagian, 'finance') || str_contains($namaBagian, 'akuntansi')) {
+            return ['icon' => 'fas fa-calculator', 'bg_class' => 'bg-primary'];
+        } elseif (str_contains($namaBagian, 'pengadaan') || str_contains($namaBagian, 'procurement') || str_contains($namaBagian, 'belanja')) {
+            return ['icon' => 'fas fa-shopping-cart', 'bg_class' => 'bg-warning'];
+        } elseif (str_contains($namaBagian, 'sekretariat') || str_contains($namaBagian, 'sekretaris') || str_contains($namaBagian, 'administrasi')) {
+            return ['icon' => 'fas fa-building', 'bg_class' => 'bg-danger'];
+        } elseif (str_contains($namaBagian, 'teknologi') || str_contains($namaBagian, 'it') || str_contains($namaBagian, 'sistem')) {
+            return ['icon' => 'fas fa-laptop-code', 'bg_class' => 'bg-info'];
+        } elseif (str_contains($namaBagian, 'marketing') || str_contains($namaBagian, 'pemasaran') || str_contains($namaBagian, 'penjualan')) {
+            return ['icon' => 'fas fa-chart-line', 'bg_class' => 'bg-success'];
+        } elseif (str_contains($namaBagian, 'produksi') || str_contains($namaBagian, 'operasional') || str_contains($namaBagian, 'manufacturing')) {
+            return ['icon' => 'fas fa-cogs', 'bg_class' => 'bg-warning'];
+        } else {
+            // ANCHOR: Default configuration for unknown bagian
+            return ['icon' => 'fas fa-folder', 'bg_class' => 'bg-secondary'];
+        }
     }
 }
 

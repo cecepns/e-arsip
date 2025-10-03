@@ -15,9 +15,6 @@
                     <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="action-btn delete-btn" title="Hapus">
-                        <i class="fas fa-trash"></i>
-                    </button>
                 </div>
             </td>
         </tr>
