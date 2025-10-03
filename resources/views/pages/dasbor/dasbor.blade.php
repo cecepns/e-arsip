@@ -120,9 +120,9 @@
                 Aktivitas Surat Terbaru
             </h3>
         </div>
-        <div class="activity-controls"> 
+        <div class="activity-controls">
             <div class="search-box">
-                <input type="text" class="search-input" placeholder="Cari arsip..." id="searchInput">
+                <input type="text" class="search-input" placeholder="Cari arsip..." id="searchInput" value="{{ request()->get('search', '') }}">
                 <i class="fas fa-search search-icon"></i>
             </div>
         </div>
@@ -138,27 +138,51 @@
 
     {{-- ANCHOR: Recent Activity Table Footer --}}
     @include('partials.pagination', [
-        'currentPage' => 1,
-        'totalPages' => 3,
-        'baseUrl' => '#',
-        'showInfo' => 'Menampilkan 1-5 dari 100 entries'
+        'currentPage' => $pagination['current_page'],
+        'totalPages' => $pagination['total_pages'],
+        'baseUrl' => $pagination['base_url'],
+        'showInfo' => $pagination['show_info']
     ])
 </div>
 {{-- !SECTION: Recent Activity Table --}}
-@endsection
 
-{{-- ANCHOR: Detail Modal --}}
-{{-- @include('partials.modal', [
-    'id' => 'detailModal',
-    'title' => 'Modal 1',
-    'body' => 'Show a second modal and hide this one with the button below.',
-    'footer' => '<button class="btn btn-primary" data-bs-target="#exampleModalToggle2" data-bs-toggle="modal" data-bs-dismiss="modal">Open second modal</button>'
-]) --}}
-{{-- !ANCHOR: Detail Modal --}}
+{{-- ANCHOR: Detail Modals --}}
+<!-- Modal Detail Surat Masuk -->
+@include('partials.modal', [
+    'id' => 'modalDetailSuratMasuk',
+    'size' => 'modal-xl',
+    'title' => 'Detail Surat Masuk',
+    'body' => view()->make('pages.surat_masuk._detail_modal._body')->render(),
+    'footer' => view()->make('pages.surat_masuk._detail_modal._footer')->render(),
+])
+
+<!-- Modal Detail Surat Keluar -->
+@include('partials.modal', [
+    'id' => 'modalDetailSuratKeluar',
+    'size' => 'modal-xl',
+    'title' => 'Detail Surat Keluar',
+    'body' => view()->make('pages.surat_keluar._detail_modal._body')->render(),
+    'footer' => view()->make('pages.surat_keluar._detail_modal._footer')->render(),
+])
+
+<!-- Modal Detail Disposisi -->
+@include('partials.modal', [
+    'id' => 'modalDetailDisposisi',
+    'size' => 'modal-lg',
+    'title' => 'Detail Disposisi',
+    'body' => view()->make('pages.disposisi._detail_modal._body')->render(),
+    'footer' => view()->make('pages.disposisi._detail_modal._footer')->render(),
+])
+{{-- !ANCHOR: Detail Modals --}}
+
+@endsection 
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script>
+    console.log('=== DASBOR SCRIPT LOADED ===');
+    console.log('Script loaded successfully!');
+    
     // Global variables
     let distributionChart;
     const chartData = {
@@ -168,13 +192,12 @@
     };
     const bagianStats = {!! json_encode($bagianStats) !!};
     const isAdmin = {!! json_encode($isAdmin) !!};
-    let originalTableData = [];
+    const pagination = {!! json_encode($pagination) !!};
 
     // DOM Content Loaded Event
     document.addEventListener('DOMContentLoaded', function() {
         initializeChart();
-        setupEventListeners();
-        initializeTableData();
+        registerEventListeners();
     });
 
     // Initialize Chart with softer colors and better sizing
@@ -237,29 +260,14 @@
         });
     }
 
-    // Initialize Table Data
-    function initializeTableData() {
-        const tableBody = document.getElementById('activityTableBody');
-        if (!tableBody) return;
-        
-        const rows = tableBody.querySelectorAll('tr');
-        rows.forEach((row, index) => {
-            const cells = row.querySelectorAll('td');
-            originalTableData.push({
-                no: cells[0].textContent,
-                noSurat: cells[1].textContent,
-                tanggal: cells[2].textContent,
-                perihal: cells[3].textContent,
-                jenis: cells[4].textContent,
-                element: row.cloneNode(true)
-            });
-        });
-    }
 
     // Setup Event Listeners
-    function setupEventListeners() {
+    function registerEventListeners() {
+        console.log('Setting up event listeners...');
+        
         // Filter buttons
         const filterButtons = document.querySelectorAll('.filter-btn:not(.dropdown-toggle)');
+        console.log('Found filter buttons:', filterButtons.length);
         filterButtons.forEach(button => {
             button.addEventListener('click', function() {
                 filterButtons.forEach(btn => btn.classList.remove('active'));
@@ -270,6 +278,7 @@
 
         // Year dropdown items
         const yearDropdownItems = document.querySelectorAll('#yearDropdown + .dropdown-menu .dropdown-item');
+        console.log('Found year dropdown items:', yearDropdownItems.length);
         yearDropdownItems.forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -285,19 +294,17 @@
 
         // Search functionality
         const searchInput = document.getElementById('searchInput');
+        console.log('Search input element:', searchInput);
         if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                filterTable(this.value);
+            console.log('Adding change event listener to search input');
+            searchInput.addEventListener('change', function() {
+                console.log('Search triggered with value:', this.value);
+                performSearch(this.value);
             });
+        } else {
+            console.error('Search input element not found!');
         }
 
-        // Entries select
-        const entriesSelect = document.getElementById('entriesSelect');
-        if (entriesSelect) {
-            entriesSelect.addEventListener('change', function() {
-                updateTableEntries(this.value);
-            });
-        }
 
         // Action buttons
         setupActionButtons();
@@ -339,29 +346,24 @@
         });
     }
 
-    // Filter Table
-    function filterTable(searchTerm) {
-        const tableBody = document.getElementById('activityTableBody');
-        if (!tableBody) return;
+    // Perform Search
+    function performSearch(searchTerm) {
+        console.log('performSearch called with:', searchTerm);
+        const url = new URL(window.location);
+        console.log('Current URL:', url.toString());
         
-        const searchLower = searchTerm.toLowerCase();
-        tableBody.innerHTML = '';
-
-        const filteredData = originalTableData.filter(item => {
-            return item.noSurat.toLowerCase().includes(searchLower) ||
-                    item.perihal.toLowerCase().includes(searchLower) ||
-                    item.jenis.toLowerCase().includes(searchLower);
-        });
-
-        filteredData.forEach((item, index) => {
-            const row = item.element.cloneNode(true);
-            row.cells[0].textContent = index + 1;
-            setupRowActionButtons(row, index + 1);
-            tableBody.appendChild(row);
-        });
-
-        updateShowingInfo(filteredData.length);
+        if (searchTerm.trim()) {
+            url.searchParams.set('search', searchTerm);
+            console.log('Setting search parameter:', searchTerm);
+        } else {
+            url.searchParams.delete('search');
+            console.log('Removing search parameter');
+        }
+        url.searchParams.delete('page'); // Reset to first page when searching
+        console.log('Final URL:', url.toString());
+        window.location.href = url.toString();
     }
+
 
     const sampleLetterData = {
         1: {
@@ -584,43 +586,6 @@
     }
 
 
-    // Update Table Entries
-    function updateTableEntries(count) {
-        const tableBody = document.getElementById('activityTableBody');
-        const searchInput = document.getElementById('searchInput');
-        if (!tableBody || !searchInput) return;
-        
-        const currentSearch = searchInput.value.toLowerCase();
-        
-        let dataToShow = originalTableData;
-        if (currentSearch) {
-            dataToShow = originalTableData.filter(item => {
-                return item.noSurat.toLowerCase().includes(currentSearch) ||
-                        item.perihal.toLowerCase().includes(currentSearch) ||
-                        item.jenis.toLowerCase().includes(currentSearch);
-            });
-        }
-
-        tableBody.innerHTML = '';
-
-        const limitedData = dataToShow.slice(0, parseInt(count));
-        limitedData.forEach((item, index) => {
-            const row = item.element.cloneNode(true);
-            row.cells[0].textContent = index + 1;
-            setupRowActionButtons(row, index + 1);
-            tableBody.appendChild(row);
-        });
-
-        updateShowingInfo(limitedData.length, dataToShow.length);
-    }
-
-    // Update Showing Info
-    function updateShowingInfo(showing, total = originalTableData.length) {
-        const showingInfo = document.querySelector('.showing-info');
-        if (showingInfo) {
-            showingInfo.textContent = `Menampilkan 1-${showing} dari ${total} entries`;
-        }
-    }
 
     // Setup Action Buttons
     function setupActionButtons() {
@@ -657,11 +622,7 @@
                     setTimeout(() => {
                         row.remove();
                         const noSuratText = noSurat;
-                        originalTableData = originalTableData.filter(item => 
-                            item.noSurat !== noSuratText
-                        );
                         showAlert('Sukses', 'Surat berhasil dihapus', 'success');
-                        updateShowingInfo(document.querySelectorAll('.activity-row').length);
                     }, 500);
                 }
             });
@@ -728,5 +689,215 @@
             distributionChart.resize();
         }
     });
+    
+    console.log('=== DASBOR SCRIPT COMPLETED ===');
+    
+    // ANCHOR: Detail Modal Functions
+    window.showDetailSuratMasukModal = async (suratMasukId) => {
+        try {
+            const parentEl = document.getElementById('modalDetailSuratMasuk');
+            
+            // Show loading state
+            const lampiranContent = parentEl.querySelector('#detail-lampiran-content');
+            if (lampiranContent) {
+                lampiranContent.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                        <p>Memuat detail surat masuk...</p>
+                    </div>
+                `;
+            }
+
+            // Fetch detail data
+            const response = await fetch(`/surat-masuk/${suratMasukId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch surat masuk detail');
+            }
+
+            const data = await response.json();
+            
+            // Populate modal with data
+            populateSuratMasukModal(data);
+            
+        } catch (error) {
+            console.error('Error loading surat masuk detail:', error);
+            showAlert('Error', 'Gagal memuat detail surat masuk', 'danger');
+        }
+    };
+
+    window.showDetailSuratKeluarModal = async (suratKeluarId) => {
+        try {
+            const parentEl = document.getElementById('modalDetailSuratKeluar');
+            
+            // Show loading state
+            const lampiranContent = parentEl.querySelector('#detail-lampiran-content');
+            if (lampiranContent) {
+                lampiranContent.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                        <p>Memuat detail surat keluar...</p>
+                    </div>
+                `;
+            }
+
+            // Fetch detail data
+            const response = await fetch(`/surat-keluar/${suratKeluarId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch surat keluar detail');
+            }
+
+            const data = await response.json();
+            
+            // Populate modal with data
+            populateSuratKeluarModal(data);
+            
+        } catch (error) {
+            console.error('Error loading surat keluar detail:', error);
+            showAlert('Error', 'Gagal memuat detail surat keluar', 'danger');
+        }
+    };
+
+    window.showDisposisiDetail = async (disposisiId) => {
+        try {
+            // Fetch detail data
+            const csrfToken = (
+                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                document.querySelector('input[name="_token"]')?.value
+            );
+
+            const response = await fetch(`/disposisi/${disposisiId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch disposisi detail');
+            }
+
+            const data = await response.json();
+            
+            // Populate modal with data
+            populateDisposisiModal(data);
+            
+        } catch (error) {
+            console.error('Error loading disposisi detail:', error);
+            showAlert('Error', 'Gagal memuat detail disposisi', 'danger');
+        }
+    };
+
+    // ANCHOR: Modal Population Functions
+    function populateSuratMasukModal(data) {
+        // Populate basic info
+        const fields = {
+            'detail-nomor-surat': data.nomor_surat,
+            'detail-tanggal-surat': data.tanggal_surat ? new Date(data.tanggal_surat).toLocaleDateString('id-ID') : '-',
+            'detail-tanggal-terima': data.tanggal_terima ? new Date(data.tanggal_terima).toLocaleDateString('id-ID') : '-',
+            'detail-perihal': data.perihal,
+            'detail-pengirim': data.pengirim,
+            'detail-sifat-surat': data.sifat_surat || 'Biasa',
+            'detail-ringkasan-isi': data.ringkasan_isi || '-',
+            'detail-keterangan': data.keterangan || '-'
+        };
+
+        // Update field values
+        Object.entries(fields).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+
+        // Update bagian info
+        const bagianElement = document.getElementById('detail-tujuan-bagian');
+        if (bagianElement && data.tujuan_bagian) {
+            bagianElement.textContent = data.tujuan_bagian.nama_bagian;
+        }
+
+        // Update lampiran
+        const lampiranContent = document.getElementById('detail-lampiran-content');
+        if (lampiranContent) {
+            if (data.lampiran && data.lampiran.length > 0) {
+                lampiranContent.innerHTML = data.lampiran.map(lamp => `
+                    <div class="lampiran-item">
+                        <i class="fas fa-paperclip me-2"></i>
+                        <a href="${lamp.file_path}" target="_blank">${lamp.nama_file}</a>
+                    </div>
+                `).join('');
+            } else {
+                lampiranContent.innerHTML = '<p class="text-muted">Tidak ada lampiran</p>';
+            }
+        }
+    }
+
+    function populateSuratKeluarModal(data) {
+        // Populate basic info
+        const fields = {
+            'detail-nomor-surat': data.nomor_surat,
+            'detail-tanggal-surat': data.tanggal_surat ? new Date(data.tanggal_surat).toLocaleDateString('id-ID') : '-',
+            'detail-tanggal-keluar': data.tanggal_keluar ? new Date(data.tanggal_keluar).toLocaleDateString('id-ID') : '-',
+            'detail-perihal': data.perihal,
+            'detail-tujuan': data.tujuan,
+            'detail-sifat-surat': data.sifat_surat || 'Biasa',
+            'detail-ringkasan-isi': data.ringkasan_isi || '-',
+            'detail-keterangan': data.keterangan || '-'
+        };
+
+        // Update field values
+        Object.entries(fields).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+
+        // Update bagian info
+        const bagianElement = document.getElementById('detail-pengirim-bagian');
+        if (bagianElement && data.pengirim_bagian) {
+            bagianElement.textContent = data.pengirim_bagian.nama_bagian;
+        }
+
+        // Update lampiran
+        const lampiranContent = document.getElementById('detail-lampiran-content');
+        if (lampiranContent) {
+            if (data.lampiran && data.lampiran.length > 0) {
+                lampiranContent.innerHTML = data.lampiran.map(lamp => `
+                    <div class="lampiran-item">
+                        <i class="fas fa-paperclip me-2"></i>
+                        <a href="${lamp.file_path}" target="_blank">${lamp.nama_file}</a>
+                    </div>
+                `).join('');
+            } else {
+                lampiranContent.innerHTML = '<p class="text-muted">Tidak ada lampiran</p>';
+            }
+        }
+    }
+
+    function populateDisposisiModal(data) {
+        // Populate disposisi info
+        const fields = {
+            'detail-nomor-surat': data.surat_masuk?.nomor_surat || '-',
+            'detail-perihal': data.surat_masuk?.perihal || '-',
+            'detail-dari-bagian': data.surat_masuk?.tujuan_bagian?.nama_bagian || '-',
+            'detail-kepada-bagian': data.tujuan_bagian?.nama_bagian || '-',
+            'detail-sifat': data.sifat || 'Biasa',
+            'detail-tanggal-disposisi': data.tanggal_disposisi ? new Date(data.tanggal_disposisi).toLocaleDateString('id-ID') : '-',
+            'detail-batas-waktu': data.batas_waktu ? new Date(data.batas_waktu).toLocaleDateString('id-ID') : '-',
+            'detail-isi-instruksi': data.isi_instruksi || '-',
+            'detail-catatan': data.catatan || '-',
+            'detail-status': data.status || 'Menunggu'
+        };
+
+        // Update field values
+        Object.entries(fields).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+    }
 </script>
 @endpush

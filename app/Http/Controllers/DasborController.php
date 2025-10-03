@@ -93,8 +93,10 @@ class DasborController extends Controller
             ],
         ];
 
-        // ANCHOR: Get recent activity data
-        $recentActivity = $this->getRecentActivity($user, $isAdmin);
+        // ANCHOR: Get recent activity data with pagination
+        $recentActivityData = $this->getRecentActivity($user, $isAdmin);
+        $recentActivity = $recentActivityData['data'];
+        $pagination = $recentActivityData['pagination'];
 
         // ANCHOR: Get chart data for distribution
         $chartData = $this->getChartData($user, $isAdmin);
@@ -102,7 +104,7 @@ class DasborController extends Controller
         // ANCHOR: Get bagian statistics (only for admin)
         $bagianStats = $isAdmin ? $this->getBagianStats() : [];
 
-        return view('pages.dasbor.dasbor', compact('statistics', 'recentActivity', 'chartData', 'bagianStats', 'isAdmin'));
+        return view('pages.dasbor.dasbor', compact('statistics', 'recentActivity', 'chartData', 'bagianStats', 'isAdmin', 'pagination'));
     }
 
     /**
@@ -130,18 +132,31 @@ class DasborController extends Controller
     }
 
     /**
-     * Get recent activity data combining surat masuk and keluar
+     * Get recent activity data combining surat masuk and keluar with pagination
      */
     private function getRecentActivity($user, $isAdmin)
     {
+        // ANCHOR: Get pagination parameters
+        $perPage = request()->get('per_page', 10);
+        $currentPage = request()->get('page', 1);
+        $search = request()->get('search', '');
+        
         // ANCHOR: Get recent surat masuk
         $suratMasukQuery = SuratMasuk::with(['tujuanBagian', 'user'])
-            ->orderBy('created_at', 'desc')
-            ->limit(10);
+            ->orderBy('created_at', 'desc');
 
         // ANCHOR: Apply bagian filter for non-admin users
         if (!$isAdmin && $user->bagian_id) {
             $suratMasukQuery->where('tujuan_bagian_id', $user->bagian_id);
+        }
+
+        // ANCHOR: Apply search filter
+        if (!empty($search)) {
+            $suratMasukQuery->where(function($query) use ($search) {
+                $query->where('nomor_surat', 'like', "%{$search}%")
+                      ->orWhere('perihal', 'like', "%{$search}%")
+                      ->orWhere('pengirim', 'like', "%{$search}%");
+            });
         }
 
         $suratMasuk = $suratMasukQuery->get()->map(function ($item) {
@@ -157,12 +172,20 @@ class DasborController extends Controller
 
         // ANCHOR: Get recent surat keluar
         $suratKeluarQuery = SuratKeluar::with(['pengirimBagian', 'user'])
-            ->orderBy('created_at', 'desc')
-            ->limit(10);
+            ->orderBy('created_at', 'desc');
 
         // ANCHOR: Apply bagian filter for non-admin users
         if (!$isAdmin && $user->bagian_id) {
             $suratKeluarQuery->where('pengirim_bagian_id', $user->bagian_id);
+        }
+
+        // ANCHOR: Apply search filter
+        if (!empty($search)) {
+            $suratKeluarQuery->where(function($query) use ($search) {
+                $query->where('nomor_surat', 'like', "%{$search}%")
+                      ->orWhere('perihal', 'like', "%{$search}%")
+                      ->orWhere('tujuan', 'like', "%{$search}%");
+            });
         }
 
         $suratKeluar = $suratKeluarQuery->get()->map(function ($item) {
@@ -179,10 +202,32 @@ class DasborController extends Controller
         // ANCHOR: Combine and sort by created_at
         $combined = $suratMasuk->concat($suratKeluar)
             ->sortByDesc('created_at')
-            ->take(10)
             ->values();
 
-        return $combined;
+        // ANCHOR: Calculate pagination
+        $totalItems = $combined->count();
+        $totalPages = ceil($totalItems / $perPage);
+        $offset = ($currentPage - 1) * $perPage;
+        
+        // ANCHOR: Get paginated data
+        $paginatedData = $combined->slice($offset, $perPage)->values();
+        
+        // ANCHOR: Calculate showing info
+        $startItem = $totalItems > 0 ? $offset + 1 : 0;
+        $endItem = min($offset + $perPage, $totalItems);
+        $showInfo = "Menampilkan {$startItem}-{$endItem} dari {$totalItems} entries";
+
+        return [
+            'data' => $paginatedData,
+            'pagination' => [
+                'current_page' => (int) $currentPage,
+                'total_pages' => (int) $totalPages,
+                'per_page' => (int) $perPage,
+                'total_items' => (int) $totalItems,
+                'show_info' => $showInfo,
+                'base_url' => request()->url(),
+            ]
+        ];
     }
 
     /**

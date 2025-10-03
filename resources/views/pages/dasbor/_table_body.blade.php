@@ -12,9 +12,28 @@
             </td>
             <td>
                 <div class="action-buttons">
-                    <button class="action-btn view-btn" title="Lihat" data-bs-toggle="modal" data-bs-target="#detailModal">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                    @if($activity['jenis'] == 'Surat Masuk')
+                        <button class="action-btn view-btn" title="Lihat Detail" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalDetailSuratMasuk"
+                                onclick="showDetailSuratMasukModal({{ $activity['id'] }})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    @elseif($activity['jenis'] == 'Surat Keluar')
+                        <button class="action-btn view-btn" title="Lihat Detail" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalDetailSuratKeluar"
+                                onclick="showDetailSuratKeluarModal({{ $activity['id'] }})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    @else
+                        <button class="action-btn view-btn" title="Lihat Detail" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalDetailDisposisi"
+                                onclick="showDisposisiDetail({{ $activity['id'] }})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    @endif
                 </div>
             </td>
         </tr>
