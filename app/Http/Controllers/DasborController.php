@@ -6,6 +6,7 @@ use App\Models\SuratMasuk;
 use App\Models\SuratKeluar;
 use App\Models\Disposisi;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class DasborController extends Controller
@@ -15,20 +16,46 @@ class DasborController extends Controller
      */
     public function index()
     {
+        // ANCHOR: Get current user and check if admin
+        $user = Auth::user();
+        $isAdmin = $user->role === 'admin';
+        
         // ANCHOR: Get current month statistics
         $currentMonth = Carbon::now()->startOfMonth();
         $lastMonth = Carbon::now()->subMonth()->startOfMonth();
         $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
 
-        // ANCHOR: Get total counts for current month
-        $suratMasukCurrent = SuratMasuk::where('created_at', '>=', $currentMonth)->count();
-        $suratKeluarCurrent = SuratKeluar::where('created_at', '>=', $currentMonth)->count();
-        $disposisiCurrent = Disposisi::where('created_at', '>=', $currentMonth)->count();
+        // ANCHOR: Get total counts for current month with bagian filter
+        $suratMasukQuery = SuratMasuk::where('created_at', '>=', $currentMonth);
+        $suratKeluarQuery = SuratKeluar::where('created_at', '>=', $currentMonth);
+        $disposisiQuery = Disposisi::where('created_at', '>=', $currentMonth);
 
-        // ANCHOR: Get total counts for last month
-        $suratMasukLast = SuratMasuk::whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
-        $suratKeluarLast = SuratKeluar::whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
-        $disposisiLast = Disposisi::whereBetween('created_at', [$lastMonth, $lastMonthEnd])->count();
+        // ANCHOR: Apply bagian filter for non-admin users
+        if (!$isAdmin && $user->bagian_id) {
+            $suratMasukQuery->where('tujuan_bagian_id', $user->bagian_id);
+            $suratKeluarQuery->where('pengirim_bagian_id', $user->bagian_id);
+            $disposisiQuery->where('tujuan_bagian_id', $user->bagian_id);
+        }
+
+        $suratMasukCurrent = $suratMasukQuery->count();
+        $suratKeluarCurrent = $suratKeluarQuery->count();
+        $disposisiCurrent = $disposisiQuery->count();
+
+        // ANCHOR: Get total counts for last month with bagian filter
+        $suratMasukLastQuery = SuratMasuk::whereBetween('created_at', [$lastMonth, $lastMonthEnd]);
+        $suratKeluarLastQuery = SuratKeluar::whereBetween('created_at', [$lastMonth, $lastMonthEnd]);
+        $disposisiLastQuery = Disposisi::whereBetween('created_at', [$lastMonth, $lastMonthEnd]);
+
+        // ANCHOR: Apply bagian filter for non-admin users
+        if (!$isAdmin && $user->bagian_id) {
+            $suratMasukLastQuery->where('tujuan_bagian_id', $user->bagian_id);
+            $suratKeluarLastQuery->where('pengirim_bagian_id', $user->bagian_id);
+            $disposisiLastQuery->where('tujuan_bagian_id', $user->bagian_id);
+        }
+
+        $suratMasukLast = $suratMasukLastQuery->count();
+        $suratKeluarLast = $suratKeluarLastQuery->count();
+        $disposisiLast = $disposisiLastQuery->count();
 
         // ANCHOR: Calculate percentage changes
         $suratMasukChange = $this->calculatePercentageChange($suratMasukCurrent, $suratMasukLast);
@@ -66,10 +93,10 @@ class DasborController extends Controller
         ];
 
         // ANCHOR: Get recent activity data
-        $recentActivity = $this->getRecentActivity();
+        $recentActivity = $this->getRecentActivity($user, $isAdmin);
 
         // ANCHOR: Get chart data for distribution
-        $chartData = $this->getChartData();
+        $chartData = $this->getChartData($user, $isAdmin);
 
         return view('pages.dasbor.dasbor', compact('statistics', 'recentActivity', 'chartData'));
     }
@@ -101,39 +128,49 @@ class DasborController extends Controller
     /**
      * Get recent activity data combining surat masuk and keluar
      */
-    private function getRecentActivity()
+    private function getRecentActivity($user, $isAdmin)
     {
         // ANCHOR: Get recent surat masuk
-        $suratMasuk = SuratMasuk::with(['tujuanBagian', 'user'])
+        $suratMasukQuery = SuratMasuk::with(['tujuanBagian', 'user'])
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'nomor_surat' => $item->nomor_surat,
-                    'tanggal_surat' => $item->tanggal_surat,
-                    'perihal' => $item->perihal,
-                    'jenis' => 'Surat Masuk',
-                    'created_at' => $item->created_at,
-                ];
-            });
+            ->limit(10);
+
+        // ANCHOR: Apply bagian filter for non-admin users
+        if (!$isAdmin && $user->bagian_id) {
+            $suratMasukQuery->where('tujuan_bagian_id', $user->bagian_id);
+        }
+
+        $suratMasuk = $suratMasukQuery->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'nomor_surat' => $item->nomor_surat,
+                'tanggal_surat' => $item->tanggal_surat,
+                'perihal' => $item->perihal,
+                'jenis' => 'Surat Masuk',
+                'created_at' => $item->created_at,
+            ];
+        });
 
         // ANCHOR: Get recent surat keluar
-        $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user'])
+        $suratKeluarQuery = SuratKeluar::with(['pengirimBagian', 'user'])
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'nomor_surat' => $item->nomor_surat,
-                    'tanggal_surat' => $item->tanggal_surat,
-                    'perihal' => $item->perihal,
-                    'jenis' => 'Surat Keluar',
-                    'created_at' => $item->created_at,
-                ];
-            });
+            ->limit(10);
+
+        // ANCHOR: Apply bagian filter for non-admin users
+        if (!$isAdmin && $user->bagian_id) {
+            $suratKeluarQuery->where('pengirim_bagian_id', $user->bagian_id);
+        }
+
+        $suratKeluar = $suratKeluarQuery->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'nomor_surat' => $item->nomor_surat,
+                'tanggal_surat' => $item->tanggal_surat,
+                'perihal' => $item->perihal,
+                'jenis' => 'Surat Keluar',
+                'created_at' => $item->created_at,
+            ];
+        });
 
         // ANCHOR: Combine and sort by created_at
         $combined = $suratMasuk->concat($suratKeluar)
@@ -147,11 +184,23 @@ class DasborController extends Controller
     /**
      * Get chart data for distribution statistics
      */
-    private function getChartData()
+    private function getChartData($user, $isAdmin)
     {
-        $suratMasukTotal = SuratMasuk::count();
-        $suratKeluarTotal = SuratKeluar::count();
-        $disposisiTotal = Disposisi::count();
+        // ANCHOR: Get total counts with bagian filter
+        $suratMasukQuery = SuratMasuk::query();
+        $suratKeluarQuery = SuratKeluar::query();
+        $disposisiQuery = Disposisi::query();
+
+        // ANCHOR: Apply bagian filter for non-admin users
+        if (!$isAdmin && $user->bagian_id) {
+            $suratMasukQuery->where('tujuan_bagian_id', $user->bagian_id);
+            $suratKeluarQuery->where('pengirim_bagian_id', $user->bagian_id);
+            $disposisiQuery->where('tujuan_bagian_id', $user->bagian_id);
+        }
+
+        $suratMasukTotal = $suratMasukQuery->count();
+        $suratKeluarTotal = $suratKeluarQuery->count();
+        $disposisiTotal = $disposisiQuery->count();
 
         return [
             'labels' => ['Surat Masuk', 'Surat Keluar', 'Disposisi'],
