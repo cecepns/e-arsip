@@ -25,10 +25,16 @@ class SuratKeluarController extends Controller
         $tanggal = $request->get('tanggal');
         
         $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user', 'creator', 'updater'])
+            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
+                // ANCHOR: Staff hanya bisa melihat surat keluar dari bagiannya
+                $q->where('pengirim_bagian_id', Auth::user()->bagian_id);
+            })
             ->when($query, function ($q) use ($query) {
-                $q->where('nomor_surat', 'like', "%{$query}%")
-                  ->orWhere('perihal', 'like', "%{$query}%")
-                  ->orWhere('tujuan', 'like', "%{$query}%");
+                $q->where(function ($subQ) use ($query) {
+                    $subQ->where('nomor_surat', 'like', "%{$query}%")
+                         ->orWhere('perihal', 'like', "%{$query}%")
+                         ->orWhere('tujuan', 'like', "%{$query}%");
+                });
             })
             ->when($sifatSurat, function ($q) use ($sifatSurat) {
                 $q->where('sifat_surat', $sifatSurat);
@@ -61,6 +67,12 @@ class SuratKeluarController extends Controller
     public function store(Request $request)
     {
         try {
+            // ANCHOR: Set pengirim_bagian_id untuk Staff otomatis
+            $user = Auth::user();
+            if ($user && $user->role === 'Staf') {
+                $request->merge(['pengirim_bagian_id' => $user->bagian_id]);
+            }
+
             $validated = $request->validate([
                 'nomor_surat' => [
                     'required',
@@ -159,6 +171,18 @@ class SuratKeluarController extends Controller
         try {
             $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user', 'lampiran', 'creator', 'updater'])->findOrFail($id);
             
+            // ANCHOR: Cek hak akses untuk staf
+            $user = Auth::user();
+            if ($user && $user->role === 'Staf' && $suratKeluar->pengirim_bagian_id !== $user->bagian_id) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki akses untuk melihat surat ini.'
+                    ], 403);
+                }
+                abort(403, 'Anda tidak memiliki akses untuk melihat surat ini.');
+            }
+            
             // ANCHOR: Handle AJAX request
             if ($request->ajax()) {
                 return response()->json([
@@ -186,6 +210,23 @@ class SuratKeluarController extends Controller
     {
         try {
             $suratKeluar = SuratKeluar::findOrFail($id);
+            
+            // ANCHOR: Cek hak akses untuk staf
+            $user = Auth::user();
+            if ($user && $user->role === 'Staf' && $suratKeluar->pengirim_bagian_id !== $user->bagian_id) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki akses untuk mengedit surat ini.'
+                    ], 403);
+                }
+                abort(403, 'Anda tidak memiliki akses untuk mengedit surat ini.');
+            }
+
+            // ANCHOR: Set pengirim_bagian_id untuk Staff otomatis
+            if ($user && $user->role === 'Staf') {
+                $request->merge(['pengirim_bagian_id' => $user->bagian_id]);
+            }
 
             $validated = $request->validate([
                 'nomor_surat' => [
@@ -292,6 +333,18 @@ class SuratKeluarController extends Controller
         try {
             $suratKeluar = SuratKeluar::findOrFail($id);
             $nomorSurat = $suratKeluar->nomor_surat;
+            
+            // ANCHOR: Cek hak akses untuk staf
+            $user = Auth::user();
+            if ($user && $user->role === 'Staf' && $suratKeluar->pengirim_bagian_id !== $user->bagian_id) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki akses untuk menghapus surat ini.'
+                    ], 403);
+                }
+                abort(403, 'Anda tidak memiliki akses untuk menghapus surat ini.');
+            }
             
             $suratKeluar->delete();
 

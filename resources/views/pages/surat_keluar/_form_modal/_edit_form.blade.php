@@ -48,6 +48,7 @@
             </div>
             
             <div class="mb-3">
+                @if(Auth::user()->role === 'Admin')
                 <label for="edit_pengirim_bagian_id" class="form-label">Bagian Pengirim</label>
                 <select name="pengirim_bagian_id" class="form-select" id="edit_pengirim_bagian_id" required>
                     <option value="">Pilih Bagian</option>
@@ -58,6 +59,16 @@
                     @endforeach
                 </select>
                 <div class="invalid-feedback"></div>
+                @else
+                {{-- Hidden input untuk Staff - auto-set ke bagian mereka --}}
+                <input type="hidden" name="pengirim_bagian_id" value="{{ Auth::user()->bagian_id }}">
+                <label class="form-label">Bagian Pengirim</label>
+                <div class="form-control-plaintext bg-light p-2 rounded">
+                    <i class="fas fa-building me-2"></i>
+                    <span id="edit_bagian_display">{{ Auth::user()->bagian->nama_bagian ?? 'Bagian tidak ditemukan' }}</span>
+                </div>
+                <div class="form-text">Surat akan otomatis dikirim dari bagian Anda</div>
+                @endif
             </div>
         </div>
         
@@ -113,11 +124,12 @@
         const tujuanInput = document.getElementById('edit_tujuan');
         const sifatSuratInput = document.getElementById('edit_sifat_surat');
         const pengirimBagianInput = document.getElementById('edit_pengirim_bagian_id');
+        const editBagianDisplay = document.getElementById('edit_bagian_display');
         const ringkasanIsiInput = document.getElementById('edit_ringkasan_isi');
         const keteranganInput = document.getElementById('edit_keterangan');
 
         const suratKeluar = suratKeluarDataCurrentPage.find(surat => surat.id === suratKeluarId);
-        const { id, nomor_surat, tanggal_surat, tanggal_keluar, perihal, tujuan, sifat_surat, pengirim_bagian_id, ringkasan_isi, keterangan } = suratKeluar;
+        const { id, nomor_surat, tanggal_surat, tanggal_keluar, perihal, tujuan, sifat_surat, pengirim_bagian_id, pengirim_bagian, ringkasan_isi, keterangan } = suratKeluar;
 
         const formatDateForInput = (isoDate) => {
             if (!isoDate) return '';
@@ -131,7 +143,16 @@
         perihalInput.value = perihal || '';
         tujuanInput.value = tujuan || '';
         sifatSuratInput.value = sifat_surat || '';
-        pengirimBagianInput.value = pengirim_bagian_id || '';
+        
+        // ANCHOR: Set bagian pengirim - handle both Admin and Staff
+        if (pengirimBagianInput) {
+            // Admin - set select value
+            pengirimBagianInput.value = pengirim_bagian_id || '';
+        } else if (editBagianDisplay) {
+            // Staff - update display text
+            editBagianDisplay.textContent = pengirim_bagian?.nama_bagian || 'Bagian tidak ditemukan';
+        }
+        
         ringkasanIsiInput.value = ringkasan_isi || '';
         keteranganInput.value = keterangan || '';
 

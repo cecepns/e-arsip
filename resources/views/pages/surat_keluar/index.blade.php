@@ -52,6 +52,7 @@
                     </div>
                     
                     <!-- Bagian Pengirim -->
+                    @if(Auth::user()->role === 'Admin')
                     <div class="col-md-4">
                         <label for="bagian_id" class="form-label">Bagian Pengirim</label>
                         <select name="bagian_id" class="form-select" id="bagian_id">
@@ -63,6 +64,10 @@
                             @endforeach
                         </select>
                     </div>
+                    @else
+                    {{-- Hidden input untuk Staff - auto-set ke bagian mereka --}}
+                    <input type="hidden" name="bagian_id" value="{{ Auth::user()->bagian_id }}">
+                    @endif
                     
                     <!-- Tanggal -->
                     <div class="col-md-4">

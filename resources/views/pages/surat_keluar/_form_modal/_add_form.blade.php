@@ -46,6 +46,7 @@
             </div>
             
             <div class="mb-3">
+                @if(Auth::user()->role === 'Admin')
                 <label for="add_pengirim_bagian_id" class="form-label">Bagian Pengirim</label>
                 <select name="pengirim_bagian_id" class="form-select" id="add_pengirim_bagian_id" required>
                     <option value="">Pilih Bagian</option>
@@ -56,6 +57,16 @@
                     @endforeach
                 </select>
                 <div class="invalid-feedback"></div>
+                @else
+                {{-- Hidden input untuk Staff - auto-set ke bagian mereka --}}
+                <input type="hidden" name="pengirim_bagian_id" value="{{ Auth::user()->bagian_id }}">
+                <label class="form-label">Bagian Pengirim</label>
+                <div class="form-control-plaintext bg-light p-2 rounded">
+                    <i class="fas fa-building me-2"></i>
+                    {{ Auth::user()->bagian->nama_bagian ?? 'Bagian tidak ditemukan' }}
+                </div>
+                <div class="form-text">Surat akan otomatis dikirim dari bagian Anda</div>
+                @endif
             </div>
         </div>
         
