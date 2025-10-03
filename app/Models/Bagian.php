@@ -24,7 +24,7 @@ class Bagian extends Model
      */
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'bagian_id');
     }
 
     /**

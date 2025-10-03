@@ -101,6 +101,9 @@ class NotificationService
      */
     public function sendDisposisiNotification($disposisi): void
     {
+        // Load necessary relationships
+        $disposisi->load(['suratMasuk.tujuanBagian', 'tujuanBagian']);
+        
         $title = 'Disposisi Baru';
         $message = "Disposisi untuk surat {$disposisi->suratMasuk->nomor_surat} telah dibuat";
         
@@ -109,14 +112,14 @@ class NotificationService
             'surat_id' => $disposisi->surat_masuk_id,
             'nomor_surat' => $disposisi->suratMasuk->nomor_surat,
             'perihal' => $disposisi->suratMasuk->perihal,
-            'dari_bagian' => $disposisi->dariBagian->nama ?? 'Tidak diketahui',
-            'ke_bagian' => $disposisi->keBagian->nama ?? 'Tidak diketahui',
+            'dari_bagian' => $disposisi->suratMasuk->tujuanBagian->nama_bagian ?? 'Tidak diketahui',
+            'ke_bagian' => $disposisi->tujuanBagian->nama_bagian ?? 'Tidak diketahui',
             'tanggal_disposisi' => $disposisi->tanggal_disposisi,
         ];
 
         // Send to users in the target bagian
-        if ($disposisi->keBagian) {
-            $this->sendToBagian($disposisi->keBagian, 'disposisi', $title, $message, $data);
+        if ($disposisi->tujuanBagian) {
+            $this->sendToBagian($disposisi->tujuanBagian, 'disposisi', $title, $message, $data);
         }
     }
 }

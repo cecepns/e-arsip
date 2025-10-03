@@ -55,7 +55,7 @@ class User extends Authenticatable
      */
     public function bagian()
     {
-        return $this->belongsTo(Bagian::class);
+        return $this->belongsTo(Bagian::class, 'bagian_id');
     }
 
     /**
