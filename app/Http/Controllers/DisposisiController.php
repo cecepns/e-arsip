@@ -32,14 +32,25 @@ class DisposisiController extends Controller
             'creator', 
             'updater'
         ])
+            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
+                // ANCHOR: Staf bisa melihat disposisi "ke bagiannya" dan "dari bagiannya"
+                $q->where(function ($subQ) {
+                    $subQ->where('tujuan_bagian_id', Auth::user()->bagian_id) // Disposisi KE bagiannya
+                         ->orWhereHas('suratMasuk', function ($suratQ) {
+                             $suratQ->where('tujuan_bagian_id', Auth::user()->bagian_id); // Disposisi DARI bagiannya
+                         });
+                });
+            })
             ->when($query, function ($q) use ($query) {
-                $q->whereHas('suratMasuk', function ($subQ) use ($query) {
-                    $subQ->where('nomor_surat', 'like', "%{$query}%")
-                         ->orWhere('perihal', 'like', "%{$query}%")
-                         ->orWhere('pengirim', 'like', "%{$query}%");
-                })
-                ->orWhere('isi_instruksi', 'like', "%{$query}%")
-                ->orWhere('catatan', 'like', "%{$query}%");
+                $q->where(function ($subQ) use ($query) {
+                    $subQ->whereHas('suratMasuk', function ($suratQ) use ($query) {
+                        $suratQ->where('nomor_surat', 'like', "%{$query}%")
+                               ->orWhere('perihal', 'like', "%{$query}%")
+                               ->orWhere('pengirim', 'like', "%{$query}%");
+                    })
+                    ->orWhere('isi_instruksi', 'like', "%{$query}%")
+                    ->orWhere('catatan', 'like', "%{$query}%");
+                });
             })
             ->when($status, function ($q) use ($status) {
                 $q->where('status', $status);
@@ -53,15 +64,6 @@ class DisposisiController extends Controller
             ->when($sifatSurat, function ($q) use ($sifatSurat) {
                 $q->whereHas('suratMasuk', function ($subQ) use ($sifatSurat) {
                     $subQ->where('sifat_surat', $sifatSurat);
-                });
-            })
-            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
-                // ANCHOR: Staf bisa melihat disposisi "ke bagiannya" dan "dari bagiannya"
-                $q->where(function ($subQ) {
-                    $subQ->where('tujuan_bagian_id', Auth::user()->bagian_id) // Disposisi KE bagiannya
-                         ->orWhereHas('suratMasuk', function ($suratQ) {
-                             $suratQ->where('tujuan_bagian_id', Auth::user()->bagian_id); // Disposisi DARI bagiannya
-                         });
                 });
             })
             ->when(Auth::user() && Auth::user()->role === 'kepala_bagian', function ($q) {
