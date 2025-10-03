@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Disposisi;
 use App\Models\Bagian;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -13,6 +14,13 @@ use App\Traits\AjaxErrorHandler;
 class DisposisiController extends Controller
 {
     use AjaxErrorHandler;
+
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
 
     /**
      * Display a listing of the disposisi.

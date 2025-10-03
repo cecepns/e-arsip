@@ -7,6 +7,7 @@ use App\Http\Controllers\DasborController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\NotificationController;
 
 // SECTIONProtected routes - require authentication
 Route::middleware(['auth'])->group(function () {
@@ -66,6 +67,12 @@ Route::middleware(['auth'])->group(function () {
     // ANCHOR: Pengaturan Instansi (Admin Only)
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // ANCHOR: Notifikasi
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread', [NotificationController::class, 'unread'])->name('notifications.unread');
+    Route::post('/notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 });
 // !SECTION Protected routes - require authentication
 

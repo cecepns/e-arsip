@@ -91,6 +91,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the notifications for the user.
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
      * Check if this user is kepala bagian of any bagian.
      */
     public function isKepalaBagian(): bool

@@ -86,6 +86,14 @@
             </a>
         </div>
         
+        <!-- Notifikasi - Available for all roles -->
+        <div class="nav-item">
+            <a href="{{ route('notifications.index') }}" class="nav-link{{ request()->routeIs('notifications.*') ? ' active' : '' }}">
+                <i class="fas fa-bell"></i>
+                <span>Notifikasi</span>
+            </a>
+        </div>
+        
         <!-- Pengaturan - Admin only -->
         @if(Auth::user()->role === 'Admin')
         <div class="nav-item">
@@ -118,7 +126,7 @@
             <!-- Notification Bell -->
             <div class="notification-bell control-btn" id="notificationBell">
                 <i class="fas fa-bell"></i>
-                <span class="notification-badge">5</span>
+                <span class="notification-badge" id="notificationBadge">0</span>
                 <div class="notification-dropdown" id="notificationDropdown">
                     <div class="notification-header">
                         <span class="notification-header-title">Notifikasi Terbaru</span>
@@ -126,60 +134,14 @@
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    <div class="notification-list">
-                        <div class="notification-item">
-                            <div class="notification-icon incoming">
-                                <i class="fas fa-inbox"></i>
-                            </div>
-                            <div class="notification-content">
-                                <div class="notification-title">Surat Masuk Baru</div>
-                                <div class="notification-desc">Undangan Rapat dari Direktur</div>
-                                <div class="notification-time">5 menit yang lalu</div>
-                            </div>
-                        </div>
-                        <div class="notification-item">
-                            <div class="notification-icon outgoing">
-                                <i class="fas fa-paper-plane"></i>
-                            </div>
-                            <div class="notification-content">
-                                <div class="notification-title">Surat Keluar Terkirim</div>
-                                <div class="notification-desc">Balasan proposal ke vendor</div>
-                                <div class="notification-time">1 jam yang lalu</div>
-                            </div>
-                        </div>
-                        <div class="notification-item">
-                            <div class="notification-icon disposition">
-                                <i class="fas fa-share-alt"></i>
-                            </div>
-                            <div class="notification-content">
-                                <div class="notification-title">Disposisi Baru</div>
-                                <div class="notification-desc">Surat disposisi ke bagian keuangan</div>
-                                <div class="notification-time">2 jam yang lalu</div>
-                            </div>
-                        </div>
-                        <div class="notification-item">
-                            <div class="notification-icon incoming">
-                                <i class="fas fa-inbox"></i>
-                            </div>
-                            <div class="notification-content">
-                                <div class="notification-title">Surat Masuk Baru</div>
-                                <div class="notification-desc">Laporan bulanan dari HRD</div>
-                                <div class="notification-time">3 jam yang lalu</div>
-                            </div>
-                        </div>
-                        <div class="notification-item">
-                            <div class="notification-icon outgoing">
-                                <i class="fas fa-paper-plane"></i>
-                            </div>
-                            <div class="notification-content">
-                                <div class="notification-title">Surat Keluar Dikirim</div>
-                                <div class="notification-desc">Pengumuman libur nasional</div>
-                                <div class="notification-time">5 jam yang lalu</div>
-                            </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Memuat notifikasi...</span>
                         </div>
                     </div>
                     <div class="notification-footer">
-                        <a href="#" class="notification-view-all">Lihat Semua Notifikasi</a>
+                        <a href="{{ route('notifications.index') }}" class="notification-view-all">Lihat Semua Notifikasi</a>
                     </div>
                 </div>
             </div>
@@ -224,6 +186,67 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+.notification-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.notification-loading i {
+    font-size: 1.2rem;
+}
+
+.notification-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.notification-empty i {
+    font-size: 2rem;
+    color: #dee2e6;
+}
+
+.notification-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.notification-badge:empty {
+    display: none;
+}
+</style>
+@endpush
+
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
@@ -240,13 +263,23 @@
         const notificationBell = document.getElementById('notificationBell');
         const notificationDropdown = document.getElementById('notificationDropdown');
         const notificationClose = document.getElementById('notificationClose');
+        const notificationList = document.getElementById('notificationList');
+        const notificationBadge = document.getElementById('notificationBadge');
 
         if (!notificationBell || !notificationDropdown) return;
+
+        // Load notifications on page load
+        loadNotifications();
 
         // Toggle notification dropdown
         notificationBell.addEventListener('click', function(e) {
             e.stopPropagation();
             notificationDropdown.classList.toggle('show');
+            
+            // Load notifications when dropdown is opened
+            if (notificationDropdown.classList.contains('show')) {
+                loadNotifications();
+            }
         });
 
         // Close notification dropdown with close button
@@ -269,6 +302,136 @@
             if (e.key === 'Escape' && notificationDropdown.classList.contains('show')) {
                 notificationDropdown.classList.remove('show');
             }
+        });
+
+        // Load notifications every 30 seconds
+        setInterval(loadNotifications, 30000);
+    }
+
+    // Load notifications from server
+    function loadNotifications() {
+        fetch('/notifications/unread')
+            .then(response => response.json())
+            .then(data => {
+                updateNotificationBadge(data.unread_count);
+                updateNotificationList(data.notifications);
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+            });
+    }
+
+    // Update notification badge
+    function updateNotificationBadge(count) {
+        const badge = document.getElementById('notificationBadge');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'block' : 'none';
+        }
+    }
+
+    // Update notification list
+    function updateNotificationList(notifications) {
+        const notificationList = document.getElementById('notificationList');
+        if (!notificationList) return;
+
+        if (notifications.length === 0) {
+            notificationList.innerHTML = `
+                <div class="notification-empty p-5">
+                    <i class="fas fa-bell-slash"></i>
+                    <span>Tidak ada notifikasi baru</span>
+                </div>
+            `;
+            return;
+        }
+
+        const notificationsHtml = notifications.map(notification => {
+            const iconClass = getNotificationIcon(notification.type);
+            const timeAgo = getTimeAgo(notification.created_at);
+            
+            return `
+                <div class="notification-item" data-notification-id="${notification.id}">
+                    <div class="notification-icon ${notification.type}">
+                        <i class="${iconClass}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-desc">${notification.message}</div>
+                        <div class="notification-time">${timeAgo}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        notificationList.innerHTML = notificationsHtml;
+
+        // Add click handlers for notifications
+        notificationList.querySelectorAll('.notification-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const notificationId = this.dataset.notificationId;
+                markNotificationAsRead(notificationId);
+            });
+        });
+    }
+
+    // Get notification icon based on type
+    function getNotificationIcon(type) {
+        switch(type) {
+            case 'surat_masuk':
+                return 'fas fa-inbox';
+            case 'surat_keluar':
+                return 'fas fa-paper-plane';
+            case 'disposisi':
+                return 'fas fa-share-alt';
+            default:
+                return 'fas fa-bell';
+        }
+    }
+
+    // Get time ago string
+    function getTimeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+
+        if (diffInSeconds < 60) {
+            return 'Baru saja';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes} menit yang lalu`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours} jam yang lalu`;
+        } else {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `${days} hari yang lalu`;
+        }
+    }
+
+    // Mark notification as read
+    function markNotificationAsRead(notificationId) {
+        fetch(`/notifications/${notificationId}/mark-read`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the notification from the list
+                const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                if (notificationItem) {
+                    notificationItem.remove();
+                }
+                
+                // Reload notifications to update badge
+                loadNotifications();
+            }
+        })
+        .catch(error => {
+            console.error('Error marking notification as read:', error);
         });
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SuratMasuk;
 use App\Models\Bagian;
 use App\Models\Disposisi;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -15,6 +16,13 @@ use App\Traits\AjaxErrorHandler;
 class SuratMasukController extends Controller
 {
     use AjaxErrorHandler;
+
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * Display a listing of the surat masuk.
      */
@@ -139,6 +147,9 @@ class SuratMasukController extends Controller
             // ANCHOR: Audit fields (created_by, updated_by) are automatically handled by Auditable trait
             $suratMasuk = SuratMasuk::create($validated);
 
+            // ANCHOR: Collect bagian IDs that will receive disposisi notifications
+            $disposisiBagianIds = [];
+            
             // ANCHOR: Create multiple disposisi if provided
             if ($request->has('disposisi') && 
                 is_array($request->disposisi) && 
@@ -151,7 +162,7 @@ class SuratMasukController extends Controller
                         ->first();
                     
                     if (!$existingDisposisi) {
-                        Disposisi::create([
+                        $disposisi = Disposisi::create([
                             'surat_masuk_id' => $suratMasuk->id,
                             'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id'],
                             'isi_instruksi' => $disposisiData['instruksi'],
@@ -161,9 +172,18 @@ class SuratMasukController extends Controller
                             'batas_waktu' => $disposisiData['batas_waktu'] ?? null,
                             'user_id' => Auth::id(),
                         ]);
+
+                        // ANCHOR: Collect bagian ID for exclusion from surat masuk notification
+                        $disposisiBagianIds[] = $disposisiData['tujuan_bagian_id'];
+                        
+                        // ANCHOR: Send notification for new disposisi
+                        $this->notificationService->sendDisposisiNotification($disposisi);
                     }
                 }
             }
+
+            // ANCHOR: Send notification for new surat masuk (excluding bagian that will receive disposisi notifications)
+            $this->notificationService->sendSuratMasukNotification($suratMasuk, $disposisiBagianIds);
 
             // ANCHOR: Process PDF attachment upload
             if ($request->hasFile('lampiran_pdf')) {
@@ -391,12 +411,14 @@ class SuratMasukController extends Controller
             if ($request->has('disposisi')) {
                 // ANCHOR: Get current disposisi IDs from request
                 $requestDisposisiIds = [];
+                $newDisposisiBagianIds = [];
+                
                 if (is_array($request->disposisi) && !empty($request->disposisi)) {
                     foreach ($request->disposisi as $disposisiData) {
                         $requestDisposisiIds[] = $disposisiData['tujuan_bagian_id'];
                         
                         // ANCHOR: Update or create disposisi
-                        Disposisi::updateOrCreate(
+                        $disposisi = Disposisi::updateOrCreate(
                             [
                                 'surat_masuk_id' => $suratMasuk->id,
                                 'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id']
@@ -410,6 +432,12 @@ class SuratMasukController extends Controller
                                 'user_id' => Auth::id(),
                             ]
                         );
+
+                        // ANCHOR: Send notification for new disposisi (only if it was created, not updated)
+                        if ($disposisi->wasRecentlyCreated) {
+                            $newDisposisiBagianIds[] = $disposisiData['tujuan_bagian_id'];
+                            $this->notificationService->sendDisposisiNotification($disposisi);
+                        }
                     }
                 }
                 

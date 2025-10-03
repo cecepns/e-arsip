@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SuratKeluar;
 use App\Models\Bagian;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -14,6 +15,13 @@ use App\Traits\AjaxErrorHandler;
 class SuratKeluarController extends Controller
 {
     use AjaxErrorHandler;
+
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * Display a listing of the surat keluar.
      */
@@ -123,6 +131,9 @@ class SuratKeluarController extends Controller
             $validated['user_id'] = Auth::id();
             // ANCHOR: Audit fields (created_by, updated_by) are automatically handled by Auditable trait
             $suratKeluar = SuratKeluar::create($validated);
+
+            // ANCHOR: Send notification for new surat keluar
+            $this->notificationService->sendSuratKeluarNotification($suratKeluar);
 
             // ANCHOR: Process PDF attachment upload
             if ($request->hasFile('lampiran_pdf')) {
