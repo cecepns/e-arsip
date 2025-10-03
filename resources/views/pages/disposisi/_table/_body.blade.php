@@ -84,10 +84,14 @@
                         onclick="editDisposisi({{ $item->id }})">
                     <i class="fas fa-edit"></i>
                 </button>
+                @if(Auth::user()->role === 'Admin' || 
+                    (Auth::user()->role === 'Staf' && $item->suratMasuk && $item->suratMasuk->tujuan_bagian_id === Auth::user()->bagian_id))
+                {{-- Admin bisa hapus semua, Staff hanya bisa hapus disposisi "dari bagiannya" --}}
                 <button class="action-btn delete-btn" title="Hapus" 
                         onclick="deleteDisposisi({{ $item->id }}, '{{ $item->suratMasuk ? $item->suratMasuk->nomor_surat : 'N/A' }}')">
                     <i class="fas fa-trash"></i>
                 </button>
+                @endif
             </div>
         </td>
     </tr>

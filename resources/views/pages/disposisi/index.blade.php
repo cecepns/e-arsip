@@ -301,6 +301,49 @@
         // ANCHOR: Populate edit form
         function populateEditForm(disposisi) {
             document.getElementById('editDisposisiId').value = disposisi.id;
+            
+            // ANCHOR: Check if user is Staff and determine access level
+            const userRole = '{{ Auth::user()->role }}';
+            const userBagianId = {{ Auth::user()->bagian_id }};
+            
+            const isDisposisiKeBagiannya = disposisi.tujuan_bagian_id === userBagianId;
+            const isDisposisiDariBagiannya = disposisi.surat_masuk?.tujuan_bagian_id === userBagianId;
+            
+            // ANCHOR: For Staff with disposisi "ke bagiannya", only allow status edit
+            if (userRole === 'Staf' && isDisposisiKeBagiannya && !isDisposisiDariBagiannya) {
+                // Disable fields that Staff cannot edit for disposisi "ke bagiannya"
+                document.getElementById('editTujuanBagian').disabled = true;
+                document.getElementById('editInstruksi').disabled = true;
+                document.getElementById('editCatatan').disabled = true;
+                document.getElementById('editTanggalDisposisi').disabled = true;
+                document.getElementById('editBatasWaktu').disabled = true;
+                
+                // Add visual indicator
+                document.getElementById('editTujuanBagian').classList.add('bg-light');
+                document.getElementById('editInstruksi').classList.add('bg-light');
+                document.getElementById('editCatatan').classList.add('bg-light');
+                document.getElementById('editTanggalDisposisi').classList.add('bg-light');
+                document.getElementById('editBatasWaktu').classList.add('bg-light');
+                
+                // Show info message
+                showToast('Anda hanya dapat mengubah status disposisi ini', 'info', 5000);
+            } else {
+                // Enable all fields for Admin or Staff with disposisi "dari bagiannya"
+                document.getElementById('editTujuanBagian').disabled = false;
+                document.getElementById('editInstruksi').disabled = false;
+                document.getElementById('editCatatan').disabled = false;
+                document.getElementById('editTanggalDisposisi').disabled = false;
+                document.getElementById('editBatasWaktu').disabled = false;
+                
+                // Remove visual indicators
+                document.getElementById('editTujuanBagian').classList.remove('bg-light');
+                document.getElementById('editInstruksi').classList.remove('bg-light');
+                document.getElementById('editCatatan').classList.remove('bg-light');
+                document.getElementById('editTanggalDisposisi').classList.remove('bg-light');
+                document.getElementById('editBatasWaktu').classList.remove('bg-light');
+            }
+            
+            // ANCHOR: Populate form fields
             document.getElementById('editTujuanBagian').value = disposisi.tujuan_bagian_id || '';
             document.getElementById('editStatus').value = disposisi.status || '';
             document.getElementById('editInstruksi').value = disposisi.isi_instruksi || '';

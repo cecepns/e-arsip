@@ -56,8 +56,13 @@ class DisposisiController extends Controller
                 });
             })
             ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
-                // ANCHOR: Staf hanya bisa melihat disposisi yang ditujukan ke bagiannya
-                $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
+                // ANCHOR: Staf bisa melihat disposisi "ke bagiannya" dan "dari bagiannya"
+                $q->where(function ($subQ) {
+                    $subQ->where('tujuan_bagian_id', Auth::user()->bagian_id) // Disposisi KE bagiannya
+                         ->orWhereHas('suratMasuk', function ($suratQ) {
+                             $suratQ->where('tujuan_bagian_id', Auth::user()->bagian_id); // Disposisi DARI bagiannya
+                         });
+                });
             })
             ->when(Auth::user() && Auth::user()->role === 'kepala_bagian', function ($q) {
                 // ANCHOR: Kepala bagian hanya bisa melihat disposisi yang ditujukan ke bagiannya
@@ -94,6 +99,23 @@ class DisposisiController extends Controller
                 'updater'
             ])->findOrFail($id);
             
+            // ANCHOR: Cek hak akses untuk staf
+            $user = Auth::user();
+            if ($user && $user->role === 'Staf') {
+                $isDisposisiKeBagiannya = $disposisi->tujuan_bagian_id === $user->bagian_id;
+                $isDisposisiDariBagiannya = $disposisi->suratMasuk->tujuan_bagian_id === $user->bagian_id;
+                
+                if (!$isDisposisiKeBagiannya && !$isDisposisiDariBagiannya) {
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Anda tidak memiliki akses untuk melihat disposisi ini.'
+                        ], 403);
+                    }
+                    abort(403, 'Anda tidak memiliki akses untuk melihat disposisi ini.');
+                }
+            }
+            
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
@@ -119,6 +141,51 @@ class DisposisiController extends Controller
     {
         try {
             $disposisi = Disposisi::findOrFail($id);
+            
+            // ANCHOR: Cek hak akses untuk staf
+            $user = Auth::user();
+            if ($user && $user->role === 'Staf') {
+                $isDisposisiKeBagiannya = $disposisi->tujuan_bagian_id === $user->bagian_id;
+                $isDisposisiDariBagiannya = $disposisi->suratMasuk->tujuan_bagian_id === $user->bagian_id;
+                
+                if (!$isDisposisiKeBagiannya && !$isDisposisiDariBagiannya) {
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Anda tidak memiliki akses untuk mengedit disposisi ini.'
+                        ], 403);
+                    }
+                    abort(403, 'Anda tidak memiliki akses untuk mengedit disposisi ini.');
+                }
+                
+                // ANCHOR: Jika disposisi "ke bagiannya", hanya bisa edit status
+                if ($isDisposisiKeBagiannya && !$isDisposisiDariBagiannya) {
+                    $validated = $request->validate([
+                        'status' => 'required|string|in:Menunggu,Dikerjakan,Selesai',
+                    ], [
+                        'status.required' => 'Status disposisi wajib dipilih.',
+                        'status.in' => 'Status harus Menunggu, Dikerjakan, atau Selesai.',
+                    ]);
+                    
+                    // ANCHOR: Hanya update status untuk disposisi "ke bagiannya"
+                    $disposisi->update(['status' => $validated['status']]);
+                    
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Status disposisi berhasil diperbarui.',
+                            'disposisi' => $disposisi->load(['suratMasuk.tujuanBagian.kepalaBagian', 'tujuanBagian.kepalaBagian', 'user', 'creator', 'updater']),
+                            'timestamp' => now()->format('Y-m-d H:i:s')
+                        ], 200);
+                    }
+                    
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Status disposisi berhasil diperbarui.',
+                        'disposisi' => $disposisi
+                    ]);
+                }
+            }
             
             $validated = $request->validate([
                 'tujuan_bagian_id' => 'required|exists:bagian,id',
@@ -184,6 +251,34 @@ class DisposisiController extends Controller
         try {
             $disposisi = Disposisi::findOrFail($id);
             $disposisiId = $disposisi->id;
+            
+            // ANCHOR: Cek hak akses untuk staf
+            $user = Auth::user();
+            if ($user && $user->role === 'Staf') {
+                $isDisposisiKeBagiannya = $disposisi->tujuan_bagian_id === $user->bagian_id;
+                $isDisposisiDariBagiannya = $disposisi->suratMasuk->tujuan_bagian_id === $user->bagian_id;
+                
+                if (!$isDisposisiKeBagiannya && !$isDisposisiDariBagiannya) {
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Anda tidak memiliki akses untuk menghapus disposisi ini.'
+                        ], 403);
+                    }
+                    abort(403, 'Anda tidak memiliki akses untuk menghapus disposisi ini.');
+                }
+                
+                // ANCHOR: Jika disposisi "ke bagiannya", tidak bisa hapus
+                if ($isDisposisiKeBagiannya && !$isDisposisiDariBagiannya) {
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Anda tidak dapat menghapus disposisi yang ditujukan ke bagian Anda.'
+                        ], 403);
+                    }
+                    abort(403, 'Anda tidak dapat menghapus disposisi yang ditujukan ke bagian Anda.');
+                }
+            }
             
             $disposisi->delete();
 
