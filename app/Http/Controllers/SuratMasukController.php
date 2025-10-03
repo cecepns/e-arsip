@@ -26,10 +26,16 @@ class SuratMasukController extends Controller
         $tanggal = $request->get('tanggal');
         
         $suratMasuk = SuratMasuk::with(['tujuanBagian', 'user', 'creator', 'updater', 'disposisi.tujuanBagian'])
+            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
+                // ANCHOR: Staff hanya bisa melihat surat yang ditujukan ke bagiannya
+                $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
+            })
             ->when($query, function ($q) use ($query) {
-                $q->where('nomor_surat', 'like', "%{$query}%")
-                  ->orWhere('perihal', 'like', "%{$query}%")
-                  ->orWhere('pengirim', 'like', "%{$query}%");
+                $q->where(function ($subQ) use ($query) {
+                    $subQ->where('nomor_surat', 'like', "%{$query}%")
+                         ->orWhere('perihal', 'like', "%{$query}%")
+                         ->orWhere('pengirim', 'like', "%{$query}%");
+                });
             })
             ->when($sifatSurat, function ($q) use ($sifatSurat) {
                 $q->where('sifat_surat', $sifatSurat);
@@ -39,9 +45,6 @@ class SuratMasukController extends Controller
             })
             ->when($tanggal, function ($q) use ($tanggal) {
                 $q->whereDate('tanggal_surat', $tanggal);
-            })
-            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
-                $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
