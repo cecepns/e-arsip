@@ -98,6 +98,10 @@ class LaporanController extends Controller
             ->when($bagianId, function ($q) use ($bagianId) {
                 $q->where('pengirim_bagian_id', $bagianId);
             })
+            ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
+                // ANCHOR: Staf hanya bisa melihat surat keluar dari bagiannya
+                $q->where('pengirim_bagian_id', Auth::user()->bagian_id);
+            })
             ->orderBy('tanggal_surat', 'desc')
             ->get();
 
@@ -131,8 +135,13 @@ class LaporanController extends Controller
                 $q->where('tujuan_bagian_id', $bagianId);
             })
             ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
-                // ANCHOR: Staf hanya bisa melihat disposisi yang ditujukan ke bagiannya
-                $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
+                // ANCHOR: Staf bisa melihat disposisi "ke bagiannya" dan "dari bagiannya"
+                $q->where(function ($subQ) {
+                    $subQ->where('tujuan_bagian_id', Auth::user()->bagian_id) // Disposisi KE bagiannya
+                         ->orWhereHas('suratMasuk', function ($suratQ) {
+                             $suratQ->where('tujuan_bagian_id', Auth::user()->bagian_id); // Disposisi DARI bagiannya
+                         });
+                });
             })
             ->when(Auth::user() && Auth::user()->role === 'kepala_bagian', function ($q) {
                 // ANCHOR: Kepala bagian hanya bisa melihat disposisi yang ditujukan ke bagiannya
