@@ -211,3 +211,106 @@
         min-width: 100%;
     }
 }
+
+/* =========================================== */
+/* SECTION: Dark Mode Styles for User CSS     */
+/* =========================================== */
+
+/* ANCHOR: Dark Mode Password Display */
+.dark-mode .password-display {
+    background-color: var(--dark-bg-tertiary);
+    border-color: var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+/* ANCHOR: Dark Mode Password Toggle */
+.dark-mode .password-toggle {
+    background-color: var(--dark-bg-tertiary);
+    border-color: var(--dark-border);
+}
+
+.dark-mode .password-toggle:hover {
+    background-color: var(--dark-bg-secondary);
+    border-color: var(--primary-light);
+}
+
+.dark-mode .password-toggle:focus {
+    box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+}
+
+.dark-mode .password-toggle i {
+    color: var(--dark-text-secondary);
+}
+
+.dark-mode .password-toggle:hover i {
+    color: var(--dark-text-primary);
+}
+
+/* ANCHOR: Dark Mode Form Text */
+.dark-mode .form-text {
+    color: var(--dark-text-muted);
+}
+
+/* ANCHOR: Dark Mode Modal Form */
+.dark-mode .modal-body .form-control,
+.dark-mode .modal-body .form-select {
+    background-color: var(--dark-bg-tertiary);
+    border-color: var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+.dark-mode .modal-body .form-control:focus,
+.dark-mode .modal-body .form-select:focus {
+    background-color: var(--dark-bg-tertiary);
+    border-color: var(--primary-light);
+    color: var(--dark-text-primary);
+    box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+}
+
+/* ANCHOR: Dark Mode Table */
+.dark-mode .table th {
+    background-color: var(--dark-bg-tertiary);
+    border-bottom-color: var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+.dark-mode .table td {
+    border-bottom-color: var(--dark-border);
+    color: var(--dark-text-primary);
+}
+
+/* ANCHOR: Dark Mode Empty State */
+.dark-mode .table tbody tr td[colspan] {
+    color: var(--dark-text-muted);
+}
+
+/* ANCHOR: Dark Mode Action Buttons */
+.dark-mode .edit-btn {
+    background-color: var(--warning-color);
+    color: #000;
+}
+
+.dark-mode .edit-btn:hover {
+    background-color: #e0a800;
+    color: #000;
+}
+
+.dark-mode .delete-btn {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.dark-mode .delete-btn:hover {
+    background-color: var(--danger-dark);
+    color: white;
+}
+
+.dark-mode .reset-btn {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.dark-mode .reset-btn:hover {
+    background-color: #e8650e;
+    color: white;
+}

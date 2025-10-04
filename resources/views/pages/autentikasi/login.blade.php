@@ -7,6 +7,13 @@
 @endpush
 
 @section('content')
+<!-- Dark Mode Toggle for Login -->
+<div class="login-dark-mode-toggle">
+    <button class="control-btn" id="loginDarkModeToggle" title="Toggle Dark Mode">
+        <i class="fas fa-moon"></i>
+    </button>
+</div>
+
 <div class="login-container">
     <div class="login-box animate__animated animate__fadeInUp">
         <!-- Header -->
@@ -82,6 +89,47 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
 <script>
+// DOM Content Loaded Event
+document.addEventListener('DOMContentLoaded', function() {
+    setupLoginDarkMode();
+});
+
+/**
+ * ANCHOR: Setup Login Dark Mode
+ * Setup dark mode functionality for login page
+ */
+function setupLoginDarkMode() {
+    const darkModeToggle = document.getElementById('loginDarkModeToggle');
+    const body = document.body;
+
+    if (!darkModeToggle) return;
+
+    // Check if dark mode is enabled
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+        body.classList.add('dark-mode');
+        updateLoginDarkModeIcon(true);
+    }
+
+    // Add click event listener
+    darkModeToggle.addEventListener('click', function() {
+        body.classList.toggle('dark-mode');
+        const isNowDarkMode = body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isNowDarkMode);
+        updateLoginDarkModeIcon(isNowDarkMode);
+    });
+}
+
+/**
+ * ANCHOR: Update Login Dark Mode Icon
+ * Update the dark mode toggle icon
+ */
+function updateLoginDarkModeIcon(isDarkMode) {
+    const icon = document.querySelector('#loginDarkModeToggle i');
+    if (!icon) return;
+    icon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+}
+
 /**
  * ANCHOR: Toggle Password Visibility
  * Toggle password field visibility
