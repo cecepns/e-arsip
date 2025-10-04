@@ -1100,6 +1100,71 @@
         disposisiSection.style.display = 'block';
     }
 
+    /**
+     * ANCHOR: Format Date for Display
+     * Format date consistently across the application
+     * @param {string} dateString - The date string to format
+     * @returns {string} Formatted date string
+     */
+    const formatDateForDisplay = (dateString) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    /**
+     * ANCHOR: Format DateTime for Display
+     * Format datetime consistently across the application
+     * @param {string} dateString - The datetime string to format
+     * @returns {string} Formatted datetime string
+     */
+    const formatDateTimeForDisplay = (dateString) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    /**
+     * ANCHOR: Get File Icon Class
+     * Get appropriate icon class based on file extension
+     * @param {string} fileName - The file name
+     * @returns {string} Icon class string
+     */
+    const getFileIconClass = (fileName) => {
+        const ext = fileName.toLowerCase().split('.').pop();
+        switch(ext) {
+            case 'pdf': return 'fa-file-pdf text-danger';
+            case 'doc': case 'docx': return 'fa-file-word text-primary';
+            case 'xls': case 'xlsx': return 'fa-file-excel text-success';
+            case 'zip': case 'rar': return 'fa-file-archive text-warning';
+            case 'jpg': case 'jpeg': case 'png': case 'gif': return 'fa-file-image text-info';
+            case 'txt': return 'fa-file-alt text-secondary';
+            default: return 'fa-file text-muted';
+        }
+    };
+
+    /**
+     * ANCHOR: Format File Size
+     * Format file size in human readable format
+     * @param {number} bytes - File size in bytes
+     * @returns {string} Formatted file size
+     */
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
     function populateSuratKeluarModal(data) {
         const parentEl = document.getElementById('modalDetailSuratKeluar');
         const suratKeluar = data.suratKeluar || data; // Handle both response structures
@@ -1108,14 +1173,13 @@
         window.currentDetailSuratKeluarId = suratKeluar.id;
         window.currentDetailSuratKeluar = suratKeluar;
         
-        // Populate basic info
+        // Basic information
         const fields = {
             'detail-nomor-surat': suratKeluar.nomor_surat || '-',
-            'detail-tanggal-surat': suratKeluar.tanggal_surat ? new Date(suratKeluar.tanggal_surat).toLocaleDateString('id-ID') : '-',
-            'detail-tanggal-keluar': suratKeluar.tanggal_keluar ? new Date(suratKeluar.tanggal_keluar).toLocaleDateString('id-ID') : '-',
+            'detail-tanggal-surat': formatDateForDisplay(suratKeluar.tanggal_surat),
+            'detail-tanggal-keluar': formatDateForDisplay(suratKeluar.tanggal_keluar),
             'detail-perihal': suratKeluar.perihal || '-',
-            'detail-tujuan': suratKeluar.tujuan || '-',
-            'detail-sifat-surat': suratKeluar.sifat_surat || 'Biasa'
+            'detail-tujuan': suratKeluar.tujuan || '-'
         };
 
         // Update field values using parent element
@@ -1126,65 +1190,150 @@
             }
         });
 
-        // Update bagian info
-        const bagianElement = parentEl.querySelector('#detail-pengirim-bagian');
+        // Sifat surat dengan badge
+        const sifatSuratElement = parentEl.querySelector('#detail-sifat-surat');
+        if (sifatSuratElement) {
+            const sifatSurat = suratKeluar.sifat_surat || 'Biasa';
+            let badgeClass = 'badge-secondary';
+            switch(sifatSurat) {
+                case 'Segera':
+                    badgeClass = 'badge-warning';
+                    break;
+                case 'Penting':
+                    badgeClass = 'badge-danger';
+                    break;
+                case 'Rahasia':
+                    badgeClass = 'badge-dark';
+                    break;
+                default:
+                    badgeClass = 'badge-secondary';
+            }
+            sifatSuratElement.innerHTML = `<span class="badge ${badgeClass}">${sifatSurat}</span>`;
+        }
+        
+        // Related information
+        const bagianElement = parentEl.querySelector('#detail-bagian-pengirim');
         if (bagianElement) {
             bagianElement.textContent = suratKeluar.pengirim_bagian?.nama_bagian || '-';
         }
+        
+        // Audit information
+        const userElement = parentEl.querySelector('#detail-user');
+        if (userElement) {
+            userElement.textContent = suratKeluar.user?.username || '-';
+        }
+        
+        const createdAtElement = parentEl.querySelector('#detail-created-at');
+        if (createdAtElement) {
+            createdAtElement.textContent = formatDateTimeForDisplay(suratKeluar.created_at);
+        }
+        
+        const updatedByElement = parentEl.querySelector('#detail-updated-by');
+        if (updatedByElement) {
+            updatedByElement.textContent = suratKeluar.updater?.username || '-';
+        }
+        
+        const updatedAtElement = parentEl.querySelector('#detail-updated-at');
+        if (updatedAtElement) {
+            updatedAtElement.textContent = formatDateTimeForDisplay(suratKeluar.updated_at);
+        }
 
-        // Update lampiran
+        // Ringkasan isi
+        const ringkasanSection = parentEl.querySelector('#detail-ringkasan-section');
+        const ringkasanContent = parentEl.querySelector('#detail-ringkasan-isi');
+        if (ringkasanSection && ringkasanContent) {
+            if (suratKeluar.ringkasan_isi) {
+                ringkasanContent.textContent = suratKeluar.ringkasan_isi;
+                ringkasanSection.style.display = 'block';
+            } else {
+                ringkasanSection.style.display = 'none';
+            }
+        }
+
+        // Keterangan
+        const keteranganSection = parentEl.querySelector('#detail-keterangan-section');
+        const keteranganContent = parentEl.querySelector('#detail-keterangan');
+        if (keteranganSection && keteranganContent) {
+            if (suratKeluar.keterangan) {
+                keteranganContent.textContent = suratKeluar.keterangan;
+                keteranganSection.style.display = 'block';
+            } else {
+                keteranganSection.style.display = 'none';
+            }
+        }
+
+        // Lampiran
+        populateLampiranDetailSuratKeluar(suratKeluar.lampiran || [], parentEl);
+    }
+
+    /**
+     * ANCHOR: Populate Lampiran Detail for Surat Keluar
+     * Populate the lampiran section with attachment data for surat keluar
+     * @param {Array} lampiran - Array of lampiran data
+     * @param {HTMLElement} parentEl - Parent element to search within
+     */
+    function populateLampiranDetailSuratKeluar(lampiran, parentEl) {
         const lampiranContent = parentEl.querySelector('#detail-lampiran-content');
-        if (lampiranContent) {
-            if (suratKeluar.lampiran && suratKeluar.lampiran.length > 0) {
-                let lampiranHtml = '<div class="row">';
-                
-                suratKeluar.lampiran.forEach((file, index) => {
-                    const isPdf = file.nama_file.toLowerCase().endsWith('.pdf');
-                    const iconClass = isPdf ? 'fa-file-pdf text-danger' : 'fa-file-alt text-primary';
-                    const downloadUrl = `/storage/${file.path_file}`;
-                    
-                    lampiranHtml += `
-                        <div class="col-md-6 mb-3">
-                            <div class="card border">
-                                <div class="card-body p-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-3">
-                                            <i class="fas ${iconClass} fa-2x"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="card-title mb-1 text-truncate" title="${file.nama_file}">
-                                                ${file.nama_file}
-                                            </h6>
-                                            <small class="text-muted">
-                                                ${file.tipe_lampiran === 'utama' ? 'Lampiran Utama' : 'Dokumen Pendukung'}
-                                            </small>
-                                        </div>
-                                        <div class="ms-2">
-                                            <a href="${downloadUrl}" 
-                                               class="btn btn-sm btn-outline-primary" 
-                                               title="Download ${file.nama_file}"
-                                               download="${file.nama_file}">
-                                                <i class="fas fa-download"></i>
-                                            </a>
-                                        </div>
+        
+        if (!lampiranContent) return;
+        
+        if (lampiran.length === 0) {
+            lampiranContent.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-paperclip fa-2x mb-2"></i>
+                    <p>Tidak ada lampiran</p>
+                </div>
+            `;
+            return;
+        }
+
+        let lampiranHtml = '<div class="row">';
+        
+        lampiran.forEach((file, index) => {
+            const iconClass = getFileIconClass(file.nama_file);
+            const downloadUrl = `/storage/${file.path_file}`;
+            const fileSize = file.file_size ? formatFileSize(file.file_size) : 'Unknown';
+            const badgeClass = file.tipe_lampiran === 'utama' ? 'badge-primary' : 'badge-secondary';
+            
+            lampiranHtml += `
+                <div class="col-md-6 mb-3">
+                    <div class="card border">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas ${iconClass} fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-1 text-truncate" title="${file.nama_file}">
+                                        ${file.nama_file}
+                                    </h6>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge ${badgeClass}">
+                                            ${file.tipe_lampiran === 'utama' ? 'Lampiran Utama' : 'Dokumen Pendukung'}
+                                        </span>
+                                        <small class="text-muted">${fileSize}</small>
                                     </div>
+                                    <small class="text-muted">
+                                        ${file.created_at ? formatDateTimeForDisplay(file.created_at) : '-'}
+                                    </small>
+                                </div>
+                                <div class="ms-2">
+                                    <a href="${downloadUrl}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       title="Download ${file.nama_file}"
+                                       download="${file.nama_file}">
+                                        <i class="fas fa-download"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
-                    `;
-                });
-                
-                lampiranHtml += '</div>';
-                lampiranContent.innerHTML = lampiranHtml;
-            } else {
-                lampiranContent.innerHTML = `
-                    <div class="text-center text-muted py-4">
-                        <i class="fas fa-paperclip fa-2x mb-2"></i>
-                        <p>Tidak ada lampiran</p>
                     </div>
-                `;
-            }
-        }
+                </div>
+            `;
+        });
+        
+        lampiranHtml += '</div>';
+        lampiranContent.innerHTML = lampiranHtml;
     }
 
 </script>
