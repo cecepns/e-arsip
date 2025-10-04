@@ -336,12 +336,6 @@
         if (!notificationList) return;
 
         if (notifications.length === 0) {
-            notificationList.innerHTML = `
-                <div class="notification-empty p-5">
-                    <i class="fas fa-bell-slash"></i>
-                    <span>Tidak ada notifikasi baru</span>
-                </div>
-            `;
             return;
         }
 

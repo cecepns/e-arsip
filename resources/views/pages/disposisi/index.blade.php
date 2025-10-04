@@ -8,8 +8,8 @@
     ])
 </div>
 
-<div class="mb-3 d-flex justify-content-end align-items-center">
-    <div class="d-flex gap-2">
+<div class="mb-3 d-flex justify-content-end align-items-center sub-page-header">
+    <div class="d-flex gap-2 quick-filter-buttons">
          <button class="btn btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
              Filter Lanjutan
          </button>
@@ -79,7 +79,7 @@
                     </div>
                     
                     <!-- Action Buttons -->
-                    <div class="col-12 d-flex gap-2">
+                    <div class="col-12 d-flex gap-2 filter-collapse-actions">
                          <button type="submit" class="btn btn-primary" id="applyFilterBtn">
                              Terapkan Filter
                          </button>

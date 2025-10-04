@@ -12,7 +12,7 @@
     ])
 </div>
 
-<div class="mb-3 d-flex justify-content-between align-items-center">
+<div class="mb-3 d-flex justify-content-between align-items-center sub-page-header">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddBagian">
         Tambah Bagian
     </button>

@@ -55,7 +55,7 @@
                     </div>
                     
                     <!-- Action Buttons -->
-                    <div class="col-12 d-flex gap-2">
+                    <div class="col-12 d-flex gap-2 filter-collapse-actions">
                         <button type="submit" class="btn btn-primary" id="applyFilterBtn">
                             <i class="fas fa-search"></i> Terapkan Filter
                         </button>

@@ -2,14 +2,6 @@
 
 @section('admin-content')
 <div class="container-fluid">
-    <!-- Breadcrumb -->
-    @include('partials.breadcrumb', [
-        'items' => [
-            ['label' => 'Dashboard', 'url' => route('dasbor.index')],
-            ['label' => 'Notifikasi']
-        ]
-    ])
-
     <!-- Page Title -->
     @include('partials.page-title', [
         'title' => 'Notifikasi',
@@ -17,15 +9,11 @@
     ])
 
     <!-- Page Actions -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="d-flex justify-content-end">
-                <button class="btn btn-outline-primary" id="markAllAsRead">
-                    <i class="fas fa-check-double me-2"></i>
-                    Tandai Semua Dibaca
-                </button>
-            </div>
-        </div>
+    <div class="d-flex justify-content-end sub-page-header mt-5">
+        <button class="btn btn-outline-primary" id="markAllAsRead">
+            <i class="fas fa-check-double me-2"></i>
+            Tandai Semua Dibaca
+        </button>
     </div>
 
     <!-- Notifications List -->
@@ -224,8 +212,7 @@
                 <div class="text-center py-5">
                     <div class="card shadow-sm">
                         <div class="card-body py-5">
-                            <i class="fas fa-bell-slash text-muted" style="font-size: 4rem;"></i>
-                            <h5 class="card-title mt-3 text-muted">Tidak Ada Notifikasi</h5>
+                            <i class="fas fa-bell-slash text-muted mb-4" style="font-size: 4rem;"></i>
                             <p class="card-text text-muted">
                                 Anda belum memiliki notifikasi. Notifikasi akan muncul ketika ada aktivitas baru.
                             </p>
