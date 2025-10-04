@@ -171,6 +171,7 @@
 
 @endsection 
 
+
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script>
@@ -307,27 +308,77 @@
         setupActionButtons();
     }
 
-    // Update Chart
-    function updateChart(filterType) {
-        let multiplier = 1;
-        if (filterType === '7 Hari Terakhir') {
-            multiplier = 0.2;
-        } else if (filterType === '30 Hari Terakhir') {
-            multiplier = 1;
-        } else if (filterType === '90 Hari Terakhir') {
-            multiplier = 2.5;
-        } else if (['2024', '2023', '2022', '2021'].includes(filterType)) {
-            multiplier = 10;
-        } else {
-            multiplier = 1;
-        }
-
-        if (distributionChart) {
-            const newData = chartData.data.map(value => Math.round(value * multiplier));
-            distributionChart.data.datasets[0].data = newData;
-            distributionChart.update('active');
+    // Update Chart with Real Data
+    async function updateChart(filterType) {
+        try {
+            // ANCHOR: Determine period and year parameters
+            let period = '30';
+            let year = null;
             
-            updateDepartmentCounts();
+            if (filterType === '7 Hari Terakhir') {
+                period = '7';
+            } else if (filterType === '30 Hari Terakhir') {
+                period = '30';
+            } else if (filterType === '90 Hari Terakhir') {
+                period = '90';
+            } else if (['2024', '2023', '2022', '2021'].includes(filterType)) {
+                period = 'year';
+                year = filterType;
+            }
+
+            // ANCHOR: Build API URL with parameters
+            const apiUrl = new URL('/api/chart-data', window.location.origin);
+            apiUrl.searchParams.set('period', period);
+            if (year) {
+                apiUrl.searchParams.set('year', year);
+            }
+
+            console.log('Fetching chart data from:', apiUrl.toString());
+
+            // ANCHOR: Fetch data from API
+            const response = await fetch(apiUrl.toString(), {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to fetch chart data');
+            }
+
+            // ANCHOR: Update chart with real data
+            if (distributionChart && result.data) {
+                distributionChart.data.datasets[0].data = result.data.data;
+                distributionChart.update('active');
+                
+                // ANCHOR: Update department counts if admin
+                if (isAdmin) {
+                    updateDepartmentCountsWithData(result.data.data);
+                }
+                
+                // ANCHOR: Show success message
+                console.log('Chart updated successfully:', result);
+                showAlert('Success', `Chart data updated for ${filterType}`, 'success');
+            }
+            
+        } catch (error) {
+            console.error('Error updating chart:', error);
+            showAlert('Error', 'Failed to update chart data: ' + error.message, 'danger');
+            
+            // ANCHOR: Fallback to original data
+            if (distributionChart) {
+                distributionChart.data.datasets[0].data = chartData.data;
+                distributionChart.update('active');
+            }
         }
     }
 
@@ -342,6 +393,26 @@
             }
         });
     }
+
+    // Update Department Counts with New Data
+    function updateDepartmentCountsWithData(newData) {
+        if (!isAdmin || !bagianStats) return;
+        
+        // ANCHOR: Calculate proportional updates based on new chart data
+        const totalNewData = newData.reduce((a, b) => a + b, 0);
+        const totalOriginalData = chartData.data.reduce((a, b) => a + b, 0);
+        const ratio = totalOriginalData > 0 ? totalNewData / totalOriginalData : 1;
+        
+        const deptCounts = document.querySelectorAll('.dept-count');
+        deptCounts.forEach((count, index) => {
+            if (bagianStats[index] !== undefined) {
+                const originalCount = bagianStats[index].total_surat;
+                const newCount = Math.round(originalCount * ratio);
+                count.textContent = newCount;
+            }
+        });
+    }
+
 
     // Perform Search
     function performSearch(searchTerm) {

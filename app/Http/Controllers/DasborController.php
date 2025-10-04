@@ -9,6 +9,7 @@ use App\Models\Bagian;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class DasborController extends Controller
 {
@@ -319,6 +320,107 @@ class DasborController extends Controller
         } else {
             // ANCHOR: Default configuration for unknown bagian
             return ['icon' => 'fas fa-folder', 'bg_class' => 'bg-secondary'];
+        }
+    }
+
+    /**
+     * Get chart data via API with filtering support
+     */
+    public function getChartDataApi(Request $request)
+    {
+        try {
+            // ANCHOR: Get current user and check if admin
+            $user = Auth::user();
+            $isAdmin = $user->role === 'Admin';
+            
+            // ANCHOR: Get filter parameters
+            $period = $request->get('period', '30'); // 7, 30, 90, year
+            $year = $request->get('year');
+            
+            // ANCHOR: Build date query based on period
+            $dateQuery = $this->buildDateQuery($period, $year);
+            
+            // ANCHOR: Get counts with date filter and bagian filter
+            $suratMasukQuery = SuratMasuk::query();
+            $suratKeluarQuery = SuratKeluar::query();
+            $disposisiQuery = Disposisi::query();
+
+            // ANCHOR: Apply date filter
+            if ($dateQuery) {
+                $suratMasukQuery->where($dateQuery);
+                $suratKeluarQuery->where($dateQuery);
+                $disposisiQuery->where($dateQuery);
+            }
+
+            // ANCHOR: Apply bagian filter for non-admin users
+            if (!$isAdmin && $user->bagian_id) {
+                $suratMasukQuery->where('tujuan_bagian_id', $user->bagian_id);
+                $suratKeluarQuery->where('pengirim_bagian_id', $user->bagian_id);
+                $disposisiQuery->where('tujuan_bagian_id', $user->bagian_id);
+            }
+
+            $suratMasukTotal = $suratMasukQuery->count();
+            $suratKeluarTotal = $suratKeluarQuery->count();
+            $disposisiTotal = $disposisiQuery->count();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'labels' => ['Surat Masuk', 'Surat Keluar', 'Disposisi'],
+                    'data' => [$suratMasukTotal, $suratKeluarTotal, $disposisiTotal],
+                    'colors' => [
+                        '#66bb6a', // Surat Masuk - Soft Green
+                        '#42a5f5', // Surat Keluar - Soft Blue  
+                        '#ffca28', // Disposisi - Soft Yellow
+                    ]
+                ],
+                'period' => $period,
+                'year' => $year,
+                'total' => $suratMasukTotal + $suratKeluarTotal + $disposisiTotal
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching chart data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Build date query based on period and year
+     */
+    private function buildDateQuery($period, $year = null)
+    {
+        $now = Carbon::now();
+        
+        // ANCHOR: Handle year selection
+        if ($year && is_numeric($year)) {
+            return [
+                ['created_at', '>=', Carbon::create($year, 1, 1)->startOfYear()],
+                ['created_at', '<=', Carbon::create($year, 12, 31)->endOfYear()]
+            ];
+        }
+        
+        // ANCHOR: Handle period selection
+        switch ($period) {
+            case '7':
+                return [
+                    ['created_at', '>=', $now->copy()->subDays(7)->startOfDay()]
+                ];
+            case '30':
+                return [
+                    ['created_at', '>=', $now->copy()->subDays(30)->startOfDay()]
+                ];
+            case '90':
+                return [
+                    ['created_at', '>=', $now->copy()->subDays(90)->startOfDay()]
+                ];
+            default:
+                // ANCHOR: Default to last 30 days
+                return [
+                    ['created_at', '>=', $now->copy()->subDays(30)->startOfDay()]
+                ];
         }
     }
 }

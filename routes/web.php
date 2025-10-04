@@ -14,6 +14,9 @@ Route::middleware(['auth'])->group(function () {
     // ANCHOR: Dashboard (Page)
     Route::get('/', [DasborController::class, 'index'])->name('dasbor.index');
     
+    // ANCHOR: Chart Data API
+    Route::get('/api/chart-data', [DasborController::class, 'getChartDataApi'])->name('chart.data');
+    
     // ANCHOR: Logout [POST]
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
