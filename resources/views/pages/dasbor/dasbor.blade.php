@@ -849,87 +849,340 @@
 
     // ANCHOR: Modal Population Functions
     function populateSuratMasukModal(data) {
-        // Populate basic info
+        const parentEl = document.getElementById('modalDetailSuratMasuk');
+        const suratMasuk = data.suratMasuk || data; // Handle both response structures
+        
+        // Store current surat masuk ID for action buttons
+        window.currentDetailSuratMasukId = suratMasuk.id;
+        window.currentDetailSuratMasuk = suratMasuk;
+        
+        // Basic information
         const fields = {
-            'detail-nomor-surat': data.nomor_surat,
-            'detail-tanggal-surat': data.tanggal_surat ? new Date(data.tanggal_surat).toLocaleDateString('id-ID') : '-',
-            'detail-tanggal-terima': data.tanggal_terima ? new Date(data.tanggal_terima).toLocaleDateString('id-ID') : '-',
-            'detail-perihal': data.perihal,
-            'detail-pengirim': data.pengirim,
-            'detail-sifat-surat': data.sifat_surat || 'Biasa',
-            'detail-ringkasan-isi': data.ringkasan_isi || '-',
-            'detail-keterangan': data.keterangan || '-'
+            'detail-nomor-surat': suratMasuk.nomor_surat || '-',
+            'detail-tanggal-surat': suratMasuk.tanggal_surat ? 
+                new Date(suratMasuk.tanggal_surat).toLocaleDateString('id-ID') : '-',
+            'detail-tanggal-terima': suratMasuk.tanggal_terima ? 
+                new Date(suratMasuk.tanggal_terima).toLocaleDateString('id-ID') : '-',
+            'detail-perihal': suratMasuk.perihal || '-',
+            'detail-pengirim': suratMasuk.pengirim || '-',
+            'detail-sifat-surat': suratMasuk.sifat_surat || '-'
         };
 
-        // Update field values
+        // Update field values using parent element
         Object.entries(fields).forEach(([id, value]) => {
-            const element = document.getElementById(id);
+            const element = parentEl.querySelector(`#${id}`);
             if (element) {
                 element.textContent = value;
             }
         });
 
-        // Update bagian info
-        const bagianElement = document.getElementById('detail-tujuan-bagian');
-        if (bagianElement && data.tujuan_bagian) {
-            bagianElement.textContent = data.tujuan_bagian.nama_bagian;
+        // Related information
+        const bagianElement = parentEl.querySelector('#detail-bagian-tujuan');
+        if (bagianElement) {
+            bagianElement.textContent = suratMasuk.tujuan_bagian?.nama_bagian || '-';
+        }
+        
+        const userElement = parentEl.querySelector('#detail-user');
+        if (userElement) {
+            userElement.textContent = suratMasuk.user?.nama || '-';
+        }
+        
+        // Audit information
+        const updatedByElement = parentEl.querySelector('#detail-updated-by');
+        if (updatedByElement) {
+            updatedByElement.textContent = suratMasuk.updater?.nama || '-';
+        }
+        
+        // Timestamps
+        const createdAtElement = parentEl.querySelector('#detail-created-at');
+        if (createdAtElement) {
+            createdAtElement.textContent = suratMasuk.created_at ? 
+                new Date(suratMasuk.created_at).toLocaleString('id-ID') : '-';
+        }
+        
+        const updatedAtElement = parentEl.querySelector('#detail-updated-at');
+        if (updatedAtElement) {
+            updatedAtElement.textContent = suratMasuk.updated_at ? 
+                new Date(suratMasuk.updated_at).toLocaleString('id-ID') : '-';
         }
 
-        // Update lampiran
-        const lampiranContent = document.getElementById('detail-lampiran-content');
-        if (lampiranContent) {
-            if (data.lampiran && data.lampiran.length > 0) {
-                lampiranContent.innerHTML = data.lampiran.map(lamp => `
-                    <div class="lampiran-item">
-                        <i class="fas fa-paperclip me-2"></i>
-                        <a href="${lamp.file_path}" target="_blank">${lamp.nama_file}</a>
-                    </div>
-                `).join('');
+        // Ringkasan isi
+        const ringkasanSection = parentEl.querySelector('#detail-ringkasan-section');
+        const ringkasanContent = parentEl.querySelector('#detail-ringkasan-isi');
+        if (ringkasanSection && ringkasanContent) {
+            if (suratMasuk.ringkasan_isi) {
+                ringkasanContent.textContent = suratMasuk.ringkasan_isi;
+                ringkasanSection.style.display = 'block';
             } else {
-                lampiranContent.innerHTML = '<p class="text-muted">Tidak ada lampiran</p>';
+                ringkasanSection.style.display = 'none';
             }
         }
+
+        // Keterangan
+        const keteranganSection = parentEl.querySelector('#detail-keterangan-section');
+        const keteranganContent = parentEl.querySelector('#detail-keterangan');
+        if (keteranganSection && keteranganContent) {
+            if (suratMasuk.keterangan) {
+                keteranganContent.textContent = suratMasuk.keterangan;
+                keteranganSection.style.display = 'block';
+            } else {
+                keteranganSection.style.display = 'none';
+            }
+        }
+
+        // Lampiran
+        populateLampiranDetail(suratMasuk.lampiran || [], parentEl);
+        
+        // Disposisi
+        populateDisposisiDetail(suratMasuk.disposisi || [], parentEl);
+    }
+
+    /**
+     * ANCHOR: Populate Lampiran Detail
+     * Populate the lampiran section with attachment data
+     * @param {Array} lampiran - Array of lampiran data
+     * @param {HTMLElement} parentEl - Parent element to search within
+     */
+    function populateLampiranDetail(lampiran, parentEl) {
+        const lampiranContent = parentEl.querySelector('#detail-lampiran-content');
+        
+        if (!lampiranContent) return;
+        
+        if (lampiran.length === 0) {
+            lampiranContent.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-paperclip fa-2x mb-2"></i>
+                    <p>Tidak ada lampiran</p>
+                </div>
+            `;
+            return;
+        }
+
+        let lampiranHtml = '<div class="row">';
+        
+        lampiran.forEach((file, index) => {
+            const isPdf = file.nama_file.toLowerCase().endsWith('.pdf');
+            const iconClass = isPdf ? 'fa-file-pdf text-danger' : 'fa-file-alt text-primary';
+            const downloadUrl = `/storage/${file.path_file}`;
+            
+            lampiranHtml += `
+                <div class="col-md-6 mb-3">
+                    <div class="card border">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas ${iconClass} fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-1 text-truncate" title="${file.nama_file}">
+                                        ${file.nama_file}
+                                    </h6>
+                                    <small class="text-muted">
+                                        ${file.tipe_lampiran === 'utama' ? 'Lampiran Utama' : 'Dokumen Pendukung'}
+                                    </small>
+                                </div>
+                                <div class="ms-2">
+                                    <a href="${downloadUrl}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       title="Download ${file.nama_file}"
+                                       download="${file.nama_file}">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        lampiranHtml += '</div>';
+        lampiranContent.innerHTML = lampiranHtml;
+    }
+
+    /**
+     * ANCHOR: Populate Disposisi Detail
+     * Populate the disposisi section with disposisi data
+     * @param {Array} disposisi - Array of disposisi data
+     * @param {HTMLElement} parentEl - Parent element to search within
+     */
+    function populateDisposisiDetail(disposisi, parentEl) {
+        const disposisiContent = parentEl.querySelector('#detail-disposisi-content');
+        const disposisiSection = parentEl.querySelector('#detail-disposisi-section');
+        
+        if (!disposisiContent || !disposisiSection) return;
+        
+        if (disposisi.length === 0) {
+            disposisiSection.style.display = 'none';
+            return;
+        }
+
+        let disposisiHtml = '';
+        
+        disposisi.forEach((disp, index) => {
+            const statusBadgeClass = 
+                disp.status === 'Menunggu' ? 'bg-warning' :
+                disp.status === 'Dikerjakan' ? 'bg-info' :
+                disp.status === 'Selesai' ? 'bg-success' : 'bg-secondary';
+            
+            // Get kepala bagian information
+            const kepalaBagianTujuan = disp.tujuan_bagian?.kepala_bagian?.nama || '-';
+            // ANCHOR: Kepala Bagian Pengirim diambil dari bagian yang dituju di surat masuk
+            const kepalaBagianPengirim = window.currentDetailSuratMasuk?.tujuan_bagian?.kepala_bagian?.nama || '-';
+            
+            disposisiHtml += `
+                <div class="mb-4">
+                    <div class="card border">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-primary">
+                                    <i class="fas fa-share-alt me-2"></i>Disposisi ${index + 1}
+                                </h6>
+                                <span class="badge ${statusBadgeClass}">${disp.status}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Dibuat Oleh:</span>
+                                            <span class="text-secondary">${disp.user?.nama || '-'}</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Disposisi Dari:</span>
+                                            <span class="text-secondary">${kepalaBagianPengirim} (${window.currentDetailSuratMasuk?.tujuan_bagian?.nama_bagian || '-'})</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Dibuat Pada:</span>
+                                            <span class="text-muted">${disp.created_at ? new Date(disp.created_at).toLocaleString('id-ID') : '-'}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Disposisi Kepada:</span>
+                                            <span class="text-secondary">${kepalaBagianTujuan} (${disp.tujuan_bagian?.nama_bagian || '-'})</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Instruksi:</span>
+                                            <span class="text-dark">${disp.isi_instruksi || '-'}</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Tanggal Disposisi:</span>
+                                            <span class="text-secondary">${disp.tanggal_disposisi ? new Date(disp.tanggal_disposisi).toLocaleDateString('id-ID') : '-'}</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Batas Waktu:</span>
+                                            <span class="text-secondary">${disp.batas_waktu ? new Date(disp.batas_waktu).toLocaleDateString('id-ID') : '-'}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            ${disp.catatan ? `
+                                <div class="mt-3 pt-3 border-top">
+                                    <p class="mb-2">
+                                        <span class="fw-semibold text-dark">Catatan:</span>
+                                    </p>
+                                    <div class="bg-light p-3 rounded">
+                                        <p class="mb-0 text-dark">${disp.catatan}</p>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        disposisiContent.innerHTML = disposisiHtml;
+        disposisiSection.style.display = 'block';
     }
 
     function populateSuratKeluarModal(data) {
+        const parentEl = document.getElementById('modalDetailSuratKeluar');
+        const suratKeluar = data.suratKeluar || data; // Handle both response structures
+        
+        // Store current surat keluar ID for action buttons
+        window.currentDetailSuratKeluarId = suratKeluar.id;
+        window.currentDetailSuratKeluar = suratKeluar;
+        
         // Populate basic info
         const fields = {
-            'detail-nomor-surat': data.nomor_surat,
-            'detail-tanggal-surat': data.tanggal_surat ? new Date(data.tanggal_surat).toLocaleDateString('id-ID') : '-',
-            'detail-tanggal-keluar': data.tanggal_keluar ? new Date(data.tanggal_keluar).toLocaleDateString('id-ID') : '-',
-            'detail-perihal': data.perihal,
-            'detail-tujuan': data.tujuan,
-            'detail-sifat-surat': data.sifat_surat || 'Biasa',
-            'detail-ringkasan-isi': data.ringkasan_isi || '-',
-            'detail-keterangan': data.keterangan || '-'
+            'detail-nomor-surat': suratKeluar.nomor_surat || '-',
+            'detail-tanggal-surat': suratKeluar.tanggal_surat ? new Date(suratKeluar.tanggal_surat).toLocaleDateString('id-ID') : '-',
+            'detail-tanggal-keluar': suratKeluar.tanggal_keluar ? new Date(suratKeluar.tanggal_keluar).toLocaleDateString('id-ID') : '-',
+            'detail-perihal': suratKeluar.perihal || '-',
+            'detail-tujuan': suratKeluar.tujuan || '-',
+            'detail-sifat-surat': suratKeluar.sifat_surat || 'Biasa'
         };
 
-        // Update field values
+        // Update field values using parent element
         Object.entries(fields).forEach(([id, value]) => {
-            const element = document.getElementById(id);
+            const element = parentEl.querySelector(`#${id}`);
             if (element) {
                 element.textContent = value;
             }
         });
 
         // Update bagian info
-        const bagianElement = document.getElementById('detail-pengirim-bagian');
-        if (bagianElement && data.pengirim_bagian) {
-            bagianElement.textContent = data.pengirim_bagian.nama_bagian;
+        const bagianElement = parentEl.querySelector('#detail-pengirim-bagian');
+        if (bagianElement) {
+            bagianElement.textContent = suratKeluar.pengirim_bagian?.nama_bagian || '-';
         }
 
         // Update lampiran
-        const lampiranContent = document.getElementById('detail-lampiran-content');
+        const lampiranContent = parentEl.querySelector('#detail-lampiran-content');
         if (lampiranContent) {
-            if (data.lampiran && data.lampiran.length > 0) {
-                lampiranContent.innerHTML = data.lampiran.map(lamp => `
-                    <div class="lampiran-item">
-                        <i class="fas fa-paperclip me-2"></i>
-                        <a href="${lamp.file_path}" target="_blank">${lamp.nama_file}</a>
-                    </div>
-                `).join('');
+            if (suratKeluar.lampiran && suratKeluar.lampiran.length > 0) {
+                let lampiranHtml = '<div class="row">';
+                
+                suratKeluar.lampiran.forEach((file, index) => {
+                    const isPdf = file.nama_file.toLowerCase().endsWith('.pdf');
+                    const iconClass = isPdf ? 'fa-file-pdf text-danger' : 'fa-file-alt text-primary';
+                    const downloadUrl = `/storage/${file.path_file}`;
+                    
+                    lampiranHtml += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card border">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fas ${iconClass} fa-2x"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="card-title mb-1 text-truncate" title="${file.nama_file}">
+                                                ${file.nama_file}
+                                            </h6>
+                                            <small class="text-muted">
+                                                ${file.tipe_lampiran === 'utama' ? 'Lampiran Utama' : 'Dokumen Pendukung'}
+                                            </small>
+                                        </div>
+                                        <div class="ms-2">
+                                            <a href="${downloadUrl}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Download ${file.nama_file}"
+                                               download="${file.nama_file}">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                lampiranHtml += '</div>';
+                lampiranContent.innerHTML = lampiranHtml;
             } else {
-                lampiranContent.innerHTML = '<p class="text-muted">Tidak ada lampiran</p>';
+                lampiranContent.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-paperclip fa-2x mb-2"></i>
+                        <p>Tidak ada lampiran</p>
+                    </div>
+                `;
             }
         }
     }
