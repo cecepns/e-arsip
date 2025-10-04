@@ -19,18 +19,11 @@
                                 onclick="showDetailSuratMasukModal({{ $activity['id'] }})">
                             <i class="fas fa-eye"></i>
                         </button>
-                    @elseif($activity['jenis'] == 'Surat Keluar')
+                    @else
                         <button class="action-btn view-btn" title="Lihat Detail" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#modalDetailSuratKeluar"
                                 onclick="showDetailSuratKeluarModal({{ $activity['id'] }})">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    @else
-                        <button class="action-btn view-btn" title="Lihat Detail" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#modalDetailDisposisi"
-                                onclick="showDisposisiDetail({{ $activity['id'] }})">
                             <i class="fas fa-eye"></i>
                         </button>
                     @endif

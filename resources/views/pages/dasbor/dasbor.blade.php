@@ -165,14 +165,6 @@
     'footer' => view()->make('pages.surat_keluar._detail_modal._footer')->render(),
 ])
 
-<!-- Modal Detail Disposisi -->
-@include('partials.modal', [
-    'id' => 'modalDetailDisposisi',
-    'size' => 'modal-lg',
-    'title' => 'Detail Disposisi',
-    'body' => view()->make('pages.disposisi._detail_modal._body')->render(),
-    'footer' => view()->make('pages.disposisi._detail_modal._footer')->render(),
-])
 {{-- !ANCHOR: Detail Modals --}}
 
 @endsection 
@@ -757,37 +749,6 @@
         }
     };
 
-    window.showDisposisiDetail = async (disposisiId) => {
-        try {
-            // Fetch detail data
-            const csrfToken = (
-                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-                document.querySelector('input[name="_token"]')?.value
-            );
-
-            const response = await fetch(`/disposisi/${disposisiId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch disposisi detail');
-            }
-
-            const data = await response.json();
-            
-            // Populate modal with data
-            populateDisposisiModal(data);
-            
-        } catch (error) {
-            console.error('Error loading disposisi detail:', error);
-            showAlert('Error', 'Gagal memuat detail disposisi', 'danger');
-        }
-    };
 
     // ANCHOR: Modal Population Functions
     function populateSuratMasukModal(data) {
@@ -876,28 +837,5 @@
         }
     }
 
-    function populateDisposisiModal(data) {
-        // Populate disposisi info
-        const fields = {
-            'detail-nomor-surat': data.surat_masuk?.nomor_surat || '-',
-            'detail-perihal': data.surat_masuk?.perihal || '-',
-            'detail-dari-bagian': data.surat_masuk?.tujuan_bagian?.nama_bagian || '-',
-            'detail-kepada-bagian': data.tujuan_bagian?.nama_bagian || '-',
-            'detail-sifat': data.sifat || 'Biasa',
-            'detail-tanggal-disposisi': data.tanggal_disposisi ? new Date(data.tanggal_disposisi).toLocaleDateString('id-ID') : '-',
-            'detail-batas-waktu': data.batas_waktu ? new Date(data.batas_waktu).toLocaleDateString('id-ID') : '-',
-            'detail-isi-instruksi': data.isi_instruksi || '-',
-            'detail-catatan': data.catatan || '-',
-            'detail-status': data.status || 'Menunggu'
-        };
-
-        // Update field values
-        Object.entries(fields).forEach(([id, value]) => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.textContent = value;
-            }
-        });
-    }
 </script>
 @endpush
