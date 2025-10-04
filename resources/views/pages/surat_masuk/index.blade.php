@@ -8,11 +8,11 @@
     ])
 </div>
 
-<div class="mb-3 d-flex justify-content-between align-items-center">
+<div class="mb-3 d-flex justify-content-between align-items-center sub-page-header">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddSuratMasuk">
         Tambah Surat Masuk
     </button>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 quick-filter-buttons">
         <button class="btn btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
             <i class="fas fa-filter"></i> Filter Lanjutan
         </button>
@@ -76,7 +76,7 @@
                     </div>
                     
                     <!-- Action Buttons -->
-                    <div class="col-12 d-flex gap-2">
+                    <div class="col-12 d-flex gap-2 filter-collapse-actions">
                         <button type="submit" class="btn btn-primary" id="applyFilterBtn">
                             <i class="fas fa-search"></i> Terapkan Filter
                         </button>
