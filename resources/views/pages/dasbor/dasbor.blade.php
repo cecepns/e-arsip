@@ -132,7 +132,7 @@
     <div id="activityTableContainer">
         @include('partials.table', [
             'tableId' => 'activityTable',
-            'tableClass' => 'activity-table',
+            'tableClass' => '',
             'thead' => view()->make('pages.dasbor._table_head')->render(),
             'tbody' => view()->make('pages.dasbor._table_body', ['recentActivity' => $recentActivity])->render(),
         ])
