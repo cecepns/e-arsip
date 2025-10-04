@@ -236,10 +236,12 @@ class DasborController extends Controller
      */
     private function getChartData($user, $isAdmin)
     {
-        // ANCHOR: Get total counts with bagian filter
-        $suratMasukQuery = SuratMasuk::query();
-        $suratKeluarQuery = SuratKeluar::query();
-        $disposisiQuery = Disposisi::query();
+        // ANCHOR: Get total counts with bagian filter (last 30 days by default)
+        $thirtyDaysAgo = Carbon::now()->subDays(30)->startOfDay();
+        
+        $suratMasukQuery = SuratMasuk::where('tanggal_surat', '>=', $thirtyDaysAgo);
+        $suratKeluarQuery = SuratKeluar::where('tanggal_surat', '>=', $thirtyDaysAgo);
+        $disposisiQuery = Disposisi::where('tanggal_disposisi', '>=', $thirtyDaysAgo);
 
         // ANCHOR: Apply bagian filter for non-admin users
         if (!$isAdmin && $user->bagian_id) {
@@ -329,30 +331,28 @@ class DasborController extends Controller
     public function getChartDataApi(Request $request)
     {
         try {
-            // ANCHOR: Get current user and check if admin
             $user = Auth::user();
             $isAdmin = $user->role === 'Admin';
             
-            // ANCHOR: Get filter parameters
             $period = $request->get('period', '30'); // 7, 30, 90, year
             $year = $request->get('year');
             
-            // ANCHOR: Build date query based on period
             $dateQuery = $this->buildDateQuery($period, $year);
             
-            // ANCHOR: Get counts with date filter and bagian filter
             $suratMasukQuery = SuratMasuk::query();
             $suratKeluarQuery = SuratKeluar::query();
             $disposisiQuery = Disposisi::query();
 
-            // ANCHOR: Apply date filter
             if ($dateQuery) {
                 $suratMasukQuery->where($dateQuery);
                 $suratKeluarQuery->where($dateQuery);
-                $disposisiQuery->where($dateQuery);
+                // ANCHOR: Disposisi menggunakan tanggal_disposisi
+                $disposisiDateQuery = $this->buildDisposisiDateQuery($period, $year);
+                if ($disposisiDateQuery) {
+                    $disposisiQuery->where($disposisiDateQuery);
+                }
             }
 
-            // ANCHOR: Apply bagian filter for non-admin users
             if (!$isAdmin && $user->bagian_id) {
                 $suratMasukQuery->where('tujuan_bagian_id', $user->bagian_id);
                 $suratKeluarQuery->where('pengirim_bagian_id', $user->bagian_id);
@@ -394,11 +394,10 @@ class DasborController extends Controller
     {
         $now = Carbon::now();
         
-        // ANCHOR: Handle year selection
         if ($year && is_numeric($year)) {
             return [
-                ['created_at', '>=', Carbon::create($year, 1, 1)->startOfYear()],
-                ['created_at', '<=', Carbon::create($year, 12, 31)->endOfYear()]
+                ['tanggal_surat', '>=', Carbon::create($year, 1, 1)->startOfYear()],
+                ['tanggal_surat', '<=', Carbon::create($year, 12, 31)->endOfYear()]
             ];
         }
         
@@ -406,23 +405,60 @@ class DasborController extends Controller
         switch ($period) {
             case '7':
                 return [
-                    ['created_at', '>=', $now->copy()->subDays(7)->startOfDay()]
+                    ['tanggal_surat', '>=', $now->copy()->subDays(7)->startOfDay()]
                 ];
             case '30':
                 return [
-                    ['created_at', '>=', $now->copy()->subDays(30)->startOfDay()]
+                    ['tanggal_surat', '>=', $now->copy()->subDays(30)->startOfDay()]
                 ];
             case '90':
                 return [
-                    ['created_at', '>=', $now->copy()->subDays(90)->startOfDay()]
+                    ['tanggal_surat', '>=', $now->copy()->subDays(90)->startOfDay()]
                 ];
             default:
                 // ANCHOR: Default to last 30 days
                 return [
-                    ['created_at', '>=', $now->copy()->subDays(30)->startOfDay()]
+                    ['tanggal_surat', '>=', $now->copy()->subDays(30)->startOfDay()]
                 ];
         }
     }
+
+    /**
+     * Build date query for Disposisi using tanggal_disposisi
+     */
+    private function buildDisposisiDateQuery($period, $year = null)
+    {
+        $now = Carbon::now();
+        
+        if ($year && is_numeric($year)) {
+            return [
+                ['tanggal_disposisi', '>=', Carbon::create($year, 1, 1)->startOfYear()],
+                ['tanggal_disposisi', '<=', Carbon::create($year, 12, 31)->endOfYear()]
+            ];
+        }
+        
+        // ANCHOR: Handle period selection
+        switch ($period) {
+            case '7':
+                return [
+                    ['tanggal_disposisi', '>=', $now->copy()->subDays(7)->startOfDay()]
+                ];
+            case '30':
+                return [
+                    ['tanggal_disposisi', '>=', $now->copy()->subDays(30)->startOfDay()]
+                ];
+            case '90':
+                return [
+                    ['tanggal_disposisi', '>=', $now->copy()->subDays(90)->startOfDay()]
+                ];
+            default:
+                // ANCHOR: Default to last 30 days
+                return [
+                    ['tanggal_disposisi', '>=', $now->copy()->subDays(30)->startOfDay()]
+                ];
+        }
+    }
+
 }
 
 

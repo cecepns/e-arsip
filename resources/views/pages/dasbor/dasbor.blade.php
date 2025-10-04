@@ -311,7 +311,6 @@
     // Update Chart with Real Data
     async function updateChart(filterType) {
         try {
-            // ANCHOR: Determine period and year parameters
             let period = '30';
             let year = null;
             
@@ -326,7 +325,6 @@
                 year = filterType;
             }
 
-            // ANCHOR: Build API URL with parameters
             const apiUrl = new URL('/api/chart-data', window.location.origin);
             apiUrl.searchParams.set('period', period);
             if (year) {
@@ -335,7 +333,6 @@
 
             console.log('Fetching chart data from:', apiUrl.toString());
 
-            // ANCHOR: Fetch data from API
             const response = await fetch(apiUrl.toString(), {
                 method: 'GET',
                 headers: {
@@ -355,26 +352,19 @@
                 throw new Error(result.message || 'Failed to fetch chart data');
             }
 
-            // ANCHOR: Update chart with real data
             if (distributionChart && result.data) {
                 distributionChart.data.datasets[0].data = result.data.data;
                 distributionChart.update('active');
                 
-                // ANCHOR: Update department counts if admin
                 if (isAdmin) {
                     updateDepartmentCountsWithData(result.data.data);
                 }
-                
-                // ANCHOR: Show success message
-                console.log('Chart updated successfully:', result);
-                showAlert('Success', `Chart data updated for ${filterType}`, 'success');
             }
             
         } catch (error) {
             console.error('Error updating chart:', error);
             showAlert('Error', 'Failed to update chart data: ' + error.message, 'danger');
             
-            // ANCHOR: Fallback to original data
             if (distributionChart) {
                 distributionChart.data.datasets[0].data = chartData.data;
                 distributionChart.update('active');
