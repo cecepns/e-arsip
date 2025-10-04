@@ -28,9 +28,9 @@ class DasborController extends Controller
         $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
 
         // ANCHOR: Get total counts for current month with bagian filter
-        $suratMasukQuery = SuratMasuk::where('created_at', '>=', $currentMonth);
-        $suratKeluarQuery = SuratKeluar::where('created_at', '>=', $currentMonth);
-        $disposisiQuery = Disposisi::where('created_at', '>=', $currentMonth);
+        $suratMasukQuery = SuratMasuk::where('tanggal_surat', '>=', $currentMonth);
+        $suratKeluarQuery = SuratKeluar::where('tanggal_surat', '>=', $currentMonth);
+        $disposisiQuery = Disposisi::where('tanggal_disposisi', '>=', $currentMonth);
 
         // ANCHOR: Apply bagian filter for non-admin users
         if (!$isAdmin && $user->bagian_id) {
@@ -44,9 +44,9 @@ class DasborController extends Controller
         $disposisiCurrent = $disposisiQuery->count();
 
         // ANCHOR: Get total counts for last month with bagian filter
-        $suratMasukLastQuery = SuratMasuk::whereBetween('created_at', [$lastMonth, $lastMonthEnd]);
-        $suratKeluarLastQuery = SuratKeluar::whereBetween('created_at', [$lastMonth, $lastMonthEnd]);
-        $disposisiLastQuery = Disposisi::whereBetween('created_at', [$lastMonth, $lastMonthEnd]);
+        $suratMasukLastQuery = SuratMasuk::whereBetween('tanggal_surat', [$lastMonth, $lastMonthEnd]);
+        $suratKeluarLastQuery = SuratKeluar::whereBetween('tanggal_surat', [$lastMonth, $lastMonthEnd]);
+        $disposisiLastQuery = Disposisi::whereBetween('tanggal_disposisi', [$lastMonth, $lastMonthEnd]);
 
         // ANCHOR: Apply bagian filter for non-admin users
         if (!$isAdmin && $user->bagian_id) {
