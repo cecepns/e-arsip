@@ -129,12 +129,14 @@
     </div>
 
     {{-- ANCHOR: Recent Activity Table Content --}}
-    @include('partials.table', [
-        'tableId' => 'activityTable',
-        'tableClass' => 'activity-table',
-        'thead' => view()->make('pages.dasbor._table_head')->render(),
-        'tbody' => view()->make('pages.dasbor._table_body', ['recentActivity' => $recentActivity])->render(),
-    ])
+    <div id="activityTableContainer">
+        @include('partials.table', [
+            'tableId' => 'activityTable',
+            'tableClass' => 'activity-table',
+            'thead' => view()->make('pages.dasbor._table_head')->render(),
+            'tbody' => view()->make('pages.dasbor._table_body', ['recentActivity' => $recentActivity])->render(),
+        ])
+    </div>
 
     {{-- ANCHOR: Recent Activity Table Footer --}}
     @include('partials.pagination', [
@@ -190,6 +192,9 @@
     document.addEventListener('DOMContentLoaded', function() {
         initializeChart();
         registerEventListeners();
+        
+        // ANCHOR: Auto scroll to table if search parameter exists
+        checkAndScrollToTable();
     });
 
     // Initialize Chart with softer colors and better sizing
@@ -353,7 +358,38 @@
         }
         url.searchParams.delete('page'); // Reset to first page when searching
         console.log('Final URL:', url.toString());
+        
+        // Scroll to table when there's a search keyword
+        if (searchTerm.trim()) {
+            scrollToTable();
+        }
+        
         window.location.href = url.toString();
+    }
+
+    // ANCHOR: Check and Scroll to Table Function
+    function checkAndScrollToTable() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParam = urlParams.get('search');
+        
+        if (searchParam && searchParam.trim()) {
+            console.log('Search parameter found:', searchParam);
+            // Delay scroll to ensure page is fully loaded
+            setTimeout(() => {
+                scrollToTable();
+            }, 300);
+        }
+    }
+
+    // ANCHOR: Scroll to Table Function
+    function scrollToTable() {
+        const tableContainer = document.getElementById('activityTableContainer');
+        if (tableContainer) {
+            tableContainer.scrollIntoView({ 
+                block: 'start' 
+            });
+            console.log('Scrolling to table...');
+        }
     }
 
 
