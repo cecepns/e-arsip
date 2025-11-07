@@ -251,6 +251,20 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
 <script>
+    const NOTIFICATION_LOADING_HTML = `
+        <div class="notification-loading text-center py-5">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Memuat notifikasi...</span>
+        </div>
+    `;
+
+    const NOTIFICATION_EMPTY_HTML = `
+        <div class="notification-empty text-center py-5">
+            <i class="fas fa-bell-slash"></i>
+            <span>Tidak ada notifikasi baru</span>
+        </div>
+    `;
+
     // DOM Content Loaded Event
     document.addEventListener('DOMContentLoaded', function() {
         setupEventListeners();
@@ -310,6 +324,11 @@
 
     // Load notifications from server
     function loadNotifications() {
+        const notificationList = document.getElementById('notificationList');
+        if (notificationList) {
+            notificationList.innerHTML = NOTIFICATION_LOADING_HTML;
+        }
+
         fetch('/notifications/unread')
             .then(response => response.json())
             .then(data => {
@@ -318,6 +337,9 @@
             })
             .catch(error => {
                 console.error('Error loading notifications:', error);
+                if (notificationList) {
+                    notificationList.innerHTML = NOTIFICATION_EMPTY_HTML;
+                }
             });
     }
 
@@ -336,6 +358,7 @@
         if (!notificationList) return;
 
         if (notifications.length === 0) {
+            notificationList.innerHTML = NOTIFICATION_EMPTY_HTML;
             return;
         }
 
