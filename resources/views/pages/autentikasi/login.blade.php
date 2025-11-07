@@ -189,9 +189,11 @@ const loginHandlers = () => {
             const data = await response.json();
             if (response.ok && data.success) {
                 window.location.href = data.redirect_url || '/';
-            } else {
-                handleErrorResponse(data, loginForm);
+                return;
             }
+
+            handleErrorResponse(data, loginForm);
+            setLoadingState(false, loginSubmitBtn);
         } catch (error) {
             handleErrorResponse(error, loginForm);
             setLoadingState(false, loginSubmitBtn);
