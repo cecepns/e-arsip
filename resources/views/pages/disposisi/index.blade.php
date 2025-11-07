@@ -304,7 +304,7 @@
             
             // ANCHOR: Check if user is Staff and determine access level
             const userRole = '{{ Auth::user()->role }}';
-            const userBagianId = {{ Auth::user()->bagian_id }};
+            const userBagianId = @json(Auth::user()->bagian_id);
             
             const isDisposisiKeBagiannya = disposisi.tujuan_bagian_id === userBagianId;
             const isDisposisiDariBagiannya = disposisi.surat_masuk?.tujuan_bagian_id === userBagianId;
