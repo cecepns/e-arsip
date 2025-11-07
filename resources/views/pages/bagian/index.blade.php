@@ -22,11 +22,11 @@
                    placeholder="Cari nama bagian atau kepala bagian..." 
                    value="{{ $query ?? '' }}" 
                    autocomplete="off">
-            <button class="btn btn-outline-secondary" type="submit" title="Cari">
+            <button class="btn btn-secondary" type="submit" title="Cari">
                 <i class="fas fa-search"></i>
             </button>
             @if(isset($query) && $query)
-                <a href="{{ route('bagian.index') }}" class="btn btn-outline-danger" title="Hapus pencarian">
+                <a href="{{ route('bagian.index') }}" class="btn btn-danger" title="Hapus pencarian">
                     <i class="fas fa-times"></i>
                 </a>
             @endif

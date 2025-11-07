@@ -48,12 +48,14 @@
             </small>
         </td>
         <td class="text-center">
-            <button class="btn btn-sm btn-outline-primary" title="Lihat Detail" 
+            <div class="action-buttons">
+                <button class="action-btn view-btn" title="Lihat Detail" 
                     data-bs-toggle="modal" 
                     data-bs-target="#modalDetailSuratKeluar"
                     onclick="showDetailSuratKeluarModal({{ $surat->id }})">
                 <i class="fas fa-eye"></i>
             </button>
+            </div>
         </td>
     </tr>
     @empty

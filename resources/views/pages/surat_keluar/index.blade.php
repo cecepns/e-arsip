@@ -13,14 +13,14 @@
         Tambah Surat Keluar
     </button>
     <div class="d-flex gap-2 quick-filter-buttons">
-        <button class="btn btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
             <i class="fas fa-filter"></i> Filter Lanjutan
         </button>
         <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('surat_keluar.index') }}">
             <input type="text" name="search" class="form-control me-2" placeholder="Cari nomor/perihal..." value="{{ $filters['query'] ?? '' }}">
-            <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+            <button class="btn btn-secondary" type="submit"><i class="fas fa-search"></i></button>
             @if(isset($filters['query']) && $filters['query'])
-                <a href="{{ route('surat_keluar.index') }}" class="btn btn-outline-danger ms-1" title="Clear search">
+                <a href="{{ route('surat_keluar.index') }}" class="btn btn-danger ms-1" title="Clear search">
                     <i class="fas fa-times"></i>
                 </a>
             @endif
@@ -80,7 +80,7 @@
                         <button type="submit" class="btn btn-primary" id="applyFilterBtn">
                             <i class="fas fa-search"></i> Terapkan Filter
                         </button>
-                        <a href="{{ route('surat_keluar.index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('surat_keluar.index') }}" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Reset Filter
                         </a>
                     </div>

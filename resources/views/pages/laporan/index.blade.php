@@ -59,7 +59,7 @@
                         <button type="submit" class="btn btn-primary" id="applyFilterBtn">
                             <i class="fas fa-search"></i> Terapkan Filter
                         </button>
-                        <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('laporan.index') }}" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Reset Filter
                         </a>
                     </div>
@@ -104,8 +104,8 @@
 <!-- Action Buttons (Cetak & Ekspor PDF) -->
 @if(isset($data) && $data->count() > 0)
 <div class="mb-3 d-flex justify-content-end gap-2">
-    <button class="btn btn-success" id="btnCetak">
-        <i class="fas fa-print"></i> Cetak
+    <button class="btn btn-primary" id="btnCetak">
+        <i class="fas fa-print me"></i> Cetak
     </button>
     <button class="btn btn-danger" id="btnEksporPDF">
         <i class="fas fa-file-pdf"></i> Ekspor PDF

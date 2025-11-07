@@ -14,9 +14,9 @@
     </button>
     <form class="d-flex" style="max-width:300px;" method="GET" action="{{ route('user.index') }}">
         <input type="text" name="search" class="form-control me-2" placeholder="Cari username, nama, atau email..." value="{{ $query ?? '' }}">
-        <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+        <button class="btn btn-secondary" type="submit"><i class="fas fa-search"></i></button>
         @if(isset($query) && $query)
-            <a href="{{ route('user.index') }}" class="btn btn-outline-danger ms-1" title="Clear search">
+            <a href="{{ route('user.index') }}" class="btn btn-danger ms-1" title="Clear search">
                 <i class="fas fa-times"></i>
             </a>
         @endif
