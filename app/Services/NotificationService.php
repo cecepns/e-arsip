@@ -27,10 +27,12 @@ class NotificationService
      */
     public function sendToBagian(Bagian $bagian, string $type, string $title, string $message, array $data = []): void
     {
+        $dataWithBagian = $data;
+        $dataWithBagian['bagian_id'] = $bagian->id;
         $users = $bagian->users;
         
         foreach ($users as $user) {
-            $this->sendToUser($user, $type, $title, $message, $data);
+            $this->sendToUser($user, $type, $title, $message, $dataWithBagian);
         }
     }
 
@@ -42,7 +44,13 @@ class NotificationService
         $users = User::where('id', '!=', $sender->id)->get();
         
         foreach ($users as $user) {
-            $this->sendToUser($user, $type, $title, $message, $data);
+            $payload = $data;
+
+            if ($user->role === 'Admin') {
+                $payload['bagian_id'] = null;
+            }
+
+            $this->sendToUser($user, $type, $title, $message, $payload);
         }
     }
 
@@ -60,6 +68,7 @@ class NotificationService
             'perihal' => $suratMasuk->perihal,
             'pengirim' => $suratMasuk->pengirim,
             'tanggal_surat' => $suratMasuk->tanggal_surat,
+            'bagian_id' => $suratMasuk->tujuan_bagian_id,
         ];
 
         // Send to all users except the creator and users in excluded bagian
@@ -72,7 +81,13 @@ class NotificationService
         $users = $users->get();
         
         foreach ($users as $user) {
-            $this->sendToUser($user, 'surat_masuk', $title, $message, $data);
+            $payload = $data;
+
+            if ($user->role === 'Admin') {
+                $payload['bagian_id'] = null;
+            }
+
+            $this->sendToUser($user, 'surat_masuk', $title, $message, $payload);
         }
     }
 
@@ -90,6 +105,7 @@ class NotificationService
             'perihal' => $suratKeluar->perihal,
             'penerima' => $suratKeluar->penerima,
             'tanggal_surat' => $suratKeluar->tanggal_surat,
+            'bagian_id' => $suratKeluar->pengirim_bagian_id,
         ];
 
         // Send to all users except the creator
@@ -115,6 +131,7 @@ class NotificationService
             'dari_bagian' => $disposisi->suratMasuk->tujuanBagian->nama_bagian ?? 'Tidak diketahui',
             'ke_bagian' => $disposisi->tujuanBagian->nama_bagian ?? 'Tidak diketahui',
             'tanggal_disposisi' => $disposisi->tanggal_disposisi,
+            'bagian_id' => $disposisi->tujuan_bagian_id,
         ];
 
         // Send to users in the target bagian

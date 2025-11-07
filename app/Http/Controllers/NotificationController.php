@@ -15,10 +15,11 @@ class NotificationController extends Controller
      */
     public function index(): View
     {
-        $notifications = Auth::user()
+        $notificationsQuery = Auth::user()
             ->notifications()
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->orderBy('created_at', 'desc');
+
+        $notifications = $this->applyBagianFilter($notificationsQuery)->paginate(20);
 
         // Group notifications by date
         $groupedNotifications = $notifications->groupBy(function ($notification) {
@@ -33,16 +34,23 @@ class NotificationController extends Controller
      */
     public function unread(): JsonResponse
     {
-        $notifications = Auth::user()
+        $unreadQuery = Auth::user()
             ->notifications()
             ->unread()
             ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
+            ->limit(5);
+
+        $notifications = $this->applyBagianFilter($unreadQuery)->get();
+
+        $unreadCountQuery = Auth::user()
+            ->notifications()
+            ->unread();
+
+        $unreadCount = $this->applyBagianFilter($unreadCountQuery)->count();
 
         return response()->json([
             'notifications' => $notifications,
-            'unread_count' => Auth::user()->notifications()->unread()->count()
+            'unread_count' => $unreadCount
         ]);
     }
 
@@ -72,5 +80,20 @@ class NotificationController extends Controller
             ->update(['is_read' => true]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * ANCHOR: Apply bagian filter for non-admin users.
+     * Ensure notifications are restricted to the logged-in user's bagian unless the user is an admin.
+     */
+    private function applyBagianFilter($query)
+    {
+        $user = Auth::user();
+
+        if (!$user || $user->role === 'Admin' || !$user->bagian_id) {
+            return $query;
+        }
+
+        return $query->where('data->bagian_id', $user->bagian_id);
     }
 }
