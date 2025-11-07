@@ -34,7 +34,7 @@
                         <div class="row g-3">
                             @foreach($notificationsGroup as $notification)
                                 <div class="col-12">
-                                    <div class="card {{ !$notification->is_read ? 'border-start border-primary border-4' : '' }} shadow-sm" 
+                                    <div class="card {{ !$notification->is_read ? 'border-start border-primary border-2' : '' }} shadow-sm" 
                                          data-notification-id="{{ $notification->id }}">
                                         
                                         <!-- Notification Header -->

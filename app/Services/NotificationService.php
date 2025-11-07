@@ -59,6 +59,8 @@ class NotificationService
      */
     public function sendSuratMasukNotification($suratMasuk, $excludeBagianIds = []): void
     {
+        $suratMasuk->loadMissing(['tujuanBagian', 'user.bagian']);
+
         $title = 'Surat Masuk Baru';
         $message = "Surat masuk dengan nomor {$suratMasuk->nomor_surat} telah ditambahkan";
         
@@ -71,24 +73,21 @@ class NotificationService
             'bagian_id' => $suratMasuk->tujuan_bagian_id,
         ];
 
-        // Send to all users except the creator and users in excluded bagian
-        $users = User::where('id', '!=', $suratMasuk->user_id);
-        
-        if (!empty($excludeBagianIds)) {
-            $users->whereNotIn('bagian_id', $excludeBagianIds);
-        }
-        
-        $users = $users->get();
-        
-        foreach ($users as $user) {
-            $payload = $data;
+        $targetBagian = $suratMasuk->tujuanBagian ?? $suratMasuk->user?->bagian;
 
-            if ($user->role === 'Admin') {
-                $payload['bagian_id'] = null;
-            }
-
-            $this->sendToUser($user, 'surat_masuk', $title, $message, $payload);
+        if ($targetBagian && !in_array($targetBagian->id, $excludeBagianIds, true)) {
+            $this->sendToBagianMembersExceptUser(
+                $targetBagian,
+                $suratMasuk->user,
+                'surat_masuk',
+                $title,
+                $message,
+                $data,
+                true
+            );
         }
+
+        $this->sendToAdmins('surat_masuk', $title, $message, array_merge($data, ['bagian_id' => null]));
     }
 
     /**
@@ -96,6 +95,8 @@ class NotificationService
      */
     public function sendSuratKeluarNotification($suratKeluar): void
     {
+        $suratKeluar->loadMissing(['pengirimBagian', 'user']);
+
         $title = 'Surat Keluar Baru';
         $message = "Surat keluar dengan nomor {$suratKeluar->nomor_surat} telah ditambahkan";
         
@@ -108,8 +109,21 @@ class NotificationService
             'bagian_id' => $suratKeluar->pengirim_bagian_id,
         ];
 
-        // Send to all users except the creator
-        $this->sendToAllExcept($suratKeluar->user, 'surat_keluar', $title, $message, $data);
+        $pengirimBagian = $suratKeluar->pengirimBagian;
+
+        if ($pengirimBagian) {
+            $this->sendToBagianMembersExceptUser(
+                $pengirimBagian,
+                $suratKeluar->user,
+                'surat_keluar',
+                $title,
+                $message,
+                $data,
+                true
+            );
+        }
+
+        $this->sendToAdmins('surat_keluar', $title, $message, array_merge($data, ['bagian_id' => null]));
     }
 
     /**
@@ -137,6 +151,47 @@ class NotificationService
         // Send to users in the target bagian
         if ($disposisi->tujuanBagian) {
             $this->sendToBagian($disposisi->tujuanBagian, 'disposisi', $title, $message, $data);
+        }
+    }
+
+    /**
+     * ANCHOR: Send notification to admins only.
+     * Ensure administrators always receive notifications regardless of bagian.
+     */
+    private function sendToAdmins(string $type, string $title, string $message, array $data = []): void
+    {
+        $admins = User::where('role', 'Admin')->get();
+
+        foreach ($admins as $admin) {
+            $payload = $data;
+            $payload['bagian_id'] = null;
+
+            $this->sendToUser($admin, $type, $title, $message, $payload);
+        }
+    }
+
+    /**
+     * ANCHOR: Send notification to bagian members with optional exclusion of a specific user.
+     * Useful to avoid duplicates or include the action initiator when required.
+     */
+    private function sendToBagianMembersExceptUser(
+        Bagian $bagian,
+        ?User $excludedUser,
+        string $type,
+        string $title,
+        string $message,
+        array $data = [],
+        bool $includeExcludedUser = false
+    ): void {
+        $dataWithBagian = $data;
+        $dataWithBagian['bagian_id'] = $bagian->id;
+
+        foreach ($bagian->users as $user) {
+            if (!$includeExcludedUser && $excludedUser && $user->id === $excludedUser->id) {
+                continue;
+            }
+
+            $this->sendToUser($user, $type, $title, $message, $dataWithBagian);
         }
     }
 }
