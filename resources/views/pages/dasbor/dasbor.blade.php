@@ -134,7 +134,10 @@
             'tableId' => 'activityTable',
             'tableClass' => '',
             'thead' => view()->make('pages.dasbor._table_head')->render(),
-            'tbody' => view()->make('pages.dasbor._table_body', ['recentActivity' => $recentActivity])->render(),
+            'tbody' => view()->make('pages.dasbor._table_body', [
+                'recentActivity' => $recentActivity,
+                'pagination' => $pagination,
+            ])->render(),
         ])
     </div>
 

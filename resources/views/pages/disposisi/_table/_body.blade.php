@@ -1,7 +1,12 @@
 <tbody>
+    @php
+        $baseIndex = method_exists($disposisi, 'firstItem')
+            ? (($disposisi->firstItem() ?? 1) - 1)
+            : 0;
+    @endphp
     @forelse($disposisi as $index => $item)
     <tr>
-        <td class="text-center">{{ $disposisi->firstItem() + $index }}</td>
+        <td class="text-center">{{ $baseIndex + $index + 1 }}</td>
         <td class="fw-bold text-primary">{{ $item->suratMasuk ? $item->suratMasuk->nomor_surat : '-' }}</td>
         <td>{{ $item->suratMasuk && $item->suratMasuk->tanggal_surat ? $item->suratMasuk->tanggal_surat->format('d-m-Y') : '-' }}</td>
         <td>{{ $item->suratMasuk ? $item->suratMasuk->perihal : '-' }}</td>

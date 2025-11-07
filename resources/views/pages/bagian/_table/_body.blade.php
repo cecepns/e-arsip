@@ -1,7 +1,12 @@
 <tbody>
+    @php
+        $baseIndex = method_exists($bagian, 'firstItem')
+            ? (($bagian->firstItem() ?? 1) - 1)
+            : 0;
+    @endphp
     @forelse($bagian as $index => $item)
     <tr>
-        <td class="text-center">{{ $index + 1 }}</td>
+        <td class="text-center">{{ $baseIndex + $index + 1 }}</td>
         <td>{{ $item->nama_bagian }}</td>
         <td>
             @if($item->kepalaBagian)

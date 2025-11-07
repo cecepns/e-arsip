@@ -1,7 +1,12 @@
 <tbody>
+    @php
+        $baseIndex = method_exists($suratKeluar, 'firstItem')
+            ? (($suratKeluar->firstItem() ?? 1) - 1)
+            : 0;
+    @endphp
     @forelse($suratKeluar as $index => $surat)
     <tr>
-        <td class="text-center">{{ $index + 1 }}</td>
+        <td class="text-center">{{ $baseIndex + $index + 1 }}</td>
         <td class="fw-bold text-primary">{{ $surat->nomor_surat }}</td>
         <td>{{ $surat->tanggal_surat->format('d-m-Y') }}</td>
         <td>{{ $surat->tanggal_keluar ? $surat->tanggal_keluar->format('d-m-Y') : '-' }}</td>

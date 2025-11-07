@@ -1,7 +1,12 @@
 <tbody>
+    @php
+        $baseIndex = isset($pagination)
+            ? (($pagination['current_page'] - 1) * $pagination['per_page'])
+            : 0;
+    @endphp
     @forelse($recentActivity as $index => $activity)
         <tr>
-            <td>{{ $index + 1 }}</td>
+            <td>{{ $baseIndex + $index + 1 }}</td>
             <td class="text-primary"><strong>{{ $activity['nomor_surat'] }}</strong></td>
             <td>{{ $activity['tanggal_surat'] ? \Carbon\Carbon::parse($activity['tanggal_surat'])->format('d F Y') : '-' }}</td>
             <td>{{ $activity['perihal'] }}</td>

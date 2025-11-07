@@ -1,7 +1,12 @@
 <tbody>
+    @php
+        $baseIndex = method_exists($users, 'firstItem')
+            ? (($users->firstItem() ?? 1) - 1)
+            : 0;
+    @endphp
     @forelse($users as $index => $user)
     <tr>
-        <td class="text-center">{{ $index + 1 }}</td>
+        <td class="text-center">{{ $baseIndex + $index + 1 }}</td>
         <td>
             @if($user->id === auth()->id())
                 <span class="badge bg-primary me-2">Anda</span>
