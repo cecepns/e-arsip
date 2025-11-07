@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function(e) {
             e.stopPropagation();
             const notificationId = this.dataset.notificationId;
-            markNotificationAsRead(notificationId);
+            markNotificationCardAsRead(notificationId);
         });
     });
 
@@ -255,13 +255,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const notificationId = this.dataset.notificationId;
             if (notificationId && this.classList.contains('border-start')) {
-                markNotificationAsRead(notificationId);
+                markNotificationCardAsRead(notificationId);
             }
         });
     });
 });
 
-function markNotificationAsRead(notificationId) {
+function markNotificationCardAsRead(notificationId) {
     const notificationCard = document.querySelector(`[data-notification-id="${notificationId}"]`);
     if (!notificationCard) return;
 
@@ -300,6 +300,10 @@ function markNotificationAsRead(notificationId) {
             
             // Show success message
             showToast('Notifikasi berhasil ditandai sebagai dibaca', 'success');
+
+            if (typeof loadNotifications === 'function') {
+                loadNotifications();
+            }
         } else {
             showToast('Gagal menandai notifikasi sebagai dibaca', 'error');
         }
