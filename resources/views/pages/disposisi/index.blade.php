@@ -48,18 +48,20 @@
                         </select>
                     </div>
                     
-                    <!-- Bagian Tujuan -->
-                    <div class="col-md-3">
-                        <label for="bagian_id" class="form-label">Bagian Tujuan</label>
-                        <select name="bagian_id" class="form-select" id="bagian_id">
-                            <option value="">Semua Bagian</option>
-                            @foreach($bagian as $b)
-                                <option value="{{ $b->id }}" {{ ($filters['bagian_id'] ?? '') == $b->id ? 'selected' : '' }}>
-                                    {{ $b->nama_bagian }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    @if(Auth::user()?->role === 'Admin')
+                        <!-- Bagian Tujuan -->
+                        <div class="col-md-3">
+                            <label for="bagian_id" class="form-label">Bagian Tujuan</label>
+                            <select name="bagian_id" class="form-select" id="bagian_id">
+                                <option value="">Semua Bagian</option>
+                                @foreach($bagian as $b)
+                                    <option value="{{ $b->id }}" {{ ($filters['bagian_id'] ?? '') == $b->id ? 'selected' : '' }}>
+                                        {{ $b->nama_bagian }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                     
                     <!-- Sifat Surat -->
                     <div class="col-md-3">
