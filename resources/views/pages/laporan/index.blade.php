@@ -441,14 +441,17 @@ document.addEventListener('DOMContentLoaded', function() {
         populateLampiranDetail(suratMasuk.lampiran || [], parentEl);
         
         // Disposisi
-        populateDisposisiDetail(suratMasuk.disposisi || [], parentEl);
+        populateDisposisiDetail(suratMasuk.disposisi || [], parentEl, {
+            jenis: 'masuk',
+            surat: suratMasuk,
+        });
     }
 
     // ANCHOR: Populate Surat Keluar Detail Modal
     function populateSuratKeluarDetailModal(suratKeluar) {
-        console.log('Surat Keluar lampiran data:', JSON.stringify(suratKeluar));
         // Store current surat keluar ID for action buttons
         window.currentDetailSuratKeluarId = suratKeluar.id;
+        window.currentDetailSuratKeluar = suratKeluar;
         
         const parentEl = document.getElementById('modalDetailSuratKeluar');
         
@@ -517,22 +520,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Lampiran
         populateLampiranDetail(suratKeluar.lampiran || [], parentEl);
+
+        // Disposisi
+        populateDisposisiDetail(suratKeluar.disposisi || [], parentEl, {
+            jenis: 'keluar',
+            surat: suratKeluar,
+        });
     }
 
     // ANCHOR: Populate Disposisi Detail Modal
     function populateDisposisiDetailModal(disposisi) {
         const parentEl = document.getElementById('modalDetailDisposisi');
-        
-        parentEl.querySelector('#detailNomorSurat').textContent = disposisi.surat_masuk?.nomor_surat || '-';
-        parentEl.querySelector('#detailTanggalSurat').textContent = disposisi.surat_masuk?.tanggal_surat ? 
-            new Date(disposisi.surat_masuk.tanggal_surat).toLocaleDateString('id-ID') : '-';
-        parentEl.querySelector('#detailPerihal').textContent = disposisi.surat_masuk?.perihal || '-';
-        parentEl.querySelector('#detailPengirim').textContent = disposisi.surat_masuk?.pengirim || '-';
-        parentEl.querySelector('#detailDisposisiDari').textContent = disposisi.surat_masuk?.tujuan_bagian?.kepala_bagian?.nama || 'Belum ditentukan';
-        parentEl.querySelector('#detailDisposisiDariBagian').textContent = disposisi.surat_masuk?.tujuan_bagian?.nama_bagian || '-';
+        const suratMasuk = disposisi.surat_masuk || null;
+        const suratKeluar = disposisi.surat_keluar || null;
+        const isSuratMasuk = Boolean(suratMasuk);
+
+        parentEl.querySelector('#detailNomorSurat').textContent = isSuratMasuk
+            ? (suratMasuk?.nomor_surat || '-')
+            : (suratKeluar?.nomor_surat || '-');
+
+        const jenisBadge = parentEl.querySelector('#detailJenisSurat');
+        if (jenisBadge) {
+            jenisBadge.textContent = isSuratMasuk ? 'Surat Masuk' : 'Surat Keluar';
+            jenisBadge.className = `badge ${isSuratMasuk ? 'bg-primary' : 'bg-info'}`;
+        }
+
+        parentEl.querySelector('#detailTanggalSurat').textContent = isSuratMasuk && suratMasuk?.tanggal_surat
+            ? new Date(suratMasuk.tanggal_surat).toLocaleDateString('id-ID')
+            : (suratKeluar?.tanggal_surat ? new Date(suratKeluar.tanggal_surat).toLocaleDateString('id-ID') : '-');
+        parentEl.querySelector('#detailPerihal').textContent = isSuratMasuk
+            ? (suratMasuk?.perihal || '-')
+            : (suratKeluar?.perihal || '-');
+
+        const eksternalLabel = parentEl.querySelector('#detailEksternalLabel');
+        const eksternalValue = parentEl.querySelector('#detailEksternalValue');
+        if (eksternalLabel && eksternalValue) {
+            if (isSuratMasuk) {
+                eksternalLabel.textContent = 'Pengirim:';
+                eksternalValue.textContent = suratMasuk?.pengirim || '-';
+            } else {
+                eksternalLabel.textContent = 'Penerima:';
+                eksternalValue.textContent = suratKeluar?.tujuan || '-';
+            }
+        }
+
+        const asalBagian = isSuratMasuk
+            ? suratMasuk?.tujuan_bagian
+            : suratKeluar?.pengirim_bagian;
+
+        parentEl.querySelector('#detailDisposisiDari').textContent = asalBagian?.kepala_bagian?.nama || 'Belum ditentukan';
+        parentEl.querySelector('#detailDisposisiDariBagian').textContent = asalBagian?.nama_bagian || '-';
         parentEl.querySelector('#detailDisposisiKepada').textContent = disposisi.tujuan_bagian?.kepala_bagian?.nama || 'Belum ditentukan';
         parentEl.querySelector('#detailDisposisiKepadaBagian').textContent = disposisi.tujuan_bagian?.nama_bagian || '-';
-        parentEl.querySelector('#detailSifatSurat').textContent = disposisi.surat_masuk?.sifat_surat || '-';
+        parentEl.querySelector('#detailSifatSurat').textContent = isSuratMasuk
+            ? (suratMasuk?.sifat_surat || '-')
+            : (suratKeluar?.sifat_surat || '-');
         parentEl.querySelector('#detailTanggalDisposisi').textContent = disposisi.tanggal_disposisi ? 
             new Date(disposisi.tanggal_disposisi).toLocaleDateString('id-ID') : '-';
         parentEl.querySelector('#detailBatasWaktu').textContent = disposisi.batas_waktu ? 
@@ -624,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ANCHOR: Populate Disposisi Detail
-    const populateDisposisiDetail = (disposisi, parentEl) => {
+    const populateDisposisiDetail = (disposisi, parentEl, context = {}) => {
         const disposisiContent = parentEl.querySelector('#detail-disposisi-content');
         const disposisiSection = parentEl.querySelector('#detail-disposisi-section');
         
@@ -632,6 +674,14 @@ document.addEventListener('DOMContentLoaded', function() {
             disposisiSection.style.display = 'none';
             return;
         }
+
+        const sourceType = context.jenis || 'masuk';
+        const sourceData = context.surat || (sourceType === 'masuk' ? window.currentDetailSuratMasuk : window.currentDetailSuratKeluar);
+        const sumberBagian = sourceType === 'masuk'
+            ? sourceData?.tujuan_bagian
+            : sourceData?.pengirim_bagian;
+        const kepalaBagianPengirim = sumberBagian?.kepala_bagian?.nama || '-';
+        const namaBagianPengirim = sumberBagian?.nama_bagian || '-';
 
         let disposisiHtml = '';
         
@@ -643,7 +693,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Get kepala bagian information
             const kepalaBagianTujuan = disp.tujuan_bagian?.kepala_bagian?.nama || '-';
-            const kepalaBagianPengirim = window.currentDetailSuratMasuk?.tujuan_bagian?.kepala_bagian?.nama || '-';
             
             disposisiHtml += `
                 <div class="mb-4">
@@ -666,7 +715,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </p>
                                         <p class="mb-2">
                                             <span class="fw-semibold text-dark">Disposisi Dari:</span>
-                                            <span class="text-secondary">${kepalaBagianPengirim} (${window.currentDetailSuratMasuk?.tujuan_bagian?.nama_bagian || '-'})</span>
+                                            <span class="text-secondary">${kepalaBagianPengirim} (${namaBagianPengirim})</span>
                                         </p>
                                         <p class="mb-2">
                                             <span class="fw-semibold text-dark">Dibuat Pada:</span>

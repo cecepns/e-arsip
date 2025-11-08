@@ -115,20 +115,31 @@ class LaporanController extends Controller
     private function getDisposisiData($tanggalMulai, $tanggalAkhir, $bagianId)
     {
         $query = Disposisi::with([
-            'suratMasuk.tujuanBagian.kepalaBagian', 
-            'tujuanBagian.kepalaBagian', 
-            'user', 
-            'creator', 
+            'suratMasuk.tujuanBagian.kepalaBagian',
+            'suratKeluar.pengirimBagian.kepalaBagian',
+            'tujuanBagian.kepalaBagian',
+            'user',
+            'creator',
             'updater'
         ])
             ->when($tanggalMulai, function ($q) use ($tanggalMulai) {
-                $q->whereHas('suratMasuk', function ($subQ) use ($tanggalMulai) {
-                    $subQ->whereDate('tanggal_surat', '>=', $tanggalMulai);
+                $q->where(function ($dateQ) use ($tanggalMulai) {
+                    $dateQ->whereHas('suratMasuk', function ($subQ) use ($tanggalMulai) {
+                        $subQ->whereDate('tanggal_surat', '>=', $tanggalMulai);
+                    })
+                    ->orWhereHas('suratKeluar', function ($subQ) use ($tanggalMulai) {
+                        $subQ->whereDate('tanggal_surat', '>=', $tanggalMulai);
+                    });
                 });
             })
             ->when($tanggalAkhir, function ($q) use ($tanggalAkhir) {
-                $q->whereHas('suratMasuk', function ($subQ) use ($tanggalAkhir) {
-                    $subQ->whereDate('tanggal_surat', '<=', $tanggalAkhir);
+                $q->where(function ($dateQ) use ($tanggalAkhir) {
+                    $dateQ->whereHas('suratMasuk', function ($subQ) use ($tanggalAkhir) {
+                        $subQ->whereDate('tanggal_surat', '<=', $tanggalAkhir);
+                    })
+                    ->orWhereHas('suratKeluar', function ($subQ) use ($tanggalAkhir) {
+                        $subQ->whereDate('tanggal_surat', '<=', $tanggalAkhir);
+                    });
                 });
             })
             ->when($bagianId, function ($q) use ($bagianId) {
@@ -139,7 +150,10 @@ class LaporanController extends Controller
                 $q->where(function ($subQ) {
                     $subQ->where('tujuan_bagian_id', Auth::user()->bagian_id) // Disposisi KE bagiannya
                          ->orWhereHas('suratMasuk', function ($suratQ) {
-                             $suratQ->where('tujuan_bagian_id', Auth::user()->bagian_id); // Disposisi DARI bagiannya
+                             $suratQ->where('tujuan_bagian_id', Auth::user()->bagian_id); // Disposisi DARI surat masuk bagiannya
+                         })
+                         ->orWhereHas('suratKeluar', function ($suratKeluarQ) {
+                             $suratKeluarQ->where('pengirim_bagian_id', Auth::user()->bagian_id); // Disposisi DARI surat keluar bagiannya
                          });
                 });
             })

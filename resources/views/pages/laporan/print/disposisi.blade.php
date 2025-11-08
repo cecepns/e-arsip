@@ -7,6 +7,7 @@
         <tr>
             <th class="text-center" style="width: 4%;">No</th>
             <th style="width: 12%;">No Surat</th>
+            <th style="width: 8%;">Jenis</th>
             <th style="width: 10%;">Tanggal Surat</th>
             <th style="width: 15%;">Perihal</th>
             <th style="width: 15%;">Disposisi Dari</th>
@@ -18,18 +19,35 @@
     </thead>
     <tbody>
         @forelse($data as $index => $item)
+        @php
+            $suratMasuk = $item->suratMasuk;
+            $suratKeluar = $item->suratKeluar;
+            $isSuratMasuk = (bool) $suratMasuk;
+            $nomorSurat = $isSuratMasuk
+                ? ($suratMasuk->nomor_surat ?? '-')
+                : ($suratKeluar->nomor_surat ?? '-');
+            $tanggalSurat = $isSuratMasuk
+                ? ($suratMasuk?->tanggal_surat ? $suratMasuk->tanggal_surat->format('d-m-Y') : '-')
+                : ($suratKeluar?->tanggal_surat ? $suratKeluar->tanggal_surat->format('d-m-Y') : '-');
+            $perihal = $isSuratMasuk
+                ? ($suratMasuk->perihal ?? '-')
+                : ($suratKeluar->perihal ?? '-');
+            $asalBagian = $isSuratMasuk
+                ? ($suratMasuk?->tujuanBagian ?? null)
+                : ($suratKeluar?->pengirimBagian ?? null);
+            $asalNamaBagian = $asalBagian?->nama_bagian ?? '-';
+            $sifatSurat = $isSuratMasuk
+                ? ($suratMasuk->sifat_surat ?? null)
+                : ($suratKeluar->sifat_surat ?? null);
+            $jenisLabel = $isSuratMasuk ? 'Surat Masuk' : 'Surat Keluar';
+        @endphp
         <tr>
             <td class="text-center">{{ $index + 1 }}</td>
-            <td>{{ $item->suratMasuk ? $item->suratMasuk->nomor_surat : '-' }}</td>
-            <td class="text-center">{{ $item->suratMasuk && $item->suratMasuk->tanggal_surat ? $item->suratMasuk->tanggal_surat->format('d-m-Y') : '-' }}</td>
-            <td>{{ $item->suratMasuk ? $item->suratMasuk->perihal : '-' }}</td>
-            <td>
-                @if($item->suratMasuk && $item->suratMasuk->tujuanBagian)
-                    {{ $item->suratMasuk->tujuanBagian->nama_bagian }}
-                @else
-                    -
-                @endif
-            </td>
+            <td>{{ $nomorSurat }}</td>
+            <td class="text-center">{{ $jenisLabel }}</td>
+            <td class="text-center">{{ $tanggalSurat }}</td>
+            <td>{{ $perihal }}</td>
+            <td>{{ $asalNamaBagian }}</td>
             <td>
                 @if($item->tujuanBagian)
                     {{ $item->tujuanBagian->nama_bagian }}
@@ -38,16 +56,16 @@
                 @endif
             </td>
             <td class="text-center">
-                @if($item->suratMasuk && $item->suratMasuk->sifat_surat)
+                @if($sifatSurat)
                     @php
-                        $sifatClass = match($item->suratMasuk->sifat_surat) {
+                        $sifatClass = match($sifatSurat) {
                             'Segera' => 'status-segera',
                             'Penting' => 'status-penting',
                             'Rahasia' => 'status-rahasia',
                             default => 'status-biasa'
                         };
                     @endphp
-                    <span class="status-badge {{ $sifatClass }}">{{ $item->suratMasuk->sifat_surat }}</span>
+                    <span class="status-badge {{ $sifatClass }}">{{ $sifatSurat }}</span>
                 @else
                     -
                 @endif
@@ -67,7 +85,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="9" class="text-center">Tidak ada data disposisi</td>
+            <td colspan="10" class="text-center">Tidak ada data disposisi</td>
         </tr>
         @endforelse
     </tbody>
