@@ -22,15 +22,10 @@ class DasborController extends Controller
         $user = Auth::user();
         $isAdmin = $user->role === 'Admin';
         
-        // ANCHOR: Get current month statistics
-        $currentMonth = Carbon::now()->startOfMonth();
-        $lastMonth = Carbon::now()->subMonth()->startOfMonth();
-        $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
-
-        // ANCHOR: Get total counts for current month with bagian filter
-        $suratMasukQuery = SuratMasuk::where('tanggal_surat', '>=', $currentMonth);
-        $suratKeluarQuery = SuratKeluar::where('tanggal_surat', '>=', $currentMonth);
-        $disposisiQuery = Disposisi::where('tanggal_disposisi', '>=', $currentMonth);
+        // ANCHOR: Get lifetime statistics
+        $suratMasukQuery = SuratMasuk::query();
+        $suratKeluarQuery = SuratKeluar::query();
+        $disposisiQuery = Disposisi::query();
 
         // ANCHOR: Apply bagian filter for non-admin users
         if (!$isAdmin && $user->bagian_id) {
@@ -43,54 +38,24 @@ class DasborController extends Controller
         $suratKeluarCurrent = $suratKeluarQuery->count();
         $disposisiCurrent = $disposisiQuery->count();
 
-        // ANCHOR: Get total counts for last month with bagian filter
-        $suratMasukLastQuery = SuratMasuk::whereBetween('tanggal_surat', [$lastMonth, $lastMonthEnd]);
-        $suratKeluarLastQuery = SuratKeluar::whereBetween('tanggal_surat', [$lastMonth, $lastMonthEnd]);
-        $disposisiLastQuery = Disposisi::whereBetween('tanggal_disposisi', [$lastMonth, $lastMonthEnd]);
-
-        // ANCHOR: Apply bagian filter for non-admin users
-        if (!$isAdmin && $user->bagian_id) {
-            $suratMasukLastQuery->where('tujuan_bagian_id', $user->bagian_id);
-            $suratKeluarLastQuery->where('pengirim_bagian_id', $user->bagian_id);
-            $disposisiLastQuery->where('tujuan_bagian_id', $user->bagian_id);
-        }
-
-        $suratMasukLast = $suratMasukLastQuery->count();
-        $suratKeluarLast = $suratKeluarLastQuery->count();
-        $disposisiLast = $disposisiLastQuery->count();
-
-        // ANCHOR: Calculate percentage changes
-        $suratMasukChange = $this->calculatePercentageChange($suratMasukCurrent, $suratMasukLast);
-        $suratKeluarChange = $this->calculatePercentageChange($suratKeluarCurrent, $suratKeluarLast);
-        $disposisiChange = $this->calculatePercentageChange($disposisiCurrent, $disposisiLast);
-
         $statistics = [
             [
                 'title' => 'Surat Masuk',
                 'icon' => 'fas fa-inbox',
                 'bg' => 'bg-success',
                 'number' => $suratMasukCurrent,
-                'change' => $suratMasukChange['percentage'],
-                'change_type' => $suratMasukChange['type'],
-                'change_text' => $suratMasukChange['text'],
             ],
             [
                 'title' => 'Surat Keluar',
                 'icon' => 'fas fa-paper-plane',
                 'bg' => 'bg-info',
                 'number' => $suratKeluarCurrent,
-                'change' => $suratKeluarChange['percentage'],
-                'change_type' => $suratKeluarChange['type'],
-                'change_text' => $suratKeluarChange['text'],
             ],
             [
                 'title' => 'Disposisi',
                 'icon' => 'fas fa-share-alt',
                 'bg' => 'bg-warning',
                 'number' => $disposisiCurrent,
-                'change' => $disposisiChange['percentage'],
-                'change_type' => $disposisiChange['type'],
-                'change_text' => $disposisiChange['text'],
             ],
         ];
 
@@ -106,30 +71,6 @@ class DasborController extends Controller
         $bagianStats = $isAdmin ? $this->getBagianStats() : [];
 
         return view('pages.dasbor.dasbor', compact('statistics', 'recentActivity', 'chartData', 'bagianStats', 'isAdmin', 'pagination'));
-    }
-
-    /**
-     * Calculate percentage change between two values
-     */
-    private function calculatePercentageChange($current, $previous)
-    {
-        if ($previous == 0) {
-            return [
-                'percentage' => $current > 0 ? 100 : 0,
-                'type' => $current > 0 ? 'positive' : 'neutral',
-                'text' => $current > 0 ? '100% dari bulan lalu' : 'Tidak ada perubahan'
-            ];
-        }
-
-        $percentage = round((($current - $previous) / $previous) * 100, 1);
-        $type = $percentage > 0 ? 'positive' : ($percentage < 0 ? 'negative' : 'neutral');
-        $text = abs($percentage) . '% dari bulan lalu';
-
-        return [
-            'percentage' => $percentage,
-            'type' => $type,
-            'text' => $text
-        ];
     }
 
     /**

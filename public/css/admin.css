@@ -141,18 +141,6 @@ body.dark-mode {
   text-align: left;
 }
 
-.stat-change {
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-weight: 500;
-  justify-content: flex-start;
-}
-
-.stat-change.positive { color: var(--success-color); }
-.stat-change.negative { color: var(--danger-color); }
-
 /* Chart Section */
 .chart-section {
   background: white;
@@ -1074,14 +1062,6 @@ body.dark-mode {
 
 .dark-mode .stat-number {
   color: var(--dark-text-primary);
-}
-
-.dark-mode .stat-change.positive {
-  color: var(--primary-light);
-}
-
-.dark-mode .stat-change.negative {
-  color: #ff6b6b;
 }
 
 .dark-mode .stat-card .card-icon-wrapper.bg-success {

@@ -21,10 +21,6 @@
                 </div>
                 <h6 class="card-title">{{ $stat['title'] }}</h6>
                 <div class="stat-number">{{ $stat['number'] }}</div>
-                <div class="stat-change {{ $stat['change_type'] }}">
-                    <i class="fas fa-arrow-{{ $stat['change_type'] == 'positive' ? 'up' : 'down' }}"></i>
-                    <span>{{ $stat['change_text'] }}</span>
-                </div>
             </div>
         </div>
     @endforeach
