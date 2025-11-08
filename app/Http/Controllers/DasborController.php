@@ -68,7 +68,7 @@ class DasborController extends Controller
         $chartData = $this->getChartData($user, $isAdmin);
 
         // ANCHOR: Get bagian statistics (only for admin)
-        $bagianStats = $isAdmin ? $this->getBagianStats() : [];
+        $bagianStats = $isAdmin ? $this->getBagianStats('30') : [];
 
         return view('pages.dasbor.dasbor', compact('statistics', 'recentActivity', 'chartData', 'bagianStats', 'isAdmin', 'pagination'));
     }
@@ -209,16 +209,21 @@ class DasborController extends Controller
     /**
      * Get statistics per bagian for admin users
      */
-    private function getBagianStats()
+    private function getBagianStats($period = null, $year = null)
     {
         // ANCHOR: Get all bagian with their statistics
+        $suratDateConditions = $period ? $this->buildDateQuery($period, $year) : null;
+
         $bagianStats = Bagian::withCount([
-            'suratMasuk',
-            'suratKeluar', 
-            'disposisi'
+            'suratMasuk as surat_masuk_count' => function ($query) use ($suratDateConditions) {
+                $this->applyDateConditions($query, $suratDateConditions);
+            },
+            'suratKeluar as surat_keluar_count' => function ($query) use ($suratDateConditions) {
+                $this->applyDateConditions($query, $suratDateConditions);
+            },
         ])->get()->map(function ($bagian) {
             // ANCHOR: Calculate total surat for this bagian
-            $totalSurat = $bagian->surat_masuk_count + $bagian->surat_keluar_count + $bagian->disposisi_count;
+            $totalSurat = $bagian->surat_masuk_count + $bagian->surat_keluar_count;
             
             // ANCHOR: Define icon and color based on bagian name
             $iconConfig = $this->getBagianIconConfig($bagian->nama_bagian);
@@ -229,13 +234,29 @@ class DasborController extends Controller
                 'total_surat' => $totalSurat,
                 'surat_masuk_count' => $bagian->surat_masuk_count,
                 'surat_keluar_count' => $bagian->surat_keluar_count,
-                'disposisi_count' => $bagian->disposisi_count,
                 'icon' => $iconConfig['icon'],
                 'bg_class' => $iconConfig['bg_class'],
             ];
-        })->sortByDesc('total_surat')->take(5)->values();
+        })->sortByDesc('total_surat')->values();
 
         return $bagianStats;
+    }
+
+    /**
+     * Apply array-based date conditions to a query builder instance.
+     */
+    private function applyDateConditions($query, $conditions)
+    {
+        // ANCHOR: Safely apply date filters for statistik queries
+        if (empty($conditions)) {
+            return;
+        }
+
+        foreach ($conditions as $condition) {
+            if (count($condition) === 3) {
+                $query->where($condition[0], $condition[1], $condition[2]);
+            }
+        }
     }
 
     /**
@@ -324,6 +345,39 @@ class DasborController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching chart data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Handle bagian statistics API requests with period filters.
+     */
+    public function getBagianStatsApi(Request $request)
+    {
+        // ANCHOR: Return bagian statistics data for the requested period
+        try {
+            $user = Auth::user();
+
+            if ($user->role !== 'Admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized access'
+                ], 403);
+            }
+
+            $period = $request->get('period', '30');
+            $year = $request->get('year');
+
+            $bagianStats = $this->getBagianStats($period, $year);
+
+            return response()->json([
+                'success' => true,
+                'data' => $bagianStats
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching bagian stats: ' . $e->getMessage()
             ], 500);
         }
     }

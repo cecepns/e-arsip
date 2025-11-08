@@ -184,7 +184,7 @@
         data: {!! json_encode($chartData['data']) !!},
         colors: {!! json_encode($chartData['colors']) !!}
     };
-    const bagianStats = {!! json_encode($bagianStats) !!};
+    let bagianStatsCache = {!! json_encode($bagianStats) !!};
     const isAdmin = {!! json_encode($isAdmin) !!};
     const pagination = {!! json_encode($pagination) !!};
 
@@ -354,10 +354,10 @@
             if (distributionChart && result.data) {
                 distributionChart.data.datasets[0].data = result.data.data;
                 distributionChart.update('active');
-                
-                if (isAdmin) {
-                    updateDepartmentCountsWithData(result.data.data);
-                }
+            }
+
+            if (isAdmin) {
+                await refreshBagianStats(period, year);
             }
             
         } catch (error) {
@@ -371,35 +371,92 @@
         }
     }
 
-    // Update Department Counts
-    function updateDepartmentCounts() {
-        if (!isAdmin || !bagianStats) return;
-        
-        const deptCounts = document.querySelectorAll('.dept-count');
-        deptCounts.forEach((count, index) => {
-            if (bagianStats[index] !== undefined) {
-                count.textContent = bagianStats[index].total_surat;
+    // Fetch Bagian Stats
+    async function refreshBagianStats(period, year) {
+        // ANCHOR: Fetch bagian stats based on filter selection
+        if (!isAdmin) {
+            return;
+        }
+
+        const deptListElement = document.querySelector('.dept-list');
+
+        if (!deptListElement) {
+            return;
+        }
+
+        try {
+            const apiUrl = new URL('/api/bagian-stats', window.location.origin);
+            if (period) {
+                apiUrl.searchParams.set('period', period);
             }
-        });
+            if (year) {
+                apiUrl.searchParams.set('year', year);
+            }
+
+            const response = await fetch(apiUrl.toString(), {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to fetch bagian stats');
+            }
+
+            bagianStatsCache = Array.isArray(result.data) ? result.data : [];
+            renderBagianStats(bagianStatsCache);
+        } catch (error) {
+            console.error('Error refreshing bagian stats:', error);
+            showAlert('Error', 'Failed to update bagian statistics: ' + error.message, 'danger');
+        }
     }
 
-    // Update Department Counts with New Data
-    function updateDepartmentCountsWithData(newData) {
-        if (!isAdmin || !bagianStats) return;
-        
-        // ANCHOR: Calculate proportional updates based on new chart data
-        const totalNewData = newData.reduce((a, b) => a + b, 0);
-        const totalOriginalData = chartData.data.reduce((a, b) => a + b, 0);
-        const ratio = totalOriginalData > 0 ? totalNewData / totalOriginalData : 1;
-        
-        const deptCounts = document.querySelectorAll('.dept-count');
-        deptCounts.forEach((count, index) => {
-            if (bagianStats[index] !== undefined) {
-                const originalCount = bagianStats[index].total_surat;
-                const newCount = Math.round(originalCount * ratio);
-                count.textContent = newCount;
-            }
-        });
+    // Render Bagian Stats
+    function renderBagianStats(stats) {
+        // ANCHOR: Render bagian stats list items in the DOM
+        if (!isAdmin) {
+            return;
+        }
+
+        const deptListElement = document.querySelector('.dept-list');
+
+        if (!deptListElement) {
+            return;
+        }
+
+        if (!stats || stats.length === 0) {
+            deptListElement.innerHTML = `
+                <div class="text-center py-4">
+                    <p class="text-muted">Belum ada data bagian</p>
+                </div>
+            `;
+            return;
+        }
+
+        const listItems = stats.map((bagian) => {
+            return `
+                <div class="dept-item">
+                    <div class="dept-info">
+                        <div class="dept-icon ${bagian.bg_class}">
+                            <i class="${bagian.icon}"></i>
+                        </div>
+                        <span class="dept-name">${bagian.nama_bagian}</span>
+                    </div>
+                    <span class="dept-count">${bagian.total_surat}</span>
+                </div>
+            `;
+        }).join('');
+
+        deptListElement.innerHTML = listItems;
     }
 
 
