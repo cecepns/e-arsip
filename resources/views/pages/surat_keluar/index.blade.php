@@ -409,6 +409,18 @@
                 </div>
             `;
 
+            const disposisiSection = document.getElementById('detail-disposisi-section');
+            const disposisiContent = document.getElementById('detail-disposisi-content');
+            if (disposisiSection && disposisiContent) {
+                disposisiSection.style.display = 'none';
+                disposisiContent.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                        <p>Memuat disposisi...</p>
+                    </div>
+                `;
+            }
+
             // Fetch detail data
             const csrfToken = (
                 document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
@@ -488,6 +500,7 @@
     const populateDetailModal = (suratKeluar) => {
         // Store current surat keluar ID for action buttons
         window.currentDetailSuratKeluarId = suratKeluar.id;
+        window.currentDetailSuratKeluar = suratKeluar;
         
         // Basic information
         document.getElementById('detail-nomor-surat').textContent = suratKeluar.nomor_surat || '-';
@@ -552,6 +565,9 @@
 
         // Lampiran
         populateLampiranDetail(suratKeluar.lampiran || []);
+
+        // Disposisi
+        populateDisposisiDetail(suratKeluar.disposisi || []);
     }
 
     /**
@@ -687,6 +703,119 @@
         lampiranHtml += '</div>';
         lampiranContent.innerHTML = lampiranHtml;
     }
+
+    /**
+     * ANCHOR: Populate Disposisi Detail
+     * Render disposisi data in the detail modal
+     * @param {Array} disposisiList - Collection of disposisi
+     */
+    const populateDisposisiDetail = (disposisiList) => {
+        const disposisiContent = document.getElementById('detail-disposisi-content');
+        const disposisiSection = document.getElementById('detail-disposisi-section');
+
+        if (!disposisiContent || !disposisiSection) {
+            return;
+        }
+
+        if (!Array.isArray(disposisiList) || disposisiList.length === 0) {
+            disposisiSection.style.display = 'none';
+            disposisiContent.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-share-alt fa-2x mb-2"></i>
+                    <p>Tidak ada data disposisi</p>
+                </div>
+            `;
+            return;
+        }
+
+        const pengirimBagian = window.currentDetailSuratKeluar?.pengirim_bagian;
+        const kepalaBagianPengirim = pengirimBagian?.kepala_bagian?.nama || '-';
+        const namaBagianPengirim = pengirimBagian?.nama_bagian || '-';
+
+        let disposisiHtml = '';
+
+        disposisiList.forEach((disp, index) => {
+            const statusBadgeClass =
+                disp.status === 'Menunggu' ? 'bg-warning' :
+                disp.status === 'Dikerjakan' ? 'bg-info' :
+                disp.status === 'Selesai' ? 'bg-success' : 'bg-secondary';
+
+            const kepalaBagianTujuan = disp.tujuan_bagian?.kepala_bagian?.nama || '-';
+            const namaBagianTujuan = disp.tujuan_bagian?.nama_bagian || '-';
+
+            const tanggalDisposisi = disp.tanggal_disposisi ? formatDateForDisplay(disp.tanggal_disposisi) : '-';
+            const batasWaktu = disp.batas_waktu ? formatDateForDisplay(disp.batas_waktu) : '-';
+            const dibuatPada = disp.created_at ? formatDateTimeForDisplay(disp.created_at) : '-';
+
+            disposisiHtml += `
+                <div class="mb-4">
+                    <div class="card border">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-primary">
+                                    <i class="fas fa-share-alt me-2"></i>Disposisi ${index + 1}
+                                </h6>
+                                <span class="badge ${statusBadgeClass}">${disp.status || '-'}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Dibuat Oleh:</span>
+                                            <span class="text-secondary">${disp.user?.nama || '-'}</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Disposisi Dari:</span>
+                                            <span class="text-secondary">${kepalaBagianPengirim} (${namaBagianPengirim})</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Dibuat Pada:</span>
+                                            <span class="text-muted">${dibuatPada}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Disposisi Kepada:</span>
+                                            <span class="text-secondary">${kepalaBagianTujuan} (${namaBagianTujuan})</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Instruksi:</span>
+                                            <span class="text-dark">${disp.isi_instruksi || '-'}</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Tanggal Disposisi:</span>
+                                            <span class="text-secondary">${tanggalDisposisi}</span>
+                                        </p>
+                                        <p class="mb-2">
+                                            <span class="fw-semibold text-dark">Batas Waktu:</span>
+                                            <span class="text-secondary">${batasWaktu}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            ${disp.catatan ? `
+                                <div class="mt-3 pt-3 border-top">
+                                    <p class="mb-2">
+                                        <span class="fw-semibold text-dark">Catatan:</span>
+                                    </p>
+                                    <div class="bg-light p-3 rounded">
+                                        <span class="text-dark">${disp.catatan}</span>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        disposisiSection.style.display = 'block';
+        disposisiContent.innerHTML = disposisiHtml;
+    };
 
     /**
      * ANCHOR: Simple Filter Handlers

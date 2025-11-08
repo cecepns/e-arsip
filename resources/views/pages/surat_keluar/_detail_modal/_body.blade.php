@@ -91,3 +91,16 @@
         </div>
     </div>
 </div>
+
+{{-- SECTION: Disposisi --}}
+<div class="mb-4" id="detail-disposisi-section" style="display: none;">
+    <h5 class="mb-3 text-primary">
+        <i class="fas fa-share-alt me-2"></i>Disposisi
+    </h5>
+    <div id="detail-disposisi-content">
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-share-alt fa-2x mb-2"></i>
+            <p>Tidak ada data disposisi</p>
+        </div>
+    </div>
+</div>
