@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SuratKeluar;
 use App\Models\Bagian;
+use App\Models\Disposisi;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -32,7 +33,13 @@ class SuratKeluarController extends Controller
         $bagianId = $request->get('bagian_id');
         $tanggal = $request->get('tanggal');
         
-        $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user', 'creator', 'updater'])
+        $suratKeluar = SuratKeluar::with([
+            'pengirimBagian',
+            'user',
+            'creator',
+            'updater',
+            'disposisi.tujuanBagian'
+        ])
             ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
                 // ANCHOR: Staff hanya bisa melihat surat keluar dari bagiannya
                 $q->where('pengirim_bagian_id', Auth::user()->bagian_id);
@@ -102,6 +109,13 @@ class SuratKeluarController extends Controller
                 'pengirim_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'required|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
+                'disposisi' => 'nullable|array',
+                'disposisi.*.tujuan_bagian_id' => 'required_with:disposisi|exists:bagian,id|different:pengirim_bagian_id',
+                'disposisi.*.status' => 'required_with:disposisi|string|in:Menunggu,Dikerjakan,Selesai',
+                'disposisi.*.instruksi' => 'required_with:disposisi|string',
+                'disposisi.*.catatan' => 'nullable|string',
+                'disposisi.*.tanggal_disposisi' => 'nullable|date',
+                'disposisi.*.batas_waktu' => 'nullable|date|after_or_equal:disposisi.*.tanggal_disposisi',
             ], [
                 'nomor_surat.required' => 'Nomor surat wajib diisi.',
                 'nomor_surat.string' => 'Nomor surat harus berupa teks.',
@@ -132,8 +146,41 @@ class SuratKeluarController extends Controller
             // ANCHOR: Audit fields (created_by, updated_by) are automatically handled by Auditable trait
             $suratKeluar = SuratKeluar::create($validated);
 
+            // ANCHOR: Collect bagian IDs that will receive disposisi notifications
+            $disposisiBagianIds = [];
+
+            // ANCHOR: Create multiple disposisi if provided
+            if ($request->has('disposisi') &&
+                is_array($request->disposisi) &&
+                !empty($request->disposisi)) {
+
+                foreach ($request->disposisi as $disposisiData) {
+                    $existingDisposisi = Disposisi::where('surat_keluar_id', $suratKeluar->id)
+                        ->where('tujuan_bagian_id', $disposisiData['tujuan_bagian_id'])
+                        ->first();
+
+                    if (!$existingDisposisi) {
+                        $disposisi = Disposisi::create([
+                            'surat_masuk_id' => null,
+                            'surat_keluar_id' => $suratKeluar->id,
+                            'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id'],
+                            'isi_instruksi' => $disposisiData['instruksi'],
+                            'catatan' => $disposisiData['catatan'] ?? null,
+                            'status' => $disposisiData['status'] ?? 'Menunggu',
+                            'tanggal_disposisi' => $disposisiData['tanggal_disposisi'] ?? null,
+                            'batas_waktu' => $disposisiData['batas_waktu'] ?? null,
+                            'user_id' => Auth::id(),
+                        ]);
+
+                        $disposisiBagianIds[] = $disposisiData['tujuan_bagian_id'];
+
+                        $this->notificationService->sendDisposisiNotification($disposisi);
+                    }
+                }
+            }
+
             // ANCHOR: Send notification for new surat keluar
-            $this->notificationService->sendSuratKeluarNotification($suratKeluar);
+            $this->notificationService->sendSuratKeluarNotification($suratKeluar, $disposisiBagianIds);
 
             // ANCHOR: Process PDF attachment upload
             if ($request->hasFile('lampiran_pdf')) {
@@ -165,7 +212,7 @@ class SuratKeluarController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Surat keluar berhasil ditambahkan.',
-                'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user'),
+                'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user', 'disposisi.tujuanBagian'),
                 'timestamp' => now()->format('Y-m-d H:i:s')
             ], 201);
 
@@ -180,7 +227,15 @@ class SuratKeluarController extends Controller
     public function show(Request $request, string $id)
     {
         try {
-            $suratKeluar = SuratKeluar::with(['pengirimBagian', 'user', 'lampiran', 'creator', 'updater'])->findOrFail($id);
+            $suratKeluar = SuratKeluar::with([
+                'pengirimBagian',
+                'user',
+                'lampiran',
+                'creator',
+                'updater',
+                'disposisi.tujuanBagian.kepalaBagian',
+                'disposisi.user.bagian.kepalaBagian'
+            ])->findOrFail($id);
             
             // ANCHOR: Cek hak akses untuk staf
             $user = Auth::user();
@@ -264,6 +319,13 @@ class SuratKeluarController extends Controller
                 'pengirim_bagian_id' => 'required|exists:bagian,id',
                 'lampiran_pdf' => 'nullable|file|mimes:pdf|max:20480',
                 'lampiran_pendukung.*' => 'nullable|file|mimes:zip,rar,docx,xlsx|max:20480',
+                'disposisi' => 'nullable|array',
+                'disposisi.*.tujuan_bagian_id' => 'required_with:disposisi|exists:bagian,id|different:pengirim_bagian_id',
+                'disposisi.*.status' => 'required_with:disposisi|string|in:Menunggu,Dikerjakan,Selesai',
+                'disposisi.*.instruksi' => 'required_with:disposisi|string',
+                'disposisi.*.catatan' => 'nullable|string',
+                'disposisi.*.tanggal_disposisi' => 'nullable|date',
+                'disposisi.*.batas_waktu' => 'nullable|date|after_or_equal:disposisi.*.tanggal_disposisi',
             ], [
                 'nomor_surat.required' => 'Nomor surat wajib diisi.',
                 'nomor_surat.string' => 'Nomor surat harus berupa teks.',
@@ -324,10 +386,51 @@ class SuratKeluarController extends Controller
                 }
             }
 
+            // ANCHOR: Handle disposisi updates
+            if ($request->has('disposisi')) {
+                $requestDisposisiIds = [];
+
+                if (is_array($request->disposisi) && !empty($request->disposisi)) {
+                    foreach ($request->disposisi as $disposisiData) {
+                        $requestDisposisiIds[] = $disposisiData['tujuan_bagian_id'];
+
+                        $disposisi = Disposisi::updateOrCreate(
+                            [
+                                'surat_keluar_id' => $suratKeluar->id,
+                                'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id']
+                            ],
+                            [
+                                'surat_masuk_id' => null,
+                                'isi_instruksi' => $disposisiData['instruksi'],
+                                'catatan' => $disposisiData['catatan'] ?? null,
+                                'status' => $disposisiData['status'] ?? 'Menunggu',
+                                'tanggal_disposisi' => $disposisiData['tanggal_disposisi'] ?? null,
+                                'batas_waktu' => $disposisiData['batas_waktu'] ?? null,
+                                'user_id' => Auth::id(),
+                            ]
+                        );
+
+                        if ($disposisi->wasRecentlyCreated) {
+                            $this->notificationService->sendDisposisiNotification($disposisi);
+                        }
+                    }
+                }
+
+                if (!empty($requestDisposisiIds)) {
+                    Disposisi::where('surat_keluar_id', $suratKeluar->id)
+                        ->whereNotIn('tujuan_bagian_id', $requestDisposisiIds)
+                        ->delete();
+                } else {
+                    Disposisi::where('surat_keluar_id', $suratKeluar->id)->delete();
+                }
+            } else {
+                Disposisi::where('surat_keluar_id', $suratKeluar->id)->delete();
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => "Surat keluar '{$suratKeluar->nomor_surat}' berhasil diperbarui.",
-                'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user'),
+                'suratKeluar' => $suratKeluar->load('pengirimBagian', 'user', 'disposisi.tujuanBagian'),
                 'timestamp' => now()->format('Y-m-d H:i:s')
             ], 200);
 

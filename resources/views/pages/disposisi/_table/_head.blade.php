@@ -2,6 +2,7 @@
     <tr>
         <th class="text-center">No</th>
         <th>No Surat</th>
+        <th>Jenis</th>
         <th>Tanggal Surat</th>
         <th>Perihal</th>
         <th>Disposisi Dari</th>

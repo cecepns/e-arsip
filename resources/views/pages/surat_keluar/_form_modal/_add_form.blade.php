@@ -99,6 +99,26 @@
         </div>
     </div>
     
+    {{-- SECTION: Disposisi --}}
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Disposisi</h5>
+            <button type="button" class="btn btn-primary" id="sk_create_add_disposisi_btn">
+                Tambah Disposisi
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row" id="sk_create_disposisi_container">
+                <!-- Disposisi cards will be added here dynamically -->
+            </div>
+            <div id="sk_create_disposisi_empty_state" class="text-center text-muted py-4">
+                <i class="fas fa-share-alt fa-3x mb-3"></i>
+                <h6>Belum ada disposisi</h6>
+                <p class="mb-0">Klik "Tambah Disposisi" untuk mulai menambahkan disposisi</p>
+            </div>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-secondary me-2" aria-label="close" data-bs-dismiss="modal" id="addSuratKeluarCancelBtn">Batal</button>
         <button type="submit" class="btn btn-primary" id="addSuratKeluarSubmitBtn">
@@ -149,6 +169,9 @@
                     if (response.ok && data.success) {
                         showToast(data.message, 'success', 5000);
                         addSuratKeluarForm.reset();
+                        if (window.suratKeluarAddDisposisiManager) {
+                            window.suratKeluarAddDisposisiManager.clearAllDisposisiFields();
+                        }
                         bootstrap.Modal.getInstance(document.getElementById('modalAddSuratKeluar')).hide();
                         setTimeout(() => {
                             window.location.reload();
@@ -183,6 +206,10 @@
             // Reset loading state if any
             const addSuratKeluarSubmitBtn = document.getElementById('addSuratKeluarSubmitBtn');
             setLoadingState(false, addSuratKeluarSubmitBtn);
+
+            if (window.suratKeluarAddDisposisiManager) {
+                window.suratKeluarAddDisposisiManager.clearAllDisposisiFields();
+            }
         });
     }
 
@@ -190,6 +217,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         addSuratKeluarHandlers();
         resetAddSuratKeluarFormOnModalClose();
+        window.suratKeluarAddDisposisiManager = new DisposisiManager('sk_create_');
+        window.suratKeluarAddDisposisiManager.initialize();
     });
 </script>
 @endpush

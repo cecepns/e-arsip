@@ -159,6 +159,241 @@
     const suratKeluarDataCurrentPage = {!! json_encode($suratKeluar->items()) !!};
 
     /**
+     * ANCHOR: Disposisi Manager Class
+     * Utility to manage dynamic disposisi fields for surat keluar forms
+     */
+    class DisposisiManager {
+        constructor(formPrefix = '') {
+            this.formPrefix = formPrefix;
+            this.containerId = `${formPrefix}disposisi_container`;
+            this.emptyStateId = `${formPrefix}disposisi_empty_state`;
+            this.addButtonId = `${formPrefix}add_disposisi_btn`;
+        }
+
+        getContainer() {
+            return document.getElementById(this.containerId);
+        }
+
+        getEmptyState() {
+            return document.getElementById(this.emptyStateId);
+        }
+
+        getAddButton() {
+            return document.getElementById(this.addButtonId);
+        }
+
+        toggleEmptyState() {
+            const emptyState = this.getEmptyState();
+            const container = this.getContainer();
+            const disposisiCount = container ? container.querySelectorAll('.disposisi-item').length : 0;
+
+            if (emptyState && container) {
+                emptyState.style.display = disposisiCount === 0 ? 'block' : 'none';
+            }
+        }
+
+        addDisposisiField() {
+            const container = this.getContainer();
+            if (!container) return;
+
+            const disposisiCount = container.querySelectorAll('.disposisi-item').length;
+            const disposisiIndex = disposisiCount;
+
+            const disposisiHtml = `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card disposisi-item h-100" data-index="${disposisiIndex}">
+                        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-share-alt me-2"></i>Disposisi ${disposisiIndex + 1}
+                            </h6>
+                            <button type="button" class="btn btn-danger btn-sm remove-disposisi" data-index="${disposisiIndex}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Tujuan Disposisi</label>
+                                <select name="disposisi[${disposisiIndex}][tujuan_bagian_id]" class="form-select disposisi-tujuan" required>
+                                    <option value="">Pilih Bagian Tujuan</option>
+                                    @foreach($bagian ?? [] as $b)
+                                        <option value="{{ $b->id }}">{{ $b->nama_bagian }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select name="disposisi[${disposisiIndex}][status]" class="form-select disposisi-status" required>
+                                    <option value="Menunggu">Menunggu</option>
+                                    <option value="Dikerjakan">Dikerjakan</option>
+                                    <option value="Selesai">Selesai</option>
+                                </select>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Instruksi</label>
+                                <textarea name="disposisi[${disposisiIndex}][instruksi]" class="form-control disposisi-instruksi" rows="3" placeholder="Instruksi untuk bagian tujuan" required></textarea>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Catatan</label>
+                                <textarea name="disposisi[${disposisiIndex}][catatan]" class="form-control disposisi-catatan" rows="2" placeholder="Catatan tambahan (opsional)"></textarea>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Tanggal Disposisi</label>
+                                        <input type="date" name="disposisi[${disposisiIndex}][tanggal_disposisi]" class="form-control disposisi-tanggal-disposisi">
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Batas Waktu</label>
+                                        <input type="date" name="disposisi[${disposisiIndex}][batas_waktu]" class="form-control disposisi-batas-waktu">
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', disposisiHtml);
+            this.updateDisposisiNumbers();
+            this.toggleEmptyState();
+        }
+
+        removeDisposisiField(index) {
+            const container = this.getContainer();
+            if (!container) return;
+
+            const disposisiItem = container.querySelector(`[data-index="${index}"]`);
+            if (disposisiItem) {
+                disposisiItem.remove();
+                this.updateDisposisiNumbers();
+                this.toggleEmptyState();
+            }
+        }
+
+        clearAllDisposisiFields() {
+            const container = this.getContainer();
+            if (container) {
+                container.innerHTML = '';
+                this.toggleEmptyState();
+            }
+        }
+
+        updateDisposisiNumbers() {
+            const container = this.getContainer();
+            if (!container) return;
+
+            const disposisiItems = container.querySelectorAll('.disposisi-item');
+            disposisiItems.forEach((item, index) => {
+                const title = item.querySelector('h6');
+                const removeBtn = item.querySelector('.remove-disposisi');
+
+                if (title) {
+                    title.innerHTML = `<i class="fas fa-share-alt me-2"></i>Disposisi ${index + 1}`;
+                }
+
+                if (removeBtn) {
+                    removeBtn.setAttribute('data-index', index);
+                }
+
+                item.setAttribute('data-index', index);
+
+                const tujuanSelect = item.querySelector('.disposisi-tujuan');
+                const statusSelect = item.querySelector('.disposisi-status');
+                const instruksiTextarea = item.querySelector('.disposisi-instruksi');
+                const catatanTextarea = item.querySelector('.disposisi-catatan');
+                const tanggalDisposisiInput = item.querySelector('.disposisi-tanggal-disposisi');
+                const batasWaktuInput = item.querySelector('.disposisi-batas-waktu');
+
+                if (tujuanSelect) tujuanSelect.name = `disposisi[${index}][tujuan_bagian_id]`;
+                if (statusSelect) statusSelect.name = `disposisi[${index}][status]`;
+                if (instruksiTextarea) instruksiTextarea.name = `disposisi[${index}][instruksi]`;
+                if (catatanTextarea) catatanTextarea.name = `disposisi[${index}][catatan]`;
+                if (tanggalDisposisiInput) tanggalDisposisiInput.name = `disposisi[${index}][tanggal_disposisi]`;
+                if (batasWaktuInput) batasWaktuInput.name = `disposisi[${index}][batas_waktu]`;
+            });
+        }
+
+        populateDisposisi(disposisiData = []) {
+            this.clearAllDisposisiFields();
+
+            if (!Array.isArray(disposisiData)) {
+                return;
+            }
+
+            disposisiData.forEach((disposisi, index) => {
+                this.addDisposisiField();
+                const container = this.getContainer();
+                const disposisiItem = container.querySelector(`[data-index="${index}"]`);
+
+                if (!disposisiItem) {
+                    return;
+                }
+
+                const tujuanSelect = disposisiItem.querySelector('.disposisi-tujuan');
+                const statusSelect = disposisiItem.querySelector('.disposisi-status');
+                const instruksiTextarea = disposisiItem.querySelector('.disposisi-instruksi');
+                const catatanTextarea = disposisiItem.querySelector('.disposisi-catatan');
+                const tanggalDisposisiInput = disposisiItem.querySelector('.disposisi-tanggal-disposisi');
+                const batasWaktuInput = disposisiItem.querySelector('.disposisi-batas-waktu');
+
+                if (tujuanSelect && disposisi.tujuan_bagian_id) {
+                    tujuanSelect.value = disposisi.tujuan_bagian_id;
+                }
+                if (statusSelect && disposisi.status) {
+                    statusSelect.value = disposisi.status;
+                }
+                if (instruksiTextarea && disposisi.isi_instruksi) {
+                    instruksiTextarea.value = disposisi.isi_instruksi;
+                }
+                if (catatanTextarea && disposisi.catatan) {
+                    catatanTextarea.value = disposisi.catatan;
+                }
+                if (tanggalDisposisiInput && disposisi.tanggal_disposisi) {
+                    const tanggal = new Date(disposisi.tanggal_disposisi);
+                    tanggalDisposisiInput.value = !isNaN(tanggal) ? tanggal.toISOString().slice(0, 10) : '';
+                }
+                if (batasWaktuInput && disposisi.batas_waktu) {
+                    const batas = new Date(disposisi.batas_waktu);
+                    batasWaktuInput.value = !isNaN(batas) ? batas.toISOString().slice(0, 10) : '';
+                }
+            });
+
+            this.toggleEmptyState();
+        }
+
+        initialize() {
+            this.toggleEmptyState();
+
+            const addButton = this.getAddButton();
+            if (addButton) {
+                addButton.addEventListener('click', () => this.addDisposisiField());
+            }
+
+            const container = this.getContainer();
+            if (container) {
+                container.addEventListener('click', (e) => {
+                    const button = e.target.closest('.remove-disposisi');
+                    if (!button) return;
+
+                    const index = parseInt(button.getAttribute('data-index'), 10);
+                    if (!Number.isNaN(index)) {
+                        this.removeDisposisiField(index);
+                    }
+                });
+            }
+        }
+    }
+
+
+    /**
      * ANCHOR: Show Detail Surat Keluar Modal
      * Show the detail surat keluar modal
      * @param {number} suratKeluarId - The id of the surat keluar to show

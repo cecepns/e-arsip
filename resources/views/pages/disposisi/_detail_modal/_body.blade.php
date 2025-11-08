@@ -1,7 +1,7 @@
-{{-- SECTION: Informasi Surat Masuk --}}
+{{-- SECTION: Informasi Surat --}}
 <div class="mb-4">
     <h5 class="mb-3 text-primary">
-        <i class="fas fa-file-import me-2"></i>Informasi Surat Masuk
+        <i class="fas fa-file-alt me-2"></i>Informasi Surat
     </h5>
     <div class="row">
         <div class="col-md-6">
@@ -11,6 +11,10 @@
                     <span id="detailNomorSurat" class="text-primary">-</span>
                 </p>
                 <p class="mb-2">
+                    <span class="fw-semibold text-dark">Jenis Surat:</span>
+                    <span id="detailJenisSurat" class="badge bg-secondary">-</span>
+                </p>
+                <p class="mb-2">
                     <span class="fw-semibold text-dark">Tanggal Surat:</span>
                     <span id="detailTanggalSurat">-</span>
                 </p>
@@ -18,10 +22,7 @@
                     <span class="fw-semibold text-dark">Perihal:</span>
                     <span id="detailPerihal" class="text-dark">-</span>
                 </p>
-                <p class="mb-2">
-                    <span class="fw-semibold text-dark">Pengirim:</span>
-                    <span id="detailPengirim" class="text-dark">-</span>
-                </p>
+                
             </div>
         </div>
         <div class="col-md-6">
@@ -43,6 +44,10 @@
                 <p class="mb-2">
                     <span class="fw-semibold text-dark">Sifat Surat:</span>
                     <span id="detailSifatSurat">-</span>
+                </p>
+                <p class="mb-2">
+                    <span class="fw-semibold text-dark" id="detailEksternalLabel">Pengirim:</span>
+                    <span id="detailEksternalValue" class="text-dark">-</span>
                 </p>
             </div>
         </div>

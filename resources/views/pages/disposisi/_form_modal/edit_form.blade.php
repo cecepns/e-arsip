@@ -59,16 +59,20 @@
         </div>
     </div>
 
-    {{-- SECTION: Informasi Surat Masuk (Read Only) --}}
+    {{-- SECTION: Informasi Surat (Read Only) --}}
     <div class="mb-4">
          <h5 class="mb-3 text-secondary">
-             Informasi Surat Masuk
+             Informasi Surat
          </h5>
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
                     <label class="form-label">Nomor Surat</label>
                     <input type="text" class="form-control" id="editNomorSurat" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Jenis Surat</label>
+                    <input type="text" class="form-control" id="editJenisSurat" readonly>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Perihal</label>
@@ -86,8 +90,8 @@
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label class="form-label">Pengirim</label>
-                    <input type="text" class="form-control" id="editPengirim" readonly>
+                    <label class="form-label" id="editEksternalLabel">Pengirim</label>
+                    <input type="text" class="form-control" id="editEksternalValue" readonly>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Sifat Surat</label>

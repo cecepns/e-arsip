@@ -32,12 +32,14 @@ class DisposisiController extends Controller
         $bagianId = $request->get('bagian_id');
         $tanggal = $request->get('tanggal');
         $sifatSurat = $request->get('sifat_surat');
+        $jenisSurat = $request->get('jenis_surat');
         
         $disposisi = Disposisi::with([
-            'suratMasuk.tujuanBagian.kepalaBagian', 
-            'tujuanBagian.kepalaBagian', 
-            'user', 
-            'creator', 
+            'suratMasuk.tujuanBagian.kepalaBagian',
+            'suratKeluar.pengirimBagian.kepalaBagian',
+            'tujuanBagian.kepalaBagian',
+            'user',
+            'creator',
             'updater'
         ])
             ->when(Auth::user() && Auth::user()->role === 'Staf', function ($q) {
@@ -46,6 +48,9 @@ class DisposisiController extends Controller
                     $subQ->where('tujuan_bagian_id', Auth::user()->bagian_id) // Disposisi KE bagiannya
                          ->orWhereHas('suratMasuk', function ($suratQ) {
                              $suratQ->where('tujuan_bagian_id', Auth::user()->bagian_id); // Disposisi DARI bagiannya
+                         })
+                         ->orWhereHas('suratKeluar', function ($suratKeluarQ) {
+                             $suratKeluarQ->where('pengirim_bagian_id', Auth::user()->bagian_id); // Disposisi dari surat keluar bagiannya
                          });
                 });
             })
@@ -55,6 +60,11 @@ class DisposisiController extends Controller
                         $suratQ->where('nomor_surat', 'like', "%{$query}%")
                                ->orWhere('perihal', 'like', "%{$query}%")
                                ->orWhere('pengirim', 'like', "%{$query}%");
+                    })
+                    ->orWhereHas('suratKeluar', function ($suratKeluarQ) use ($query) {
+                        $suratKeluarQ->where('nomor_surat', 'like', "%{$query}%")
+                                     ->orWhere('perihal', 'like', "%{$query}%")
+                                     ->orWhere('tujuan', 'like', "%{$query}%");
                     })
                     ->orWhere('isi_instruksi', 'like', "%{$query}%")
                     ->orWhere('catatan', 'like', "%{$query}%");
@@ -70,13 +80,24 @@ class DisposisiController extends Controller
                 $q->whereDate('tanggal_disposisi', $tanggal);
             })
             ->when($sifatSurat, function ($q) use ($sifatSurat) {
-                $q->whereHas('suratMasuk', function ($subQ) use ($sifatSurat) {
-                    $subQ->where('sifat_surat', $sifatSurat);
+                $q->where(function ($subQ) use ($sifatSurat) {
+                    $subQ->whereHas('suratMasuk', function ($suratMasukQ) use ($sifatSurat) {
+                        $suratMasukQ->where('sifat_surat', $sifatSurat);
+                    })
+                    ->orWhereHas('suratKeluar', function ($suratKeluarQ) use ($sifatSurat) {
+                        $suratKeluarQ->where('sifat_surat', $sifatSurat);
+                    });
                 });
             })
             ->when(Auth::user() && Auth::user()->role === 'kepala_bagian', function ($q) {
                 // ANCHOR: Kepala bagian hanya bisa melihat disposisi yang ditujukan ke bagiannya
                 $q->where('tujuan_bagian_id', Auth::user()->bagian_id);
+            })
+            ->when($jenisSurat === 'masuk', function ($q) {
+                $q->whereNotNull('surat_masuk_id');
+            })
+            ->when($jenisSurat === 'keluar', function ($q) {
+                $q->whereNotNull('surat_keluar_id');
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -90,6 +111,7 @@ class DisposisiController extends Controller
             'bagian_id' => $bagianId,
             'tanggal' => $tanggal,
             'sifat_surat' => $sifatSurat,
+            'jenis_surat' => $jenisSurat,
         ];
 
         return view('pages.disposisi.index', compact('disposisi', 'bagian', 'filters'));
@@ -102,10 +124,11 @@ class DisposisiController extends Controller
     {
         try {
             $disposisi = Disposisi::with([
-                'suratMasuk.tujuanBagian.kepalaBagian', 
-                'tujuanBagian.kepalaBagian', 
-                'user', 
-                'creator', 
+                'suratMasuk.tujuanBagian.kepalaBagian',
+                'suratKeluar.pengirimBagian.kepalaBagian',
+                'tujuanBagian.kepalaBagian',
+                'user',
+                'creator',
                 'updater'
             ])->findOrFail($id);
             
@@ -113,7 +136,9 @@ class DisposisiController extends Controller
             $user = Auth::user();
             if ($user && $user->role === 'Staf') {
                 $isDisposisiKeBagiannya = $disposisi->tujuan_bagian_id === $user->bagian_id;
-                $isDisposisiDariBagiannya = $disposisi->suratMasuk->tujuan_bagian_id === $user->bagian_id;
+                $isDisposisiDariSuratMasuk = optional($disposisi->suratMasuk)->tujuan_bagian_id === $user->bagian_id;
+                $isDisposisiDariSuratKeluar = optional($disposisi->suratKeluar)->pengirim_bagian_id === $user->bagian_id;
+                $isDisposisiDariBagiannya = $isDisposisiDariSuratMasuk || $isDisposisiDariSuratKeluar;
                 
                 if (!$isDisposisiKeBagiannya && !$isDisposisiDariBagiannya) {
                     if ($request->ajax()) {
@@ -150,13 +175,15 @@ class DisposisiController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         try {
-            $disposisi = Disposisi::findOrFail($id);
+            $disposisi = Disposisi::with(['suratMasuk', 'suratKeluar'])->findOrFail($id);
             
             // ANCHOR: Cek hak akses untuk staf
             $user = Auth::user();
             if ($user && $user->role === 'Staf') {
                 $isDisposisiKeBagiannya = $disposisi->tujuan_bagian_id === $user->bagian_id;
-                $isDisposisiDariBagiannya = $disposisi->suratMasuk->tujuan_bagian_id === $user->bagian_id;
+                $isDisposisiDariSuratMasuk = optional($disposisi->suratMasuk)->tujuan_bagian_id === $user->bagian_id;
+                $isDisposisiDariSuratKeluar = optional($disposisi->suratKeluar)->pengirim_bagian_id === $user->bagian_id;
+                $isDisposisiDariBagiannya = $isDisposisiDariSuratMasuk || $isDisposisiDariSuratKeluar;
                 
                 if (!$isDisposisiKeBagiannya && !$isDisposisiDariBagiannya) {
                     if ($request->ajax()) {
@@ -184,7 +211,7 @@ class DisposisiController extends Controller
                         return response()->json([
                             'success' => true,
                             'message' => 'Status disposisi berhasil diperbarui.',
-                            'disposisi' => $disposisi->load(['suratMasuk.tujuanBagian.kepalaBagian', 'tujuanBagian.kepalaBagian', 'user', 'creator', 'updater']),
+                            'disposisi' => $disposisi->load(['suratMasuk.tujuanBagian.kepalaBagian', 'suratKeluar.pengirimBagian.kepalaBagian', 'tujuanBagian.kepalaBagian', 'user', 'creator', 'updater']),
                             'timestamp' => now()->format('Y-m-d H:i:s')
                         ], 200);
                     }
@@ -225,7 +252,7 @@ class DisposisiController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Disposisi berhasil diperbarui.',
-                    'disposisi' => $disposisi->load(['suratMasuk.tujuanBagian.kepalaBagian', 'tujuanBagian.kepalaBagian', 'user', 'creator', 'updater']),
+                    'disposisi' => $disposisi->load(['suratMasuk.tujuanBagian.kepalaBagian', 'suratKeluar.pengirimBagian.kepalaBagian', 'tujuanBagian.kepalaBagian', 'user', 'creator', 'updater']),
                     'timestamp' => now()->format('Y-m-d H:i:s')
                 ], 200);
             }
@@ -259,14 +286,16 @@ class DisposisiController extends Controller
     public function destroy(Request $request, string $id): JsonResponse
     {
         try {
-            $disposisi = Disposisi::findOrFail($id);
+            $disposisi = Disposisi::with(['suratMasuk', 'suratKeluar'])->findOrFail($id);
             $disposisiId = $disposisi->id;
             
             // ANCHOR: Cek hak akses untuk staf
             $user = Auth::user();
             if ($user && $user->role === 'Staf') {
                 $isDisposisiKeBagiannya = $disposisi->tujuan_bagian_id === $user->bagian_id;
-                $isDisposisiDariBagiannya = $disposisi->suratMasuk->tujuan_bagian_id === $user->bagian_id;
+                $isDisposisiDariSuratMasuk = optional($disposisi->suratMasuk)->tujuan_bagian_id === $user->bagian_id;
+                $isDisposisiDariSuratKeluar = optional($disposisi->suratKeluar)->pengirim_bagian_id === $user->bagian_id;
+                $isDisposisiDariBagiannya = $isDisposisiDariSuratMasuk || $isDisposisiDariSuratKeluar;
                 
                 if (!$isDisposisiKeBagiannya && !$isDisposisiDariBagiannya) {
                     if ($request->ajax()) {

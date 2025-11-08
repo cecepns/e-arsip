@@ -101,6 +101,26 @@
         </div>
     </div>
     
+    {{-- SECTION: Disposisi --}}
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Disposisi</h5>
+            <button type="button" class="btn btn-primary" id="sk_edit_add_disposisi_btn">
+                Tambah Disposisi
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row" id="sk_edit_disposisi_container">
+                <!-- Disposisi cards populated dynamically -->
+            </div>
+            <div id="sk_edit_disposisi_empty_state" class="text-center text-muted py-4">
+                <i class="fas fa-share-alt fa-3x mb-3"></i>
+                <h6>Belum ada disposisi</h6>
+                <p class="mb-0">Klik "Tambah Disposisi" untuk menambahkan disposisi baru</p>
+            </div>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-secondary me-2" aria-label="close" data-bs-dismiss="modal" id="editSuratKeluarCancelBtn">Batal</button>
         <button type="submit" class="btn btn-primary" id="editSuratKeluarSubmitBtn">Update</button>
@@ -128,35 +148,82 @@
         const ringkasanIsiInput = document.getElementById('edit_ringkasan_isi');
         const keteranganInput = document.getElementById('edit_keterangan');
 
-        const suratKeluar = suratKeluarDataCurrentPage.find(surat => surat.id === suratKeluarId);
-        const { id, nomor_surat, tanggal_surat, tanggal_keluar, perihal, tujuan, sifat_surat, pengirim_bagian_id, pengirim_bagian, ringkasan_isi, keterangan } = suratKeluar;
-
         const formatDateForInput = (isoDate) => {
             if (!isoDate) return '';
-            return new Date(isoDate).toISOString().split('T')[0];
+            const parsed = new Date(isoDate);
+            return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().split('T')[0];
         };
 
-        idInput.value = id;
-        nomorSuratInput.value = nomor_surat || '';
-        tanggalSuratInput.value = formatDateForInput(tanggal_surat) || '';
-        tanggalKeluarInput.value = formatDateForInput(tanggal_keluar) || '';
-        perihalInput.value = perihal || '';
-        tujuanInput.value = tujuan || '';
-        sifatSuratInput.value = sifat_surat || '';
-        
-        // ANCHOR: Set bagian pengirim - handle both Admin and Staff
-        if (pengirimBagianInput) {
-            // Admin - set select value
-            pengirimBagianInput.value = pengirim_bagian_id || '';
-        } else if (editBagianDisplay) {
-            // Staff - update display text
-            editBagianDisplay.textContent = pengirim_bagian?.nama_bagian || 'Bagian tidak ditemukan';
-        }
-        
-        ringkasanIsiInput.value = ringkasan_isi || '';
-        keteranganInput.value = keterangan || '';
+        const populateForm = (suratKeluar) => {
+            if (!suratKeluar) {
+                return;
+            }
 
-        editSuratKeluarForm.action = `/surat-keluar/${id}`;
+            const {
+                id,
+                nomor_surat,
+                tanggal_surat,
+                tanggal_keluar,
+                perihal,
+                tujuan,
+                sifat_surat,
+                pengirim_bagian_id,
+                pengirim_bagian,
+                ringkasan_isi,
+                keterangan,
+                disposisi = []
+            } = suratKeluar;
+
+            idInput.value = id;
+            nomorSuratInput.value = nomor_surat || '';
+            tanggalSuratInput.value = formatDateForInput(tanggal_surat) || '';
+            tanggalKeluarInput.value = formatDateForInput(tanggal_keluar) || '';
+            perihalInput.value = perihal || '';
+            tujuanInput.value = tujuan || '';
+            sifatSuratInput.value = sifat_surat || '';
+
+            if (pengirimBagianInput) {
+                pengirimBagianInput.value = pengirim_bagian_id || '';
+            } else if (editBagianDisplay) {
+                editBagianDisplay.textContent = pengirim_bagian?.nama_bagian || 'Bagian tidak ditemukan';
+            }
+
+            ringkasanIsiInput.value = ringkasan_isi || '';
+            keteranganInput.value = keterangan || '';
+
+            editSuratKeluarForm.action = `/surat-keluar/${id}`;
+
+            if (window.suratKeluarEditDisposisiManager) {
+                window.suratKeluarEditDisposisiManager.populateDisposisi(disposisi);
+            }
+        };
+
+        const suratKeluar = suratKeluarDataCurrentPage.find(surat => surat.id === suratKeluarId);
+
+        if (suratKeluar) {
+            populateForm(suratKeluar);
+            return;
+        }
+
+        fetch(`/surat-keluar/${suratKeluarId}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    populateForm(data.suratKeluar);
+                } else {
+                    throw new Error(data.message || 'Gagal memuat data surat keluar');
+                }
+            })
+            .catch(error => {
+                console.error('Error memuat surat keluar:', error);
+                showToast('Gagal memuat data surat keluar', 'error', 3000);
+            });
     }
 
     /**
@@ -196,9 +263,12 @@
                     throw new Error('Response is not JSON');
                 }
                 const data = await response.json();
-                if (response.ok && data.success) {
+                    if (response.ok && data.success) {
                     showToast(data.message, 'success', 5000);
                     editSuratKeluarForm.reset();
+                        if (window.suratKeluarEditDisposisiManager) {
+                            window.suratKeluarEditDisposisiManager.clearAllDisposisiFields();
+                        }
                     bootstrap.Modal.getInstance(document.getElementById('modalEditSuratKeluar')).hide();
                     setTimeout(() => {
                         window.location.reload();
@@ -232,6 +302,10 @@
             // Reset loading state if any
             const editSuratKeluarSubmitBtn = document.getElementById('editSuratKeluarSubmitBtn');
             setLoadingState(false, editSuratKeluarSubmitBtn);
+
+            if (window.suratKeluarEditDisposisiManager) {
+                window.suratKeluarEditDisposisiManager.clearAllDisposisiFields();
+            }
         });
     }
 
@@ -239,6 +313,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         editSuratKeluarHandlers();
         resetEditSuratKeluarFormOnModalClose();
+        window.suratKeluarEditDisposisiManager = new DisposisiManager('sk_edit_');
+        window.suratKeluarEditDisposisiManager.initialize();
     });
 </script>
 @endpush

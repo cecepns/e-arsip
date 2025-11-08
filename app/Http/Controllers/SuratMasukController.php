@@ -164,6 +164,7 @@ class SuratMasukController extends Controller
                     if (!$existingDisposisi) {
                         $disposisi = Disposisi::create([
                             'surat_masuk_id' => $suratMasuk->id,
+                            'surat_keluar_id' => null,
                             'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id'],
                             'isi_instruksi' => $disposisiData['instruksi'],
                             'catatan' => $disposisiData['catatan'] ?? null,
@@ -424,6 +425,7 @@ class SuratMasukController extends Controller
                                 'tujuan_bagian_id' => $disposisiData['tujuan_bagian_id']
                             ],
                             [
+                                'surat_keluar_id' => null,
                                 'isi_instruksi' => $disposisiData['instruksi'],
                                 'catatan' => $disposisiData['catatan'] ?? null,
                                 'status' => $disposisiData['status'] ?? 'Menunggu',

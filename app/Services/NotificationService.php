@@ -93,7 +93,7 @@ class NotificationService
     /**
      * Send surat keluar notification.
      */
-    public function sendSuratKeluarNotification($suratKeluar): void
+    public function sendSuratKeluarNotification($suratKeluar, array $excludeBagianIds = []): void
     {
         $suratKeluar->loadMissing(['pengirimBagian', 'user']);
 
@@ -104,14 +104,15 @@ class NotificationService
             'surat_id' => $suratKeluar->id,
             'nomor_surat' => $suratKeluar->nomor_surat,
             'perihal' => $suratKeluar->perihal,
-            'penerima' => $suratKeluar->penerima,
+            'tujuan' => $suratKeluar->tujuan,
+            'penerima' => $suratKeluar->tujuan,
             'tanggal_surat' => $suratKeluar->tanggal_surat,
             'bagian_id' => $suratKeluar->pengirim_bagian_id,
         ];
 
         $pengirimBagian = $suratKeluar->pengirimBagian;
 
-        if ($pengirimBagian) {
+        if ($pengirimBagian && !in_array($pengirimBagian->id, $excludeBagianIds, true)) {
             $this->sendToBagianMembersExceptUser(
                 $pengirimBagian,
                 $suratKeluar->user,
@@ -132,23 +133,44 @@ class NotificationService
     public function sendDisposisiNotification($disposisi): void
     {
         // Load necessary relationships
-        $disposisi->load(['suratMasuk.tujuanBagian', 'tujuanBagian']);
-        
+        $disposisi->loadMissing([
+            'suratMasuk.tujuanBagian',
+            'suratKeluar.pengirimBagian',
+            'tujuanBagian'
+        ]);
+
+        $suratMasuk = $disposisi->suratMasuk;
+        $suratKeluar = $disposisi->suratKeluar;
+
+        if (!$suratMasuk && !$suratKeluar) {
+            return;
+        }
+
+        $isSuratMasuk = (bool) $suratMasuk;
+        $surat = $isSuratMasuk ? $suratMasuk : $suratKeluar;
+        $jenisSurat = $isSuratMasuk ? 'masuk' : 'keluar';
         $title = 'Disposisi Baru';
-        $message = "Disposisi untuk surat {$disposisi->suratMasuk->nomor_surat} telah dibuat";
-        
+        $message = $isSuratMasuk
+            ? "Disposisi untuk surat masuk {$surat->nomor_surat} telah dibuat"
+            : "Disposisi untuk surat keluar {$surat->nomor_surat} telah dibuat";
+
+        $asalBagian = $isSuratMasuk
+            ? ($suratMasuk->tujuanBagian->nama_bagian ?? 'Tidak diketahui')
+            : ($suratKeluar->pengirimBagian->nama_bagian ?? 'Tidak diketahui');
+
         $data = [
             'disposisi_id' => $disposisi->id,
-            'surat_id' => $disposisi->surat_masuk_id,
-            'nomor_surat' => $disposisi->suratMasuk->nomor_surat,
-            'perihal' => $disposisi->suratMasuk->perihal,
-            'dari_bagian' => $disposisi->suratMasuk->tujuanBagian->nama_bagian ?? 'Tidak diketahui',
+            'surat_masuk_id' => $disposisi->surat_masuk_id,
+            'surat_keluar_id' => $disposisi->surat_keluar_id,
+            'jenis_surat' => $jenisSurat,
+            'nomor_surat' => $surat->nomor_surat,
+            'perihal' => $surat->perihal ?? '-',
+            'dari_bagian' => $asalBagian,
             'ke_bagian' => $disposisi->tujuanBagian->nama_bagian ?? 'Tidak diketahui',
             'tanggal_disposisi' => $disposisi->tanggal_disposisi,
             'bagian_id' => $disposisi->tujuan_bagian_id,
         ];
 
-        // Send to users in the target bagian
         if ($disposisi->tujuanBagian) {
             $this->sendToBagian($disposisi->tujuanBagian, 'disposisi', $title, $message, $data);
         }

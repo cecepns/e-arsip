@@ -15,6 +15,7 @@ class Disposisi extends Model
     protected $fillable = [
         'surat_masuk_id',
         'tujuan_bagian_id',
+        'surat_keluar_id',
         'isi_instruksi',
         'sifat',
         'catatan',
@@ -35,7 +36,7 @@ class Disposisi extends Model
     }
 
     /**
-     * Get the surat masuk that owns the disposisi.
+     * ANCHOR: Get the surat masuk that owns the disposisi.
      */
     public function suratMasuk()
     {
@@ -43,7 +44,15 @@ class Disposisi extends Model
     }
 
     /**
-     * Get the bagian that owns the disposisi.
+     * ANCHOR: Get the surat keluar that owns the disposisi.
+     */
+    public function suratKeluar()
+    {
+        return $this->belongsTo(SuratKeluar::class, 'surat_keluar_id');
+    }
+
+    /**
+     * ANCHOR: Get the bagian that owns the disposisi.
      */
     public function tujuanBagian()
     {
@@ -51,7 +60,7 @@ class Disposisi extends Model
     }
 
     /**
-     * Get the user that created the disposisi.
+     * ANCHOR: Get the user that created the disposisi.
      */
     public function user()
     {

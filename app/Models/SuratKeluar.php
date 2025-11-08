@@ -53,10 +53,18 @@ class SuratKeluar extends Model
     }
 
     /**
-     * Get the lampiran for the surat keluar.
+     * ANCHOR: Get the lampiran for the surat keluar.
      */
     public function lampiran()
     {
         return $this->hasMany(Lampiran::class, 'surat_id')->where('tipe_surat', 'keluar');
+    }
+
+    /**
+     * ANCHOR: Get the disposisi for the surat keluar.
+     */
+    public function disposisi()
+    {
+        return $this->hasMany(Disposisi::class, 'surat_keluar_id');
     }
 }

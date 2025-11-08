@@ -47,6 +47,15 @@
                             <option value="Selesai" {{ ($filters['status'] ?? '') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
                         </select>
                     </div>
+                    <!-- Jenis Surat -->
+                    <div class="col-md-3">
+                        <label for="jenis_surat" class="form-label">Jenis Surat</label>
+                        <select name="jenis_surat" class="form-select" id="jenis_surat">
+                            <option value="">Semua Jenis</option>
+                            <option value="masuk" {{ ($filters['jenis_surat'] ?? '') == 'masuk' ? 'selected' : '' }}>Surat Masuk</option>
+                            <option value="keluar" {{ ($filters['jenis_surat'] ?? '') == 'keluar' ? 'selected' : '' }}>Surat Keluar</option>
+                        </select>
+                    </div>
                     
                     @if(Auth::user()?->role === 'Admin')
                         <!-- Bagian Tujuan -->
@@ -98,7 +107,7 @@
     </div>
 </div>
 
-@if(isset($filters['status']) && $filters['status'] || isset($filters['bagian_id']) && $filters['bagian_id'] || isset($filters['tanggal']) && $filters['tanggal'] || isset($filters['sifat_surat']) && $filters['sifat_surat'])
+@if(isset($filters['status']) && $filters['status'] || isset($filters['bagian_id']) && $filters['bagian_id'] || isset($filters['tanggal']) && $filters['tanggal'] || isset($filters['sifat_surat']) && $filters['sifat_surat'] || isset($filters['jenis_surat']) && $filters['jenis_surat'])
  <div class="alert alert-info mb-3">
      <strong>Filter Aktif:</strong>
     @if(isset($filters['status']) && $filters['status'])
@@ -115,6 +124,9 @@
     @endif
     @if(isset($filters['tanggal']) && $filters['tanggal'])
         <span class="badge bg-success me-1">Tanggal: {{ \Carbon\Carbon::parse($filters['tanggal'])->format('d/m/Y') }}</span>
+    @endif
+    @if(isset($filters['jenis_surat']) && $filters['jenis_surat'])
+        <span class="badge bg-primary me-1">Jenis: {{ ucfirst($filters['jenis_surat']) }}</span>
     @endif
     <span class="ms-2">Ditemukan {{ $disposisi->total() }} disposisi</span>
 </div>
@@ -281,16 +293,51 @@
 
         // ANCHOR: Populate detail modal
         function populateDetailModal(disposisi) {
-            document.getElementById('detailNomorSurat').textContent = disposisi.surat_masuk?.nomor_surat || '-';
-            document.getElementById('detailTanggalSurat').textContent = disposisi.surat_masuk?.tanggal_surat ? 
-                new Date(disposisi.surat_masuk.tanggal_surat).toLocaleDateString('id-ID') : '-';
-            document.getElementById('detailPerihal').textContent = disposisi.surat_masuk?.perihal || '-';
-            document.getElementById('detailPengirim').textContent = disposisi.surat_masuk?.pengirim || '-';
-            document.getElementById('detailDisposisiDari').textContent = disposisi.surat_masuk?.tujuan_bagian?.kepala_bagian?.nama || 'Belum ditentukan';
-            document.getElementById('detailDisposisiDariBagian').textContent = disposisi.surat_masuk?.tujuan_bagian?.nama_bagian || '-';
+            const suratMasuk = disposisi.surat_masuk || null;
+            const suratKeluar = disposisi.surat_keluar || null;
+            const isSuratMasuk = Boolean(suratMasuk);
+
+            document.getElementById('detailNomorSurat').textContent = isSuratMasuk
+                ? (suratMasuk?.nomor_surat || '-')
+                : (suratKeluar?.nomor_surat || '-');
+
+            const jenisBadge = document.getElementById('detailJenisSurat');
+            if (jenisBadge) {
+                jenisBadge.textContent = isSuratMasuk ? 'Surat Masuk' : 'Surat Keluar';
+                jenisBadge.className = `badge ${isSuratMasuk ? 'bg-primary' : 'bg-info'}`;
+            }
+
+            document.getElementById('detailTanggalSurat').textContent = isSuratMasuk && suratMasuk?.tanggal_surat
+                ? new Date(suratMasuk.tanggal_surat).toLocaleDateString('id-ID')
+                : (suratKeluar?.tanggal_surat ? new Date(suratKeluar.tanggal_surat).toLocaleDateString('id-ID') : '-');
+
+            document.getElementById('detailPerihal').textContent = isSuratMasuk
+                ? (suratMasuk?.perihal || '-')
+                : (suratKeluar?.perihal || '-');
+
+            const ekstrenalLabelEl = document.getElementById('detailEksternalLabel');
+            const eksternalValueEl = document.getElementById('detailEksternalValue');
+            if (ekstrenalLabelEl && eksternalValueEl) {
+                if (isSuratMasuk) {
+                    ekstrenalLabelEl.textContent = 'Pengirim:';
+                    eksternalValueEl.textContent = suratMasuk?.pengirim || '-';
+                } else {
+                    ekstrenalLabelEl.textContent = 'Penerima:';
+                    eksternalValueEl.textContent = suratKeluar?.tujuan || '-';
+                }
+            }
+
+            const asalBagian = isSuratMasuk
+                ? suratMasuk?.tujuan_bagian
+                : suratKeluar?.pengirim_bagian;
+
+            document.getElementById('detailDisposisiDari').textContent = asalBagian?.kepala_bagian?.nama || 'Belum ditentukan';
+            document.getElementById('detailDisposisiDariBagian').textContent = asalBagian?.nama_bagian || '-';
             document.getElementById('detailDisposisiKepada').textContent = disposisi.tujuan_bagian?.kepala_bagian?.nama || 'Belum ditentukan';
             document.getElementById('detailDisposisiKepadaBagian').textContent = disposisi.tujuan_bagian?.nama_bagian || '-';
-            document.getElementById('detailSifatSurat').textContent = disposisi.surat_masuk?.sifat_surat || '-';
+            document.getElementById('detailSifatSurat').textContent = isSuratMasuk
+                ? (suratMasuk?.sifat_surat || '-')
+                : (suratKeluar?.sifat_surat || '-');
             document.getElementById('detailTanggalDisposisi').textContent = disposisi.tanggal_disposisi ? 
                 new Date(disposisi.tanggal_disposisi).toLocaleDateString('id-ID') : '-';
             document.getElementById('detailBatasWaktu').textContent = disposisi.batas_waktu ? 
@@ -312,7 +359,9 @@
             const userBagianId = @json(Auth::user()->bagian_id);
             
             const isDisposisiKeBagiannya = disposisi.tujuan_bagian_id === userBagianId;
-            const isDisposisiDariBagiannya = disposisi.surat_masuk?.tujuan_bagian_id === userBagianId;
+            const isDisposisiDariSuratMasuk = disposisi.surat_masuk?.tujuan_bagian_id === userBagianId;
+            const isDisposisiDariSuratKeluar = disposisi.surat_keluar?.pengirim_bagian_id === userBagianId;
+            const isDisposisiDariBagiannya = isDisposisiDariSuratMasuk || isDisposisiDariSuratKeluar;
             
             // ANCHOR: For Staff with disposisi "ke bagiannya", only allow status edit
             if (userRole === 'Staf' && isDisposisiKeBagiannya && !isDisposisiDariBagiannya) {
@@ -361,16 +410,42 @@
                 new Date(disposisi.batas_waktu).toISOString().split('T')[0] : '';
             
             // Populate surat masuk info (read-only)
-            if (disposisi.surat_masuk) {
-                document.getElementById('editNomorSurat').value = disposisi.surat_masuk.nomor_surat || '';
-                document.getElementById('editPerihal').value = disposisi.surat_masuk.perihal || '';
-                document.getElementById('editPengirim').value = disposisi.surat_masuk.pengirim || '';
-                document.getElementById('editSifatSurat').value = disposisi.surat_masuk.sifat_surat || '';
-                
-                // Populate disposisi dari info
-                document.getElementById('editDisposisiDari').textContent = disposisi.surat_masuk.tujuan_bagian?.kepala_bagian?.nama || 'Belum ditentukan';
-                document.getElementById('editDisposisiDariBagian').textContent = disposisi.surat_masuk.tujuan_bagian?.nama_bagian || '-';
+            const suratMasuk = disposisi.surat_masuk || null;
+            const suratKeluar = disposisi.surat_keluar || null;
+            const isSuratMasuk = Boolean(suratMasuk);
+
+            document.getElementById('editNomorSurat').value = isSuratMasuk
+                ? (suratMasuk?.nomor_surat || '')
+                : (suratKeluar?.nomor_surat || '');
+
+            document.getElementById('editJenisSurat').value = isSuratMasuk ? 'Surat Masuk' : 'Surat Keluar';
+
+            document.getElementById('editPerihal').value = isSuratMasuk
+                ? (suratMasuk?.perihal || '')
+                : (suratKeluar?.perihal || '');
+
+            const eksternalLabelEl = document.getElementById('editEksternalLabel');
+            const eksternalValueInput = document.getElementById('editEksternalValue');
+            if (eksternalLabelEl && eksternalValueInput) {
+                if (isSuratMasuk) {
+                    eksternalLabelEl.textContent = 'Pengirim';
+                    eksternalValueInput.value = suratMasuk?.pengirim || '';
+                } else {
+                    eksternalLabelEl.textContent = 'Penerima';
+                    eksternalValueInput.value = suratKeluar?.tujuan || '';
+                }
             }
+
+            document.getElementById('editSifatSurat').value = isSuratMasuk
+                ? (suratMasuk?.sifat_surat || '')
+                : (suratKeluar?.sifat_surat || '');
+
+            const asalBagian = isSuratMasuk
+                ? suratMasuk?.tujuan_bagian
+                : suratKeluar?.pengirim_bagian;
+
+            document.getElementById('editDisposisiDari').textContent = asalBagian?.kepala_bagian?.nama || 'Belum ditentukan';
+            document.getElementById('editDisposisiDariBagian').textContent = asalBagian?.nama_bagian || '-';
         }
 
         // ANCHOR: Handle edit form submission
