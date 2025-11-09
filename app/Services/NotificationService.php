@@ -63,7 +63,7 @@ class NotificationService
 
         $title = 'Surat Masuk Baru';
         $message = "Surat masuk dengan nomor {$suratMasuk->nomor_surat} telah ditambahkan";
-        
+
         $data = [
             'surat_id' => $suratMasuk->id,
             'nomor_surat' => $suratMasuk->nomor_surat,
@@ -74,20 +74,35 @@ class NotificationService
         ];
 
         $targetBagian = $suratMasuk->tujuanBagian ?? $suratMasuk->user?->bagian;
+        $initiator = $suratMasuk->user;
+        $initiatorRole = $initiator?->role;
+        $initiatorBagianId = $initiator?->bagian_id;
+        $isStaffInitiator = $initiatorRole === 'Staf';
+        $isAdminInitiator = $initiatorRole === 'Admin';
 
-        if ($targetBagian && !in_array($targetBagian->id, $excludeBagianIds, true)) {
+        $shouldNotifyBagian = $targetBagian
+            && !in_array($targetBagian->id, $excludeBagianIds, true)
+            && !($isStaffInitiator && $initiatorBagianId === $targetBagian->id);
+
+        if ($shouldNotifyBagian) {
             $this->sendToBagianMembersExceptUser(
                 $targetBagian,
-                $suratMasuk->user,
+                $initiator,
                 'surat_masuk',
                 $title,
                 $message,
                 $data,
-                true
+                !$isAdminInitiator
             );
         }
 
-        $this->sendToAdmins('surat_masuk', $title, $message, array_merge($data, ['bagian_id' => null]));
+        $this->sendToAdmins(
+            'surat_masuk',
+            $title,
+            $message,
+            array_merge($data, ['bagian_id' => null]),
+            $isAdminInitiator ? $initiator->id : null
+        );
     }
 
     /**
@@ -112,19 +127,35 @@ class NotificationService
 
         $pengirimBagian = $suratKeluar->pengirimBagian;
 
-        if ($pengirimBagian && !in_array($pengirimBagian->id, $excludeBagianIds, true)) {
+        $initiator = $suratKeluar->user;
+        $initiatorRole = $initiator?->role;
+        $initiatorBagianId = $initiator?->bagian_id;
+        $isStaffInitiator = $initiatorRole === 'Staf';
+        $isAdminInitiator = $initiatorRole === 'Admin';
+
+        $shouldNotifyBagian = $pengirimBagian
+            && !in_array($pengirimBagian->id, $excludeBagianIds, true)
+            && !($isStaffInitiator && $initiatorBagianId === $pengirimBagian->id);
+
+        if ($shouldNotifyBagian) {
             $this->sendToBagianMembersExceptUser(
                 $pengirimBagian,
-                $suratKeluar->user,
+                $initiator,
                 'surat_keluar',
                 $title,
                 $message,
                 $data,
-                true
+                !$isAdminInitiator
             );
         }
 
-        $this->sendToAdmins('surat_keluar', $title, $message, array_merge($data, ['bagian_id' => null]));
+        $this->sendToAdmins(
+            'surat_keluar',
+            $title,
+            $message,
+            array_merge($data, ['bagian_id' => null]),
+            $isAdminInitiator ? $initiator->id : null
+        );
     }
 
     /**
@@ -180,11 +211,15 @@ class NotificationService
      * ANCHOR: Send notification to admins only.
      * Ensure administrators always receive notifications regardless of bagian.
      */
-    private function sendToAdmins(string $type, string $title, string $message, array $data = []): void
+    private function sendToAdmins(string $type, string $title, string $message, array $data = [], ?int $excludedUserId = null): void
     {
         $admins = User::where('role', 'Admin')->get();
 
         foreach ($admins as $admin) {
+            if ($excludedUserId !== null && $admin->id === $excludedUserId) {
+                continue;
+            }
+
             $payload = $data;
             $payload['bagian_id'] = null;
 
