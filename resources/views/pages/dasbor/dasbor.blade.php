@@ -43,11 +43,13 @@
                 <button class="filter-btn dropdown-toggle" type="button" id="yearDropdown" data-bs-toggle="dropdown">
                     Tahun
                 </button>
+                @php
+                    $currentYear = now()->year;
+                @endphp
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#" data-year="2024">2024</a></li>
-                    <li><a class="dropdown-item" href="#" data-year="2023">2023</a></li>
-                    <li><a class="dropdown-item" href="#" data-year="2022">2022</a></li>
-                    <li><a class="dropdown-item" href="#" data-year="2021">2021</a></li>
+                    @for($year = $currentYear; $year > $currentYear - 5; $year--)
+                        <li><a class="dropdown-item" href="#" data-year="{{ $year }}">{{ $year }}</a></li>
+                    @endfor
                 </ul>
             </div>
         </div>
